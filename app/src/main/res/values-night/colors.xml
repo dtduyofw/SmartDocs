@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Màu chủ đạo Dark Mode -->
+    <color name="primary">#7986CB</color>
+    <color name="primary_dark">#1A1A2E</color>
+    <color name="primary_light">#3949AB</color>
+
+    <!-- Nền & Surface Dark Mode -->
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="header_bg">#1E1E1E</color>
+
+    <!-- Text Dark Mode -->
+    <color name="text_primary">#F3F4F6</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="text_hint">#6B7280</color>
+
+    <!-- Divider -->
+    <color name="divider">#2D3748</color>
+
+    <!-- Badge -->
+    <color name="badge_ai_bg">#283593</color>
+    <color name="badge_ai_text">#C5CAE9</color>
+    <color name="badge_offline_bg">#2A2A2A</color>
+    <color name="badge_offline_text">#A0A0A0</color>
+
+    <!-- Màu 2 card lớn Home Dark Mode -->
+    <color name="card_gallery">#3949AB</color>
+    <color name="card_camera">#2E7D32</color>
+
+    <!-- Status badge Dark Mode -->
+    <color name="status_badge_green">#66BB6A</color>
+    <color name="status_badge_blue">#64B5F6</color>
+
+    <!-- Export format cards Dark Mode -->
+    <color name="export_word_bg">#1E2440</color>
+    <color name="export_word_tint">#90CAF9</color>
+    <color name="export_pdf_bg">#3D1E1E</color>
+    <color name="export_pdf_tint">#EF9A9A</color>
+    <color name="export_excel_bg">#1E3822</color>
+    <color name="export_excel_tint">#A5D6A7</color>
+    <color name="export_text_bg">#2D3748</color>
+    <color name="export_text_tint">#E0E0E0</color>
+</resources>

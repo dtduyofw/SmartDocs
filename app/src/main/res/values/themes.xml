@@ -1,0 +1,33 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme — Material3 DayNight, không có ActionBar mặc định -->
+    <style name="Base.Theme.SmartDocs" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Màu chủ đạo — Indigo -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorSecondary">@color/accent_green</item>
+        <item name="colorSecondaryVariant">@color/accent_green_dark</item>
+        <!-- Text trên Primary color -->
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Status bar màu Indigo -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <!-- Background toàn app -->
+        <item name="android:colorBackground">@color/background</item>
+        <!-- Surface, text, outline cho Material3 -->
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOutline">@color/divider</item>
+        <!-- Animation chuyển màn hình — slide từ phải, áp dụng cho cả nút Back vật lý -->
+        <item name="android:windowAnimationStyle">@style/AppActivityAnimation</item>
+    </style>
+
+    <!-- Animation style: slide từ phải khi mở, slide ra trái khi đóng -->
+    <style name="AppActivityAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <style name="Theme.SmartDocs" parent="Base.Theme.SmartDocs" />
+
+</resources>

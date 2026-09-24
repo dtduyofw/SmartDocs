@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">SmartDocs</string>
+
+    <!-- Home screen -->
+    <string name="greeting">Xin chào!</string>
+    <string name="tagline">Quét. Trích xuất. Chỉnh sửa. Xuất file.</string>
+    <string name="btn_gallery">Thư viện</string>
+    <string name="btn_gallery_sub">Tải ảnh lên</string>
+    <string name="btn_camera">Camera</string>
+    <string name="btn_camera_sub">Chụp ảnh</string>
+    <string name="label_recent">Tài liệu gần đây</string>
+    <string name="label_view_all">Xem tất cả</string>
+    <string name="label_no_recent">Chưa có tài liệu nào.\nBắt đầu quét tài liệu đầu tiên!</string>
+
+    <!-- Toggle mode -->
+    <string name="mode_offline">Offline</string>
+    <string name="mode_ai">AI</string>
+
+    <!-- Bottom Navigation — 4 tab -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_files">Tệp tin</string>
+    <string name="nav_history">Lịch sử</string>
+    <string name="nav_settings">Cài đặt</string>
+
+    <!-- History screen -->
+    <string name="title_history">Lịch sử quét</string>
+    <string name="hint_search">Tìm kiếm tài liệu...</string>
+
+    <!-- Document Preview screen -->
+    <string name="title_document_preview">Xem tài liệu</string>
+    <string name="tab_original">Ảnh gốc</string>
+    <string name="tab_extracted">Văn bản</string>
+
+    <!-- Image Preview screen -->
+    <string name="title_image_preview">Xem trước ảnh</string>
+</resources>
