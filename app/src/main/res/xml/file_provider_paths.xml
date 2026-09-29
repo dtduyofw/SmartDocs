@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Cấu hình đường dẫn được phép chia sẻ qua FileProvider.
+    external-files-path: thư mục riêng của app trong external storage
+    (không cần quyền WRITE_EXTERNAL_STORAGE trên Android 10+).
+
+    Ảnh chụp từ Camera sẽ được lưu tạm tại:
+    Android/data/com.example.smartdocs/files/Pictures/
+
+    File PDF xuất ra sẽ lưu tại:
+    Android/data/com.example.smartdocs/files/Download/SmartDocs/
+-->
+<paths>
+    <external-files-path
+        name="camera_photos"
+        path="Pictures/" />
+
+    <!-- Thư mục lưu file PDF xuất ra — cần khai báo để FileProvider share được -->
+    <external-files-path
+        name="pdf_exports"
+        path="Download/SmartDocs/" />
+
+    <!-- Thư mục lưu ảnh crop tạm của ImagePreviewActivity -->
+    <cache-path
+        name="cropped_images"
+        path="cropped/" />
+</paths>

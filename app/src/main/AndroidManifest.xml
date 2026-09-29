@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Quyền truy cập Internet-->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Quyền Camera-->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Quyền đọc ảnh từ thư viện-->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Quyền đọc bộ nhớ-->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Khai báo yêu cầu Camera-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <application
+        android:name=".SmartDocsApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SmartDocs">
+        <!-- MainActivity: Màn hình chính chụp ảnh và scan -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- DocumentPreviewActivity: màn hình xem chi tiết tài liệu đã trích xuất -->
+        <activity
+            android:name=".ui.DocumentPreviewActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity" />
+        <!-- ImagePreviewActivity: màn hình xem ảnh và crop trước khi OCR -->
+        <activity
+            android:name=".ui.ImagePreviewActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity" />
+        <!--
+            FileProvider: bắt buộc cho Android 7+ khi truyền URI ảnh Camera
+            cho Intent chụp ảnh (ACTION_IMAGE_CAPTURE).
+            authorities phải khớp với giá trị dùng trong code Java.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+    </application>
+</manifest>
