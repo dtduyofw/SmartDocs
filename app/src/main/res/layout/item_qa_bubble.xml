@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    item_qa_bubble.xml — Layout cho mỗi dòng chat trong Q&A
+    Dùng ViewFlipper để switch giữa bubble người dùng và bubble AI.
+    Không dùng 2 layout riêng để đơn giản hóa Adapter.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="4dp">
+
+    <!-- Bubble tin nhắn người dùng (góc phải) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginStart="48dp"
+        android:layout_marginBottom="2dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/primary"
+        app:cardElevation="1dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/txtUserMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Bubble tin nhắn AI Gemini (góc trái) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardAi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="2dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/background"
+        app:strokeColor="@color/divider"
+        app:strokeWidth="1dp"
+        app:cardElevation="1dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <!-- Label "Gemini" nhỏ phía trên -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gemini"
+                android:textSize="10sp"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/txtAiMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:lineSpacingExtra="2dp"
+                android:textIsSelectable="true" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>
