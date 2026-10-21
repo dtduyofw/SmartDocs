@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="44dp"
+    android:viewportWidth="44"
+    android:viewportHeight="44">
+
+    <!-- Nền bo góc màu xanh lá nhạt -->
+    <path
+        android:fillColor="#E8F5E9"
+        android:pathData="M6,0 H38 A6,6 0 0 1 44,6 V38 A6,6 0 0 1 38,44 H6 A6,6 0 0 1 0,38 V6 A6,6 0 0 1 6,0 Z" />
+
+    <!-- Hình file màu xanh lá đậm -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M12,8 H27 L36,17 V38 A2,2 0 0 1 34,40 H12 A2,2 0 0 1 10,38 V10 A2,2 0 0 1 12,8 Z" />
+
+    <!-- Góc gập trang -->
+    <path
+        android:fillColor="#A5D6A7"
+        android:pathData="M27,8 L36,17 H29 A2,2 0 0 1 27,15 Z" />
+
+    <!-- Bảng lưới (grid) trắng -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M15,22 H29 V24 H15 Z M15,26 H29 V28 H15 Z M15,30 H29 V32 H15 Z M21,20 V34 H23 V20 Z" />
+</vector>

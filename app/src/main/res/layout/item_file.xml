@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout item cho màn hình Files.
+    Hiển thị: checkbox multi-select, icon loại file, tên file, ngày, kích thước, star, menu
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Checkbox multi-select (ẩn mặc định) -->
+    <CheckBox
+        android:id="@+id/checkboxFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginEnd="8dp"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <!-- Icon loại file (PDF / DOCX / XLSX / TXT) -->
+    <ImageView
+        android:id="@+id/imgFileIcon"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/ic_docx"
+        android:layout_marginEnd="14dp"
+        android:scaleType="centerInside" />
+
+    <!-- Nội dung: tên + ngày + kích thước -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtFileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/txtFileInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/text_hint"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- Nút yêu thích -->
+    <ImageView
+        android:id="@+id/imgFileStar"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_star_off"
+        android:alpha="0.4"
+        android:padding="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_marginStart="8dp" />
+
+    <!-- Nút menu ⋮ -->
+    <ImageView
+        android:id="@+id/imgFileMenu"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_more_vert"
+        android:alpha="0.5"
+        android:padding="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_marginStart="4dp" />
+
+</LinearLayout>

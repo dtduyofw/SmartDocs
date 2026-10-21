@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icon DOCX — nền xanh, chữ DOC trắng -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="44dp"
+    android:viewportWidth="44"
+    android:viewportHeight="44">
+
+    <!-- Nền bo góc màu xanh nhạt -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M6,0 H38 A6,6 0 0 1 44,6 V38 A6,6 0 0 1 38,44 H6 A6,6 0 0 1 0,38 V6 A6,6 0 0 1 6,0 Z" />
+
+    <!-- Hình file (trang giấy) màu xanh đậm -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M12,8 H27 L36,17 V38 A2,2 0 0 1 34,40 H12 A2,2 0 0 1 10,38 V10 A2,2 0 0 1 12,8 Z" />
+
+    <!-- Góc gập trang xanh nhạt -->
+    <path
+        android:fillColor="#90CAF9"
+        android:pathData="M27,8 L36,17 H29 A2,2 0 0 1 27,15 Z" />
+
+    <!-- Dòng chữ trang (lines) màu trắng mờ -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M14,21 H30 V22.5 H14 Z" />
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M14,24 H30 V25.5 H14 Z" />
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M14,27 H24 V28.5 H14 Z" />
+
+    <!-- Label "W" (Word) trắng ở giữa -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,31 L19,36 L21,33 L23,36 L25,31 H23.5 L21,35 L18.5,31 Z" />
+</vector>
