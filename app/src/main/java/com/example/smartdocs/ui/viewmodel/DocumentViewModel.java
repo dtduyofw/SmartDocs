@@ -147,7 +147,7 @@ public class DocumentViewModel extends AndroidViewModel {
      * Dùng Gemini sửa lỗi OCR rồi tự động lưu vào database và phát tín hiệu mở preview.
      */
     public void ocrSuaLoiVaLuu(String textThoMlKit) {
-        loadingStatusText.setValue("✍️ Gemini đang sửa lỗi OCR & lưu vào lịch sử...");
+        loadingStatusText.setValue("Đang quét văn bản...");
         isLoading.setValue(true);
 
         GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {

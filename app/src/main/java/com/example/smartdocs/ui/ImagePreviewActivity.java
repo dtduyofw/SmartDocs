@@ -173,13 +173,13 @@ public class ImagePreviewActivity extends AppCompatActivity {
                                 uriDaCrop = uriCropped;
                                 imgPreviewCrop.setImageBitmap(bitmapCropped);
                                 Toast.makeText(ImagePreviewActivity.this,
-                                        "Auto Crop thành công!", Toast.LENGTH_SHORT).show();
+                                        "Tự động cắt thành công!", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(ImagePreviewActivity.this,
                                         "Không thể crop ảnh.", Toast.LENGTH_SHORT).show();
                             }
                             btnAutoCrop.setEnabled(true);
-                            btnAutoCrop.setText("Auto Crop");
+                            btnAutoCrop.setText("Tự động cắt");
                         }
                     });
                 } catch (Exception e) {
@@ -189,7 +189,7 @@ public class ImagePreviewActivity extends AppCompatActivity {
                             Toast.makeText(ImagePreviewActivity.this,
                                     "Lỗi crop: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             btnAutoCrop.setEnabled(true);
-                            btnAutoCrop.setText("Auto Crop");
+                            btnAutoCrop.setText("Tự động cắt");
                         }
                     });
                 }

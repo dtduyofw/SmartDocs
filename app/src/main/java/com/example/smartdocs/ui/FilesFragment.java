@@ -180,7 +180,6 @@ public class FilesFragment extends Fragment {
                 ImageView imgIcon = (ImageView) convertView.findViewById(R.id.imgFileIcon);
                 TextView txtTen = (TextView) convertView.findViewById(R.id.txtFileName);
                 TextView txtInfo = (TextView) convertView.findViewById(R.id.txtFileInfo);
-                ImageView imgStar = (ImageView) convertView.findViewById(R.id.imgFileStar);
                 ImageView imgMenu = (ImageView) convertView.findViewById(R.id.imgFileMenu);
                 CheckBox checkbox = (CheckBox) convertView.findViewById(R.id.checkboxFile);
 
@@ -208,65 +207,9 @@ public class FilesFragment extends Fragment {
                     imgIcon.setImageResource(R.drawable.ic_folder);
                     imgIcon.setColorFilter(null);
                 }
-
-                boolean isFav = favoritePaths.contains(file.getAbsolutePath());
-                imgStar.setImageResource(isFav
-                        ? R.drawable.ic_star_on
-                        : R.drawable.ic_star_off);
-                imgStar.setAlpha(isFav ? 1.0f : 0.4f);
-
-                checkbox.setVisibility(dangChonNhieu ? View.VISIBLE : View.GONE);
-                checkbox.setChecked(selectedPaths.contains(file.getAbsolutePath()));
-
                 convertView.setBackgroundColor(
                         selectedPaths.contains(file.getAbsolutePath())
                                 ? 0x220D6EDF : 0x00000000);
-
-                final File fileFinal = file;
-                final ImageView imgStarFinal = imgStar;
-                imgStar.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String path = fileFinal.getAbsolutePath();
-                        if (favoritePaths.contains(path)) {
-                            favoritePaths.remove(path);
-                            imgStarFinal.setImageResource(R.drawable.ic_star_off);
-                            imgStarFinal.setAlpha(0.4f);
-                            Toast.makeText(requireContext(), "Đã bỏ yêu thích", Toast.LENGTH_SHORT).show();
-                            // Xóa khỏi Room trên background thread
-                            executorFiles.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    savedFileDao.deleteByPath(path);
-                                }
-                            });
-                        } else {
-                            favoritePaths.add(path);
-                            imgStarFinal.setImageResource(R.drawable.ic_star_on);
-                            imgStarFinal.setAlpha(1.0f);
-                            Toast.makeText(requireContext(), "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
-                            // Lưu vào Room trên background thread
-                            String tenFile = fileFinal.getName();
-                            String duoiFile = layDuoiFile(tenFile);
-                            executorFiles.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    SavedFile sf = new SavedFile(path, tenFile, duoiFile, System.currentTimeMillis());
-                                    savedFileDao.insert(sf);
-                                }
-                            });
-                        }
-                    }
-                });
-
-                imgMenu.setVisibility(dangChonNhieu ? View.GONE : View.VISIBLE);
-                imgMenu.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        hienMenuFile(fileFinal);
-                    }
-                });
-
                 return convertView;
             }
         };

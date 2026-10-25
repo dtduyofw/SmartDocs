@@ -618,7 +618,7 @@ public class HomeFragment extends Fragment {
         TextView txtTitle = (TextView) itemView.findViewById(R.id.txtItemTitle);
         TextView txtPreview = (TextView) itemView.findViewById(R.id.txtItemOcrPreview);
         TextView txtDate = (TextView) itemView.findViewById(R.id.txtItemDate);
-        ImageView imgStar = (ImageView) itemView.findViewById(R.id.imgStar);
+        //ImageView imgStar = (ImageView) itemView.findViewById(R.id.imgStar);
         ImageView imgMenu = (ImageView) itemView.findViewById(R.id.imgMenu);
         com.google.android.material.chip.Chip chipAi = (com.google.android.material.chip.Chip) itemView.findViewById(R.id.chipAi);
 
@@ -640,24 +640,6 @@ public class HomeFragment extends Fragment {
                 .format(new Date(doc.createdAt));
         String soTrang = doc.pageCount + " trang";
         txtDate.setText(ngay + " • " + soTrang);
-
-        if (doc.isFavorite == 1) {
-            imgStar.setImageResource(R.drawable.ic_star_on);
-            imgStar.setAlpha(1.0f);
-        } else {
-            imgStar.setImageResource(R.drawable.ic_star_off);
-            imgStar.setAlpha(0.4f);
-        }
-
-        imgStar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewModel.toggleFavorite(doc);
-                String msg = (doc.isFavorite == 0) ? "Đã thêm vào yêu thích" : "Đã bỏ yêu thích";
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-
         imgMenu.setVisibility(View.GONE);
 
         itemView.setOnClickListener(new View.OnClickListener() {

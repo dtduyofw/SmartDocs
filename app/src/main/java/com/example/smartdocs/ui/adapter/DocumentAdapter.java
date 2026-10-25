@@ -120,7 +120,6 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
             txtItemDate     = (TextView) itemView.findViewById(R.id.txtItemDate);
             chipAi          = (Chip) itemView.findViewById(R.id.chipAi);
             cardItemIcon    = itemView.findViewById(R.id.cardItemIcon);
-            imgStar         = (android.widget.ImageView) itemView.findViewById(R.id.imgStar);
             imgMenu         = (android.widget.ImageView) itemView.findViewById(R.id.imgMenu);
         }
 
