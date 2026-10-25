@@ -34,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Document Preview"
+            android:text="Xem tài liệu"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -61,7 +61,7 @@
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"
-            android:text="Original"
+            android:text="Ảnh gốc"
             android:textSize="14sp"
             android:gravity="center"
             android:textColor="@color/text_hint"
@@ -75,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"
-            android:text="Extracted"
+            android:text="Văn bản"
             android:textSize="14sp"
             android:gravity="center"
             android:textColor="@color/white"
@@ -90,7 +90,7 @@
         android:id="@+id/txtStatusBadge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DOCUMENT EXTRACTED"
+        android:text="DA TRICH XUAT"
         android:textSize="11sp"
         android:textStyle="bold"
         android:textColor="@color/status_badge_green"
@@ -149,12 +149,62 @@
                 app:strokeWidth="1dp"
                 app:strokeColor="@color/divider">
 
-                <ImageView
-                    android:id="@+id/imgOriginal"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter" />
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/imgOriginal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter" />
+
+                    <!-- Thanh chuyen trang neu tai lieu co nhieu trang -->
+                    <LinearLayout
+                        android:id="@+id/layoutDieuHuongTrang"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="#F8FAFC"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTrangTruoc"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Trang trước"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/txtChiSoTrang"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginEnd="16dp"
+                            android:text="Trang 1 / 1"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTrangSau"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Trang sau"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -514,7 +564,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit"
+                android:text="Sửa"
                 android:textSize="11sp"
                 android:textColor="@color/primary"
                 android:layout_marginTop="2dp" />
@@ -541,7 +591,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New"
+                android:text="Mới"
                 android:textSize="11sp"
                 android:textColor="@color/primary"
                 android:layout_marginTop="2dp" />
@@ -568,7 +618,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Share"
+                android:text="Chia sẻ"
                 android:textSize="11sp"
                 android:textColor="@color/primary"
                 android:layout_marginTop="2dp" />
@@ -595,7 +645,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Export"
+                android:text="Xuất"
                 android:textSize="11sp"
                 android:textColor="@color/primary"
                 android:layout_marginTop="2dp" />
@@ -619,7 +669,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Export As"
+            android:text="Xuất dạng"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"

@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Image Preview"
+            android:text="Xem ảnh"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/primary" />
@@ -29,7 +29,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Review and adjust your image before continuing."
+            android:text="Xem lại và điều chỉnh ảnh trước khi tiếp tục."
             android:textSize="13sp"
             android:textColor="@color/text_hint"
             android:layout_marginTop="4dp"
@@ -58,7 +58,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Adjust Crop"
+                android:text="Điều chỉnh vùng cắt"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
@@ -66,7 +66,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Drag corners to resize"
+                android:text="Kéo góc để thay đổi vùng cắt"
                 android:textSize="12sp"
                 android:textColor="@color/text_hint"
                 android:layout_marginTop="2dp" />
@@ -78,7 +78,7 @@
             android:id="@+id/btnAutoCrop"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:text="Auto Crop"
+            android:text="Tự động cắt"
             android:textSize="13sp"
             app:icon="@drawable/ic_crop"
             app:iconGravity="textStart"
@@ -189,7 +189,7 @@
             android:layout_height="52dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Retake"
+            android:text="Chụp lại"
             android:textSize="15sp"
             app:cornerRadius="26dp"
             app:iconGravity="textStart" />

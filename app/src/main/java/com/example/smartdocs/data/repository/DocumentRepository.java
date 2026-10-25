@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData;
 
 import com.example.smartdocs.data.dao.AppDatabase;
 import com.example.smartdocs.data.dao.DocumentDao;
+import com.example.smartdocs.data.dao.DocumentPageDao;
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.concurrent.Executors;
 public class DocumentRepository {
 
     DocumentDao documentDao;
+    DocumentPageDao documentPageDao;
 
     // ExecutorService chạy các tác vụ DB trên background thread
     // Room cấm chạy write operations trên main thread
@@ -27,6 +30,7 @@ public class DocumentRepository {
     public DocumentRepository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
         documentDao = db.documentDao();
+        documentPageDao = db.documentPageDao();
         // Single thread để tránh race condition khi ghi DB
         executor = Executors.newSingleThreadExecutor();
     }
@@ -80,6 +84,41 @@ public class DocumentRepository {
                 android.os.Handler mainHandler =
                         new android.os.Handler(android.os.Looper.getMainLooper());
                 mainHandler.post(() -> callback.onComplete(newId));
+            }
+        });
+    }
+
+    // Luu tai lieu cung toan bo danh sach trang con vao DB
+    public void insertDocumentWithPages(ScanDocument document, List<DocumentPage> pages, OnInsertCompleteCallback callback) {
+        executor.execute(() -> {
+            long newId = documentDao.insert(document);
+            if (pages != null && !pages.isEmpty()) {
+                for (DocumentPage p : pages) {
+                    p.documentId = (int) newId;
+                }
+                documentPageDao.insertAll(pages);
+            }
+            if (callback != null) {
+                android.os.Handler mainHandler =
+                        new android.os.Handler(android.os.Looper.getMainLooper());
+                mainHandler.post(() -> callback.onComplete(newId));
+            }
+        });
+    }
+
+    // Callback khi load xong danh sach trang con
+    public interface OnPagesLoadedCallback {
+        void onLoaded(List<DocumentPage> pages);
+    }
+
+    // Lay danh sach cac trang theo id tai lieu
+    public void getPagesByDocumentId(int documentId, OnPagesLoadedCallback callback) {
+        executor.execute(() -> {
+            List<DocumentPage> pages = documentPageDao.getPagesByDocumentId(documentId);
+            if (callback != null) {
+                android.os.Handler mainHandler =
+                        new android.os.Handler(android.os.Looper.getMainLooper());
+                mainHandler.post(() -> callback.onLoaded(pages));
             }
         });
     }

@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.dao.AppDatabase;
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.QaHistory;
 import com.example.smartdocs.data.model.QaPair;
 import com.example.smartdocs.data.model.ScanDocument;
@@ -68,6 +69,11 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     ImageView imgOriginal;
     MaterialCardView cardExtractedText, cardOriginalImage;
 
+    // Dieu huong trang cho tai lieu nhieu trang
+    LinearLayout layoutDieuHuongTrang;
+    MaterialButton btnTrangTruoc, btnTrangSau;
+    TextView txtChiSoTrang;
+
     // AI Views
     LinearLayout layoutAiSection, layoutAiLoading;
     TextView txtAiLoading;
@@ -97,6 +103,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // Data
     // ─────────────────────────────────────────
     ScanDocument document;
+    List<DocumentPage> danhSachPages;
+    int viTriTrangHienTai = 0;
     boolean dangHienExtracted = true; // Tab đang active
 
     @Override
@@ -156,6 +164,10 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         imgOriginal = (ImageView) findViewById(R.id.imgOriginal);
         cardExtractedText = (MaterialCardView) findViewById(R.id.cardExtractedText);
         cardOriginalImage = (MaterialCardView) findViewById(R.id.cardOriginalImage);
+        layoutDieuHuongTrang = (LinearLayout) findViewById(R.id.layoutDieuHuongTrang);
+        btnTrangTruoc = (MaterialButton) findViewById(R.id.btnTrangTruoc);
+        btnTrangSau = (MaterialButton) findViewById(R.id.btnTrangSau);
+        txtChiSoTrang = (TextView) findViewById(R.id.txtChiSoTrang);
 
         // Ánh xạ AI Views
         layoutAiSection = (LinearLayout) findViewById(R.id.layoutAiSection);
@@ -206,6 +218,9 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         // Tab Extracted mặc định
         hienTabExtracted();
 
+        // Tai danh sach cac trang neu co
+        taiDanhSachTrang();
+
         // Badge status
         boolean coAi = document.aiSummary != null && !document.aiSummary.trim().isEmpty();
         if (coAi) {
@@ -221,6 +236,21 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     }
 
     void ganSuKien() {
+        // Nut chuyen trang truoc / sau
+        btnTrangTruoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                capNhatHienThiTrang(viTriTrangHienTai - 1);
+            }
+        });
+
+        btnTrangSau.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                capNhatHienThiTrang(viTriTrangHienTai + 1);
+            }
+        });
+
         // ── Nút Back ──────────────────────────────────────
         imgBackPreview.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -471,9 +501,65 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         }
 
         // Load ảnh gốc
-        if (document != null && document.imageUri != null && !document.imageUri.isEmpty()) {
+        if (danhSachPages != null && danhSachPages.size() > 1) {
+            layoutDieuHuongTrang.setVisibility(View.VISIBLE);
+            capNhatHienThiTrang(viTriTrangHienTai);
+        } else {
+            layoutDieuHuongTrang.setVisibility(View.GONE);
+            if (document != null && document.imageUri != null && !document.imageUri.isEmpty()) {
+                hienThiAnhTrang(document.imageUri);
+            } else {
+                imgOriginal.setImageResource(R.drawable.ic_gallery);
+            }
+        }
+    }
+
+    // Tai danh sach cac trang cua tai lieu tu co so du lieu
+    void taiDanhSachTrang() {
+        if (document == null || document.id <= 0) return;
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                List<DocumentPage> pages = AppDatabase.getInstance(DocumentPreviewActivity.this)
+                        .documentPageDao().getPagesByDocumentId(document.id);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        danhSachPages = pages;
+                        if (danhSachPages != null && danhSachPages.size() > 1) {
+                            if (!dangHienExtracted) {
+                                layoutDieuHuongTrang.setVisibility(View.VISIBLE);
+                            }
+                            capNhatHienThiTrang(0);
+                        } else {
+                            layoutDieuHuongTrang.setVisibility(View.GONE);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Cap nhat vi tri trang dang xem va hien thi anh tuong ung
+    void capNhatHienThiTrang(int viTri) {
+        if (danhSachPages == null || danhSachPages.isEmpty()) return;
+        if (viTri < 0) viTri = 0;
+        if (viTri >= danhSachPages.size()) viTri = danhSachPages.size() - 1;
+        viTriTrangHienTai = viTri;
+
+        txtChiSoTrang.setText("Trang " + (viTriTrangHienTai + 1) + " / " + danhSachPages.size());
+        btnTrangTruoc.setEnabled(viTriTrangHienTai > 0);
+        btnTrangSau.setEnabled(viTriTrangHienTai < danhSachPages.size() - 1);
+
+        DocumentPage page = danhSachPages.get(viTriTrangHienTai);
+        hienThiAnhTrang(page.imageUri);
+    }
+
+    // Load va hien thi anh bitmap tu duong dan uri
+    void hienThiAnhTrang(String uriString) {
+        if (uriString != null && !uriString.isEmpty()) {
             try {
-                Uri uri = Uri.parse(document.imageUri);
+                Uri uri = Uri.parse(uriString);
                 android.graphics.Bitmap bitmap = com.example.smartdocs.ocr.BitmapUtils.layBitmapTuUri(this, uri);
                 if (bitmap != null) {
                     bitmap = com.example.smartdocs.ocr.BitmapUtils.xoayTheoExif(this, uri, bitmap);

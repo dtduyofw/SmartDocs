@@ -1,5 +1,16 @@
 package com.example.smartdocs.ui;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.view.HapticFeedbackConstants;
+import androidx.transition.AutoTransition;
+import androidx.transition.TransitionManager;
+
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,7 +31,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,10 +42,14 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartdocs.R;
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.ocr.OcrManager;
+import com.example.smartdocs.ui.adapter.SelectedImageAdapter;
 import com.example.smartdocs.ui.viewmodel.DocumentViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -51,6 +68,7 @@ public class HomeFragment extends Fragment {
     // Views — ánh xạ từ fragment_home.xml
     TextView txtGreeting;
     MaterialButton btnModeOffline, btnModeAi;
+    LinearLayout layoutHomeContent;
 
     // AI Limit bar
     MaterialCardView cardAiLimit;
@@ -59,6 +77,7 @@ public class HomeFragment extends Fragment {
 
     // Trạng thái mode: true = AI mode, false = Offline mode
     boolean isAiMode = true;
+    boolean isModeKhoiTao = false;
 
     // 2 card lớn Home
     MaterialCardView cardGallery, cardCamera;
@@ -75,9 +94,8 @@ public class HomeFragment extends Fragment {
 
     // Recent Documents
     LinearLayout layoutNoRecent;
-    ListView lvRecent;
+    LinearLayout layoutRecentList;
     TextView txtXemTatCa;
-    ArrayAdapter<ScanDocument> adapterRecent;
     List<ScanDocument> listRecentDocs;
 
     // ViewModel
@@ -85,9 +103,8 @@ public class HomeFragment extends Fragment {
 
     // Launchers
     ActivityResultLauncher<Uri> cameraLauncher;
-    ActivityResultLauncher<String> galleryLauncher;
+    ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher;
     ActivityResultLauncher<String> cameraPermissionLauncher;
-    ActivityResultLauncher<String> storagePermissionLauncher;
     ActivityResultLauncher<Intent> imagePreviewLauncher;
 
     Uri cameraImageUri;
@@ -128,6 +145,7 @@ public class HomeFragment extends Fragment {
         txtGreeting = (TextView) view.findViewById(R.id.txtGreeting);
         btnModeOffline = (MaterialButton) view.findViewById(R.id.btnModeOffline);
         btnModeAi = (MaterialButton) view.findViewById(R.id.btnModeAi);
+        layoutHomeContent = (LinearLayout) view.findViewById(R.id.layoutHomeContent);
 
         cardAiLimit = (MaterialCardView) view.findViewById(R.id.cardAiLimit);
         txtAiLimit = (TextView) view.findViewById(R.id.txtAiLimit);
@@ -146,7 +164,7 @@ public class HomeFragment extends Fragment {
         txtLoadingStatus = (TextView) view.findViewById(R.id.txtLoadingStatus);
 
         layoutNoRecent = (LinearLayout) view.findViewById(R.id.layoutNoRecent);
-        lvRecent = (ListView) view.findViewById(R.id.lvRecent);
+        layoutRecentList = (LinearLayout) view.findViewById(R.id.layoutRecentList);
         txtXemTatCa = (TextView) view.findViewById(R.id.txtXemTatCa);
     }
 
@@ -163,17 +181,19 @@ public class HomeFragment extends Fragment {
         );
 
         galleryLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                    if (uri != null) {
-                        try {
-                            requireContext().getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        } catch (SecurityException e) {
-                            // Ignored if provider doesn't support it
+                new ActivityResultContracts.PickMultipleVisualMedia(),
+                new ActivityResultCallback<java.util.List<Uri>>() {
+                    @Override
+                    public void onActivityResult(java.util.List<Uri> uris) {
+                        if (uris != null && !uris.isEmpty()) {
+                            if (uris.size() == 1) {
+                                moImagePreview(uris.get(0));
+                            } else {
+                                hienDialogDanhSachAnh(uris);
+                            }
+                        } else {
+                            hienThongBao("Không có ảnh nào được chọn.");
                         }
-                        moImagePreview(uri);
-                    } else {
-                        hienThongBao("Không có ảnh nào được chọn.");
                     }
                 }
         );
@@ -185,17 +205,6 @@ public class HomeFragment extends Fragment {
                         moCamera();
                     } else {
                         hienThongBao("Cần cấp quyền Camera để chụp ảnh.");
-                    }
-                }
-        );
-
-        storagePermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                granted -> {
-                    if (granted) {
-                        galleryLauncher.launch("image/*");
-                    } else {
-                        hienThongBao("Cần cấp quyền truy cập ảnh để chọn từ thư viện.");
                     }
                 }
         );
@@ -252,19 +261,25 @@ public class HomeFragment extends Fragment {
     }
 
     void ganSuKien() {
-        capNhatAiMode(true);
+        // Đọc chế độ đã lưu gần nhất (mặc định là AI nếu chưa lưu)
+        SharedPreferences prefs = requireContext().getSharedPreferences(
+                SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        boolean cheDoLuu = prefs.getBoolean("is_ai_mode", true);
+        capNhatAiMode(cheDoLuu, false);
 
         btnModeAi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                capNhatAiMode(true);
+                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                capNhatAiMode(true, true);
             }
         });
 
         btnModeOffline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                capNhatAiMode(false);
+                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                capNhatAiMode(false, true);
             }
         });
 
@@ -331,19 +346,10 @@ public class HomeFragment extends Fragment {
     }
 
     void kiemTraQuyenGallery() {
-        String permission;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permission = Manifest.permission.READ_MEDIA_IMAGES;
-        } else {
-            permission = Manifest.permission.READ_EXTERNAL_STORAGE;
-        }
-
-        if (ContextCompat.checkSelfPermission(requireContext(), permission)
-                == PackageManager.PERMISSION_GRANTED) {
-            galleryLauncher.launch("image/*");
-        } else {
-            storagePermissionLauncher.launch(permission);
-        }
+        // Photo Picker API không cần xin quyền, hệ thống tự xử lý
+        galleryLauncher.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
     }
 
     void moCamera() {
@@ -372,6 +378,155 @@ public class HomeFragment extends Fragment {
         Intent intent = new Intent(requireContext(), ImagePreviewActivity.class);
         intent.putExtra(ImagePreviewActivity.KEY_IMAGE_URI, uri);
         imagePreviewLauncher.launch(intent);
+    }
+
+    // Hien thi hop thoai danh sach cac trang anh da chon truoc khi quet
+    void hienDialogDanhSachAnh(java.util.List<Uri> uris) {
+        if (uris == null || uris.isEmpty() || getContext() == null) {
+            return;
+        }
+
+        ArrayList<Uri> danhSachChon = new ArrayList<>(uris);
+
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_danh_sach_anh_quet, null);
+        TextView txtTieuDe = (TextView) dialogView.findViewById(R.id.txtTieuDeDialog);
+        RecyclerView rv = (RecyclerView) dialogView.findViewById(R.id.rvDanhSachAnh);
+        MaterialButton btnHuy = (MaterialButton) dialogView.findViewById(R.id.btnHuy);
+        MaterialButton btnBatDau = (MaterialButton) dialogView.findViewById(R.id.btnBatDauQuet);
+
+        txtTieuDe.setText("Danh sách trang đã chọn (" + danhSachChon.size() + " trang)");
+        btnBatDau.setText("Bắt đầu quét (" + danhSachChon.size() + " trang)");
+
+        rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        SelectedImageAdapter[] adapterArr = new SelectedImageAdapter[1];
+        adapterArr[0] = new SelectedImageAdapter(requireContext(), danhSachChon, new SelectedImageAdapter.OnItemRemoveListener() {
+            @Override
+            public void onRemove(int position) {
+                if (position >= 0 && position < danhSachChon.size()) {
+                    danhSachChon.remove(position);
+                    adapterArr[0].notifyDataSetChanged();
+                    txtTieuDe.setText("Danh sách trang đã chọn (" + danhSachChon.size() + " trang)");
+                    btnBatDau.setText("Bắt đầu quét (" + danhSachChon.size() + " trang)");
+
+                    if (danhSachChon.isEmpty()) {
+                        dialog.dismiss();
+                        hienThongBao("Đã hủy do không còn ảnh nào được chọn.");
+                    }
+                }
+            }
+        });
+        rv.setAdapter(adapterArr[0]);
+
+        btnHuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        btnBatDau.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                batDauQuetNhieuTrang(danhSachChon);
+            }
+        });
+
+        dialog.show();
+    }
+
+    // Bat dau tien trinh quet nhieu trang tuan tu
+    void batDauQuetNhieuTrang(java.util.List<Uri> danhSachUri) {
+        if (danhSachUri == null || danhSachUri.isEmpty()) {
+            hienThongBao("Không có ảnh nào để quét.");
+            return;
+        }
+
+        // Hien thi anh dau tien len khung preview
+        hienThiAnh(danhSachUri.get(0));
+        viewModel.setSelectedImageUri(danhSachUri.get(0));
+
+        txtLoadingStatus.setText("Đang chuẩn bị nhận diện " + danhSachUri.size() + " trang...");
+        viewModel.setLoading(true);
+
+        ArrayList<DocumentPage> danhSachPages = new ArrayList<>();
+        StringBuilder sbTongHop = new StringBuilder();
+
+        thucHienOcrTuanTu(danhSachUri, 0, danhSachPages, sbTongHop);
+    }
+
+    // Nhan dien OCR tuan tu tung trang mot de tranh tran bo nho RAM
+    void thucHienOcrTuanTu(java.util.List<Uri> danhSachUri, int index, java.util.List<DocumentPage> danhSachPages, StringBuilder sbTongHop) {
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
+        if (index >= danhSachUri.size()) {
+            // Da hoan thanh toan bo cac trang
+            String textTongHop = sbTongHop.toString().trim();
+            if (textTongHop.isEmpty()) {
+                viewModel.setError("Không nhận diện được nội dung chữ từ các trang đã chọn.");
+                return;
+            }
+
+            if (isAiMode) {
+                if (SettingsFragment.conLuotDungAi(requireContext())) {
+                    viewModel.ocrSuaLoiVaLuuNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
+                } else {
+                    hienThongBao("Đã hết lượt AI (" + SettingsFragment.AI_MAX_LIMIT + " lần/tháng). Đang lưu kết quả Offline...");
+                    viewModel.ocrLuuTrucTiepNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
+                }
+            } else {
+                viewModel.ocrLuuTrucTiepNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
+            }
+            return;
+        }
+
+        int trangHienTai = index + 1;
+        int tongSoTrang = danhSachUri.size();
+        txtLoadingStatus.setText("Đang nhận diện trang " + trangHienTai + "/" + tongSoTrang + "...");
+
+        Uri uriTrang = danhSachUri.get(index);
+        OcrManager.getInstance().recognizeFromUri(requireContext(), uriTrang, new OcrManager.OcrCallback() {
+            @Override
+            public void onSuccess(String fullText, com.google.mlkit.vision.text.Text result) {
+                String formattedText = OcrManager.getInstance().extractFormattedText(result);
+                String textTrang = (formattedText != null && !formattedText.trim().isEmpty()) ? formattedText : fullText;
+
+                DocumentPage page = new DocumentPage(0, trangHienTai, uriTrang.toString(), textTrang);
+                danhSachPages.add(page);
+
+                if (sbTongHop.length() > 0) {
+                    sbTongHop.append("\n\n");
+                }
+                sbTongHop.append("--- Trang ").append(trangHienTai).append(" ---\n");
+                sbTongHop.append(textTrang);
+
+                // Chuyen sang nhan dien trang tiep theo
+                thucHienOcrTuanTu(danhSachUri, index + 1, danhSachPages, sbTongHop);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Neu 1 trang loi thi van ghi nhan va tiep tuc cac trang sau
+                DocumentPage page = new DocumentPage(0, trangHienTai, uriTrang.toString(), "");
+                danhSachPages.add(page);
+
+                if (sbTongHop.length() > 0) {
+                    sbTongHop.append("\n\n");
+                }
+                sbTongHop.append("--- Trang ").append(trangHienTai).append(" ---\n");
+                sbTongHop.append("[Không nhận diện được chữ]");
+
+                thucHienOcrTuanTu(danhSachUri, index + 1, danhSachPages, sbTongHop);
+            }
+        });
     }
 
     void thucHienOcr() {
@@ -435,88 +590,81 @@ public class HomeFragment extends Fragment {
     void khaiTaoRecentDocs() {
         listRecentDocs = new ArrayList<>();
 
-        adapterRecent = new ArrayAdapter<ScanDocument>(requireContext(), R.layout.item_document, listRecentDocs) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                if (convertView == null) {
-                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_document, parent, false);
-                }
-                ScanDocument doc = getItem(position);
-                if (doc == null) return convertView;
-
-                TextView txtTitle = (TextView) convertView.findViewById(R.id.txtItemTitle);
-                TextView txtPreview = (TextView) convertView.findViewById(R.id.txtItemOcrPreview);
-                TextView txtDate = (TextView) convertView.findViewById(R.id.txtItemDate);
-                ImageView imgStar = (ImageView) convertView.findViewById(R.id.imgStar);
-                ImageView imgMenu = (ImageView) convertView.findViewById(R.id.imgMenu);
-                com.google.android.material.chip.Chip chipAi = (com.google.android.material.chip.Chip) convertView.findViewById(R.id.chipAi);
-
-                txtTitle.setText(doc.title != null && !doc.title.isEmpty() ? doc.title : "Tài liệu không tiêu đề");
-
-                if (doc.ocrText != null && !doc.ocrText.isEmpty()) {
-                    String preview = doc.ocrText.trim();
-                    if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
-                    txtPreview.setText(preview);
-                    txtPreview.setVisibility(View.VISIBLE);
-                } else {
-                    txtPreview.setVisibility(View.GONE);
-                }
-
-                boolean coAi = doc.aiSummary != null && !doc.aiSummary.trim().isEmpty();
-                chipAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
-
-                String ngay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        .format(new Date(doc.createdAt));
-                String soTrang = doc.pageCount + " trang";
-                txtDate.setText(ngay + " • " + soTrang);
-
-                if (doc.isFavorite == 1) {
-                    imgStar.setImageResource(R.drawable.ic_star_on);
-                    imgStar.setAlpha(1.0f);
-                } else {
-                    imgStar.setImageResource(R.drawable.ic_star_off);
-                    imgStar.setAlpha(0.4f);
-                }
-
-                imgStar.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        viewModel.toggleFavorite(doc);
-                        String msg = (doc.isFavorite == 0) ? "Đã thêm vào yêu thích" : "Đã bỏ yêu thích";
-                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                imgMenu.setVisibility(View.GONE);
-                return convertView;
-            }
-        };
-        lvRecent.setAdapter(adapterRecent);
-
         viewModel.getAllDocuments().observe(getViewLifecycleOwner(), documents -> {
             listRecentDocs.clear();
+            if (layoutRecentList != null) {
+                layoutRecentList.removeAllViews();
+            }
             if (documents == null || documents.isEmpty()) {
-                lvRecent.setVisibility(View.GONE);
-                layoutNoRecent.setVisibility(View.VISIBLE);
+                if (layoutRecentList != null) layoutRecentList.setVisibility(View.GONE);
+                if (layoutNoRecent != null) layoutNoRecent.setVisibility(View.VISIBLE);
             } else {
-                layoutNoRecent.setVisibility(View.GONE);
-                lvRecent.setVisibility(View.VISIBLE);
+                if (layoutNoRecent != null) layoutNoRecent.setVisibility(View.GONE);
+                if (layoutRecentList != null) layoutRecentList.setVisibility(View.VISIBLE);
                 int max = Math.min(5, documents.size());
+                LayoutInflater inflater = LayoutInflater.from(getContext());
                 for (int i = 0; i < max; i++) {
-                    listRecentDocs.add(documents.get(i));
+                    ScanDocument doc = documents.get(i);
+                    listRecentDocs.add(doc);
+                    View itemView = inflater.inflate(R.layout.item_document, layoutRecentList, false);
+                    hienThiItemDocument(itemView, doc);
+                    layoutRecentList.addView(itemView);
                 }
-                adapterRecent.notifyDataSetChanged();
+            }
+        });
+    }
+
+    void hienThiItemDocument(View itemView, ScanDocument doc) {
+        TextView txtTitle = (TextView) itemView.findViewById(R.id.txtItemTitle);
+        TextView txtPreview = (TextView) itemView.findViewById(R.id.txtItemOcrPreview);
+        TextView txtDate = (TextView) itemView.findViewById(R.id.txtItemDate);
+        ImageView imgStar = (ImageView) itemView.findViewById(R.id.imgStar);
+        ImageView imgMenu = (ImageView) itemView.findViewById(R.id.imgMenu);
+        com.google.android.material.chip.Chip chipAi = (com.google.android.material.chip.Chip) itemView.findViewById(R.id.chipAi);
+
+        txtTitle.setText(doc.title != null && !doc.title.isEmpty() ? doc.title : "Tài liệu không tiêu đề");
+
+        if (doc.ocrText != null && !doc.ocrText.isEmpty()) {
+            String preview = doc.ocrText.trim();
+            if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
+            txtPreview.setText(preview);
+            txtPreview.setVisibility(View.VISIBLE);
+        } else {
+            txtPreview.setVisibility(View.GONE);
+        }
+
+        boolean coAi = doc.aiSummary != null && !doc.aiSummary.trim().isEmpty();
+        chipAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
+
+        String ngay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                .format(new Date(doc.createdAt));
+        String soTrang = doc.pageCount + " trang";
+        txtDate.setText(ngay + " • " + soTrang);
+
+        if (doc.isFavorite == 1) {
+            imgStar.setImageResource(R.drawable.ic_star_on);
+            imgStar.setAlpha(1.0f);
+        } else {
+            imgStar.setImageResource(R.drawable.ic_star_off);
+            imgStar.setAlpha(0.4f);
+        }
+
+        imgStar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewModel.toggleFavorite(doc);
+                String msg = (doc.isFavorite == 0) ? "Đã thêm vào yêu thích" : "Đã bỏ yêu thích";
+                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
             }
         });
 
-        lvRecent.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        imgMenu.setVisibility(View.GONE);
+
+        itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position < listRecentDocs.size()) {
-                    ScanDocument doc = listRecentDocs.get(position);
-                    Intent i = DocumentPreviewActivity.taoIntent(requireContext(), doc);
-                    startActivity(i);
-                }
+            public void onClick(View v) {
+                Intent i = DocumentPreviewActivity.taoIntent(requireContext(), doc);
+                startActivity(i);
             }
         });
     }
@@ -534,39 +682,105 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    // Chuyển đổi giữa chế độ AI và Offline mượt mà
     void capNhatAiMode(boolean aiMode) {
-        isAiMode = aiMode;
-        if (!isAdded()) return;
+        capNhatAiMode(aiMode, true);
+    }
+
+    void capNhatAiMode(boolean aiMode, boolean coAnimation) {
+        if (isModeKhoiTao && this.isAiMode == aiMode) {
+            return; // Đang ở đúng chế độ rồi, không lặp lại
+        }
+        this.isAiMode = aiMode;
+        this.isModeKhoiTao = true;
+
+        if (!isAdded() || getContext() == null) return;
+
+        // Lưu lựa chọn vào SharedPreferences
+        SharedPreferences prefs = requireContext().getSharedPreferences(
+                SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("is_ai_mode", aiMode).apply();
+
+        // Chạy hiệu ứng co giãn mượt mà cho layout
+        if (coAnimation && layoutHomeContent != null) {
+            AutoTransition transition = new AutoTransition();
+            transition.setDuration(220);
+            TransitionManager.beginDelayedTransition(layoutHomeContent, transition);
+        }
 
         if (aiMode) {
-            btnModeAi.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            getResources().getColor(R.color.primary, null)));
-            btnModeAi.setTextColor(getResources().getColor(R.color.white, null));
-
-            btnModeOffline.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.TRANSPARENT));
-            btnModeOffline.setTextColor(getResources().getColor(R.color.text_secondary, null));
-
+            if (coAnimation) {
+                animateNutMode(btnModeAi, btnModeOffline);
+            } else {
+                datMauNutKhongAnimation(btnModeAi, btnModeOffline);
+            }
             cardAiLimit.setVisibility(View.VISIBLE);
-            capNhatAiLimit();
+            capNhatAiLimit(coAnimation);
         } else {
-            btnModeOffline.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            getResources().getColor(R.color.primary, null)));
-            btnModeOffline.setTextColor(getResources().getColor(R.color.white, null));
-
-            btnModeAi.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.TRANSPARENT));
-            btnModeAi.setTextColor(getResources().getColor(R.color.text_secondary, null));
-
+            if (coAnimation) {
+                animateNutMode(btnModeOffline, btnModeAi);
+            } else {
+                datMauNutKhongAnimation(btnModeOffline, btnModeAi);
+            }
             cardAiLimit.setVisibility(View.GONE);
         }
     }
 
+    // Hiệu ứng chuyển màu mượt mà giữa nút Active và Inactive
+    void animateNutMode(final MaterialButton btnBat, final MaterialButton btnTat) {
+        if (getContext() == null) return;
+        final int mauChinh = ContextCompat.getColor(requireContext(), R.color.primary);
+        final int mauPhu = ContextCompat.getColor(requireContext(), R.color.text_secondary);
+        final int mauTrang = Color.WHITE;
+        final int mauTrongSuot = Color.TRANSPARENT;
+
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.setDuration(220);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            ArgbEvaluator evaluator = new ArgbEvaluator();
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float f = animation.getAnimatedFraction();
+
+                // Nút được chọn (Active)
+                int bgBat = (int) evaluator.evaluate(f, mauTrongSuot, mauChinh);
+                int textBat = (int) evaluator.evaluate(f, mauPhu, mauTrang);
+                btnBat.setBackgroundTintList(ColorStateList.valueOf(bgBat));
+                btnBat.setTextColor(textBat);
+                btnBat.setIconTint(ColorStateList.valueOf(textBat));
+
+                // Nút không chọn (Inactive)
+                int bgTat = (int) evaluator.evaluate(f, mauChinh, mauTrongSuot);
+                int textTat = (int) evaluator.evaluate(f, mauTrang, mauPhu);
+                btnTat.setBackgroundTintList(ColorStateList.valueOf(bgTat));
+                btnTat.setTextColor(textTat);
+                btnTat.setIconTint(ColorStateList.valueOf(textTat));
+            }
+        });
+        animator.start();
+    }
+
+    // Đặt màu nút trực tiếp khi khởi tạo (không animation)
+    void datMauNutKhongAnimation(MaterialButton btnBat, MaterialButton btnTat) {
+        if (getContext() == null) return;
+        int mauChinh = ContextCompat.getColor(requireContext(), R.color.primary);
+        int mauPhu = ContextCompat.getColor(requireContext(), R.color.text_secondary);
+
+        btnBat.setBackgroundTintList(ColorStateList.valueOf(mauChinh));
+        btnBat.setTextColor(Color.WHITE);
+        btnBat.setIconTint(ColorStateList.valueOf(Color.WHITE));
+
+        btnTat.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        btnTat.setTextColor(mauPhu);
+        btnTat.setIconTint(ColorStateList.valueOf(mauPhu));
+    }
+
     void capNhatAiLimit() {
+        capNhatAiLimit(false);
+    }
+
+    void capNhatAiLimit(boolean coAnimation) {
         if (!isAdded() || getContext() == null) return;
         boolean coKey = SettingsFragment.hasCustomApiKey(requireContext());
         int aiCount = SettingsFragment.getAiCount(requireContext());
@@ -574,26 +788,31 @@ public class HomeFragment extends Fragment {
         if (coKey) {
             String text = "AI Limit: Không giới hạn (Custom Key)";
             txtAiLimit.setText(text);
-            txtAiLimit.setTextColor(getResources().getColor(R.color.accent_green_dark, null));
+            txtAiLimit.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_green_dark));
             if (txtUpgrade != null) {
                 txtUpgrade.setText("Key riêng");
-                txtUpgrade.setTextColor(getResources().getColor(R.color.accent_green, null));
+                txtUpgrade.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_green));
             }
             if (pbAiLimit != null) {
                 pbAiLimit.setMax(100);
-                pbAiLimit.setProgress(100);
+                if (coAnimation) {
+                    ObjectAnimator.ofInt(pbAiLimit, "progress", 0, 100)
+                            .setDuration(350)
+                            .start();
+                } else {
+                    pbAiLimit.setProgress(100);
+                }
                 pbAiLimit.setProgressTintList(
-                        android.content.res.ColorStateList.valueOf(
-                                getResources().getColor(R.color.accent_green, null)));
+                        ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.accent_green)));
             }
             return;
         }
 
         if (txtUpgrade != null) {
             txtUpgrade.setText("Chi tiết");
-            txtUpgrade.setTextColor(getResources().getColor(R.color.primary, null));
+            txtUpgrade.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary));
         }
-        txtAiLimit.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        txtAiLimit.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
 
         int conLai = Math.max(0, SettingsFragment.AI_MAX_LIMIT - aiCount);
         String text = "Lượt AI: Còn " + conLai + " / " + SettingsFragment.AI_MAX_LIMIT + " lượt";
@@ -602,10 +821,10 @@ public class HomeFragment extends Fragment {
         int start = text.indexOf(numStr);
         if (start >= 0) {
             int mauHighlight = (aiCount >= SettingsFragment.AI_MAX_LIMIT)
-                    ? getResources().getColor(android.R.color.holo_red_dark, null)
+                    ? ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
                     : (aiCount >= SettingsFragment.AI_MAX_LIMIT * 0.8)
-                    ? getResources().getColor(android.R.color.holo_orange_dark, null)
-                    : getResources().getColor(R.color.primary, null);
+                    ? ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark)
+                    : ContextCompat.getColor(requireContext(), R.color.primary);
 
             span.setSpan(
                     new android.text.style.ForegroundColorSpan(mauHighlight),
@@ -616,15 +835,21 @@ public class HomeFragment extends Fragment {
 
         if (pbAiLimit != null) {
             pbAiLimit.setMax(SettingsFragment.AI_MAX_LIMIT);
-            pbAiLimit.setProgress(Math.min(aiCount, SettingsFragment.AI_MAX_LIMIT));
+            int targetProgress = Math.min(aiCount, SettingsFragment.AI_MAX_LIMIT);
+            if (coAnimation) {
+                ObjectAnimator.ofInt(pbAiLimit, "progress", 0, targetProgress)
+                        .setDuration(350)
+                        .start();
+            } else {
+                pbAiLimit.setProgress(targetProgress);
+            }
             int mauProgress = (aiCount >= SettingsFragment.AI_MAX_LIMIT)
-                    ? getResources().getColor(android.R.color.holo_red_dark, null)
+                    ? ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
                     : (aiCount >= SettingsFragment.AI_MAX_LIMIT * 0.8)
-                    ? getResources().getColor(android.R.color.holo_orange_dark, null)
-                    : getResources().getColor(R.color.primary, null);
+                    ? ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark)
+                    : ContextCompat.getColor(requireContext(), R.color.primary);
 
-            pbAiLimit.setProgressTintList(
-                    android.content.res.ColorStateList.valueOf(mauProgress));
+            pbAiLimit.setProgressTintList(ColorStateList.valueOf(mauProgress));
         }
     }
 

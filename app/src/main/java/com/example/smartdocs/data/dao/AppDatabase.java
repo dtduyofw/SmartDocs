@@ -8,6 +8,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.QaHistory;
 import com.example.smartdocs.data.model.SavedFile;
 import com.example.smartdocs.data.model.ScanDocument;
@@ -17,9 +18,10 @@ import com.example.smartdocs.data.model.ScanDocument;
 - version 2: thêm cột is_favorite và page_count
 - version 3: thêm bảng qa_history, saved_files; thêm cột tags, language, updated_at;
              thêm index trên scan_documents.created_at
+- version 4: thêm bảng document_pages lưu danh sách các trang tài liệu
  */
-@Database(entities = {ScanDocument.class, QaHistory.class, SavedFile.class},
-        version = 3, exportSchema = false)
+@Database(entities = {ScanDocument.class, QaHistory.class, SavedFile.class, DocumentPage.class},
+        version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String DB_NAME = "smart_docs.db";
@@ -31,6 +33,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DocumentDao documentDao();
     public abstract QaHistoryDao qaHistoryDao();
     public abstract SavedFileDao savedFileDao();
+    public abstract DocumentPageDao documentPageDao();
 
     // Migration từ version 1 → 2: thêm cột is_favorite và page_count
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
@@ -81,6 +84,23 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    // Migration tu version 3 len 4:
+    // Tao bang document_pages de luu cac trang cua tai lieu quet nhieu trang
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS document_pages ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "document_id INTEGER NOT NULL, "
+                    + "page_number INTEGER NOT NULL, "
+                    + "image_uri TEXT, "
+                    + "ocr_text TEXT, "
+                    + "FOREIGN KEY(document_id) REFERENCES scan_documents(id) "
+                    + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_document_pages_document_id ON document_pages(document_id)");
+        }
+    };
+
     /**
     Trả về singleton instance của AppDatabase.
     Dùng Double-Checked Locking để an toàn khi gọi từ nhiều thread.
@@ -95,7 +115,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             DB_NAME
                     )
                     // Thêm đầy đủ các migration — không xóa dữ liệu người dùng
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build();
                 }
             }

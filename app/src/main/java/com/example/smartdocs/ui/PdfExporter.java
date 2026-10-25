@@ -14,6 +14,8 @@ import android.os.Environment;
 
 import androidx.core.content.FileProvider;
 
+import com.example.smartdocs.data.dao.AppDatabase;
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 
 import java.io.File;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /*
@@ -66,8 +69,31 @@ public class PdfExporter {
 
         int soTrang = 1;
 
-        //TRANG 1: Ảnh gốc
-        if (document.imageUri != null && !document.imageUri.isEmpty()) {
+        // Trang anh goc (ho tro ca tai lieu 1 trang va nhieu trang)
+        List<DocumentPage> pages = null;
+        try {
+            if (document.id > 0) {
+                pages = AppDatabase.getInstance(context).documentPageDao().getPagesByDocumentId(document.id);
+            }
+        } catch (Exception e) {
+            // Bo qua neu loi truy van DB
+        }
+
+        if (pages != null && !pages.isEmpty()) {
+            for (DocumentPage p : pages) {
+                if (p.imageUri != null && !p.imageUri.isEmpty()) {
+                    Bitmap bitmap = docBitmap(context, p.imageUri);
+                    if (bitmap != null) {
+                        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(
+                                PAGE_WIDTH, PAGE_HEIGHT, soTrang++).create();
+                        PdfDocument.Page page = pdfDoc.startPage(pageInfo);
+                        veAnhLenTrang(page.getCanvas(), bitmap);
+                        pdfDoc.finishPage(page);
+                        bitmap.recycle();
+                    }
+                }
+            }
+        } else if (document.imageUri != null && !document.imageUri.isEmpty()) {
             Bitmap bitmap = docBitmap(context, document.imageUri);
             if (bitmap != null) {
                 PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(

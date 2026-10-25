@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.data.repository.DocumentRepository;
 import com.example.smartdocs.api.GeminiRepository;
@@ -166,6 +167,61 @@ public class DocumentViewModel extends AndroidViewModel {
         });
     }
 
+    // Luu truc tiep ket qua OCR cua nhieu trang ma khong qua AI
+    public void ocrLuuTrucTiepNhieuTrang(String ocrText, List<DocumentPage> pages, Uri firstImageUri) {
+        ocrResult.setValue(ocrText);
+        saveDocumentWithPages(ocrText, null, pages, firstImageUri);
+    }
+
+    // Gui noi dung tong hop sang Gemini sua loi roi luu vao DB
+    public void ocrSuaLoiVaLuuNhieuTrang(String textThoMlKit, List<DocumentPage> pages, Uri firstImageUri) {
+        loadingStatusText.setValue("Gemini đang sửa lỗi OCR và lưu vào lịch sử...");
+        isLoading.setValue(true);
+
+        GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {
+            @Override
+            public void onSuccess(String textDaSua) {
+                SettingsFragment.tangAiCount(getApplication());
+                ocrResult.setValue(textDaSua.trim());
+                saveDocumentWithPages(textDaSua.trim(), null, pages, firstImageUri);
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                // Truong hop Gemini gap loi mang hoac het luot thi luu luon text goc
+                ocrResult.setValue(textThoMlKit);
+                saveDocumentWithPages(textThoMlKit, null, pages, firstImageUri);
+            }
+        });
+    }
+
+    // Thuc hien luu tai lieu kem theo cac ban ghi trang con vao DB
+    public void saveDocumentWithPages(String ocr, String summary, List<DocumentPage> pages, Uri firstImageUri) {
+        if (ocr == null || ocr.trim().isEmpty()) {
+            setError("Chưa có dữ liệu OCR để lưu.");
+            return;
+        }
+
+        String title = buildTitle(ocr);
+        ScanDocument document = new ScanDocument(
+                firstImageUri != null ? firstImageUri.toString() : "",
+                ocr,
+                summary != null ? summary : "",
+                System.currentTimeMillis(),
+                title
+        );
+        if (pages != null && !pages.isEmpty()) {
+            document.pageCount = pages.size();
+        }
+
+        setLoading(true);
+        repository.insertDocumentWithPages(document, pages, newId -> {
+            document.id = (int) newId;
+            isLoading.setValue(false);
+            newlySavedDocument.setValue(document);
+        });
+    }
+
     /**
      * Cập nhật tóm tắt AI (gọi sau khi Gemini API trả về).
      */
@@ -214,10 +270,15 @@ public class DocumentViewModel extends AndroidViewModel {
                 System.currentTimeMillis(),
                 title
         );
+        document.pageCount = 1;
 
         setLoading(true);
-        repository.insert(document, newId -> {
-            // Callback trên main thread
+        java.util.ArrayList<DocumentPage> pages = new java.util.ArrayList<>();
+        if (uri != null) {
+            pages.add(new DocumentPage(0, 1, uri.toString(), ocr));
+        }
+        repository.insertDocumentWithPages(document, pages, newId -> {
+            // Callback tren main thread
             document.id = (int) newId;
             isLoading.setValue(false);
             newlySavedDocument.setValue(document);
