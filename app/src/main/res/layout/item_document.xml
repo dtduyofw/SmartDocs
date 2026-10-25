@@ -10,7 +10,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="5dp"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
     app:cardBackgroundColor="@color/surface"
     android:clickable="true"
@@ -24,7 +24,7 @@
         android:padding="14dp"
         android:gravity="center_vertical">
 
-        <!-- Cột trái: icon tài liệu (đã ẩn) -->
+        <!-- Cột trái: icon tài liệu-->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardItemIcon"
             android:layout_width="48dp"
@@ -32,7 +32,7 @@
             android:layout_marginEnd="12dp"
             android:visibility="gone"
             app:cardBackgroundColor="@color/badge_ai_bg"
-            app:cardCornerRadius="14dp"
+            app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
             <ImageView
@@ -107,20 +107,6 @@
                 android:textSize="11sp" />
 
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/imgStar"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_star_off"
-            android:alpha="0.4"
-            android:layout_marginStart="8dp"
-            android:padding="2dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Yêu thích" />
-
         <!-- Icon menu -->
         <ImageView
             android:id="@+id/imgMenu"

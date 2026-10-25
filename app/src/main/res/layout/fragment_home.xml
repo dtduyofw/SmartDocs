@@ -211,10 +211,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardGallery"
                     android:layout_width="0dp"
-                    android:layout_height="160dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="18dp"
+                    app:cardCornerRadius="8dp"
                     app:cardElevation="4dp"
                     app:cardBackgroundColor="@color/card_gallery"
                     android:clickable="true"
@@ -282,16 +282,16 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Card Camera (phải) — màu Green -->
+                <!-- Card Camera màu Green -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCamera"
                     android:layout_width="0dp"
-                    android:layout_height="160dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:cardCornerRadius="18dp"
+                    app:cardCornerRadius="8dp"
                     app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/card_camera"
+                    app:cardBackgroundColor="#51A2C7"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">

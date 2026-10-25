@@ -183,7 +183,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TRỢ LÝ AI (GEMINI)"
+                    android:text="TRỢ LÝ AI"
                     android:textSize="11sp"
                     android:textColor="@color/primary"
                     android:textStyle="bold"

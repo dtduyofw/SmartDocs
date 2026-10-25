@@ -60,20 +60,6 @@
             android:layout_marginTop="2dp" />
 
     </LinearLayout>
-
-    <!-- Nút yêu thích -->
-    <ImageView
-        android:id="@+id/imgFileStar"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:src="@drawable/ic_star_off"
-        android:alpha="0.4"
-        android:padding="2dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:layout_marginStart="8dp" />
-
     <!-- Nút menu ⋮ -->
     <ImageView
         android:id="@+id/imgFileMenu"
