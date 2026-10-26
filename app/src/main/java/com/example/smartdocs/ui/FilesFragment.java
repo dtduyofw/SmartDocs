@@ -1,6 +1,6 @@
 package com.example.smartdocs.ui;
 
-import android.content.DialogInterface;
+import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,9 +24,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.dao.AppDatabase;
@@ -420,12 +421,12 @@ public class FilesFragment extends Fragment {
             return;
         }
         int soLuong = selectedPaths.size();
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Xóa " + soLuong + " file?")
-                .setMessage("Hành động này không thể hoàn tác.")
-                .setPositiveButton("Xóa tất cả", new DialogInterface.OnClickListener() {
+        DialogHelper.showDelete(requireContext(),
+                "Xóa " + soLuong + " file?",
+                "Hành động này không thể hoàn tác.",
+                new DialogHelper.OnConfirm() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onConfirm() {
                         int daXoa = 0;
                         for (String path : selectedPaths) {
                             File f = new File(path);
@@ -436,9 +437,7 @@ public class FilesFragment extends Fragment {
                         thoatChonNhieu();
                         taiDanhSachFile();
                     }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+                });
     }
 
     void moFile(File file) {
@@ -452,23 +451,17 @@ public class FilesFragment extends Fragment {
 
     void moFilePdfTrongApp(File file) {
         try {
-            new AlertDialog.Builder(requireContext())
-                .setTitle(file.getName())
-                .setMessage("Chọn cách xem file PDF này:")
-                .setPositiveButton("Xem trong app", new DialogInterface.OnClickListener() {
+            // Chọn cách mở PDF qua custom dialog
+            DialogHelper.showConfirm(requireContext(),
+                    file.getName(),
+                    "Chọn cách xem file PDF này:",
+                    "Xem trong app",
+                    new DialogHelper.OnConfirm() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                        public void onConfirm() {
                             hienWebViewPdf(file);
                         }
-                    })
-                    .setNeutralButton("Mở bằng app khác", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            moFileBangAppNgoai(file);
-                        }
-                    })
-                    .setNegativeButton("Hủy", null)
-                    .show();
+                    });
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Không thể mở file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -489,17 +482,97 @@ public class FilesFragment extends Fragment {
         String filePath = "file://" + file.getAbsolutePath();
         webView.loadUrl(filePath);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle(file.getName())
-                .setView(webView)
-                .setPositiveButton("Đóng", null)
-                .setNeutralButton("Chia sẻ", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        chiaSe(file);
-                    }
-                })
-                .show();
+        // Custom dialog xem PDF WebView
+        android.app.Dialog dialogWebView = DialogHelper.taoDialog(requireContext());
+        android.view.ViewGroup.LayoutParams lp = new android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (dialogWebView.getWindow() != null) {
+            dialogWebView.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.95f),
+                    (int) (getResources().getDisplayMetrics().heightPixels * 0.80f));
+        }
+
+        android.widget.LinearLayout wrapper = new android.widget.LinearLayout(requireContext());
+        wrapper.setOrientation(android.widget.LinearLayout.VERTICAL);
+        wrapper.setBackgroundResource(R.drawable.bg_dialog_rounded);
+
+        // Header
+        android.widget.LinearLayout header = new android.widget.LinearLayout(requireContext());
+        header.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        header.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        int p = (int) (16 * getResources().getDisplayMetrics().density);
+        header.setPadding(p, p, p / 2, p);
+
+        TextView txtTitle = new TextView(requireContext());
+        txtTitle.setText(file.getName());
+        txtTitle.setTextSize(15f);
+        txtTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        txtTitle.setTextColor(getResources().getColor(R.color.text_primary));
+        txtTitle.setMaxLines(1);
+        txtTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        android.widget.LinearLayout.LayoutParams titleLp = new android.widget.LinearLayout.LayoutParams(0,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        txtTitle.setLayoutParams(titleLp);
+        header.addView(txtTitle);
+
+        ImageView btnClose = new ImageView(requireContext());
+        btnClose.setImageResource(R.drawable.ic_close);
+        android.widget.LinearLayout.LayoutParams closeLp = new android.widget.LinearLayout.LayoutParams(
+                (int)(36 * getResources().getDisplayMetrics().density),
+                (int)(36 * getResources().getDisplayMetrics().density));
+        btnClose.setLayoutParams(closeLp);
+        btnClose.setAlpha(0.5f);
+        btnClose.setPadding(p / 3, p / 3, p / 3, p / 3);
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { dialogWebView.dismiss(); }
+        });
+        header.addView(btnClose);
+        wrapper.addView(header);
+
+        // Divider
+        View divider = new View(requireContext());
+        divider.setBackgroundColor(getResources().getColor(R.color.divider));
+        android.widget.LinearLayout.LayoutParams divLp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 1);
+        divider.setLayoutParams(divLp);
+        wrapper.addView(divider);
+
+        // WebView
+        android.widget.LinearLayout.LayoutParams wvLp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        webView.setLayoutParams(wvLp);
+        wrapper.addView(webView);
+
+        // Footer
+        View dividerBot = new View(requireContext());
+        dividerBot.setBackgroundColor(getResources().getColor(R.color.divider));
+        dividerBot.setLayoutParams(divLp);
+        wrapper.addView(dividerBot);
+
+        android.widget.LinearLayout footer = new android.widget.LinearLayout(requireContext());
+        footer.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        footer.setGravity(android.view.Gravity.END);
+        footer.setPadding(p / 2, p / 2, p / 2, p / 2);
+
+        TextView btnChiaSe = new TextView(requireContext());
+        btnChiaSe.setText("Chia sẻ");
+        btnChiaSe.setTextSize(14f);
+        btnChiaSe.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnChiaSe.setTextColor(getResources().getColor(R.color.primary));
+        btnChiaSe.setPadding(p, p / 2, p, p / 2);
+        btnChiaSe.setClickable(true);
+        btnChiaSe.setFocusable(true);
+        btnChiaSe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { chiaSe(file); }
+        });
+        footer.addView(btnChiaSe);
+        wrapper.addView(footer);
+
+        dialogWebView.setContentView(wrapper);
+        dialogWebView.show();
     }
 
     void moFileBangAppNgoai(File file) {
@@ -517,28 +590,43 @@ public class FilesFragment extends Fragment {
     }
 
     void hienMenuFile(File file) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle(file.getName())
-                .setItems(new String[]{
-                        "Mở file",
-                        "Đổi tên",
-                        "Chia sẻ",
-                        "Xóa"
-                }, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            moFile(file);
-                        } else if (which == 1) {
-                            hienDialogDoiTen(file);
-                        } else if (which == 2) {
-                            chiaSe(file);
-                        } else if (which == 3) {
-                            xacNhanXoaMotFile(file);
-                        }
-                    }
-                })
-                .show();
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.bottom_sheet_menu_file, null);
+        sheet.setContentView(sheetView);
+
+        ((TextView) sheetView.findViewById(R.id.txtBsFileName)).setText(file.getName());
+
+        sheetView.findViewById(R.id.itemBsMoFile).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                moFile(file);
+            }
+        });
+        sheetView.findViewById(R.id.itemBsDoiTen).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                hienDialogDoiTen(file);
+            }
+        });
+        sheetView.findViewById(R.id.itemBsChiaSe).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                chiaSe(file);
+            }
+        });
+        sheetView.findViewById(R.id.itemBsXoaFile).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                xacNhanXoaMotFile(file);
+            }
+        });
+
+        sheet.show();
     }
 
     void hienDialogDoiTen(File file) {
@@ -551,20 +639,16 @@ public class FilesFragment extends Fragment {
         }
         final String duoiFinal = duoiFile;
 
-        android.widget.EditText edtTenMoi = new android.widget.EditText(requireContext());
-        edtTenMoi.setText(tenCu);
-        edtTenMoi.setSelection(edtTenMoi.getText().length());
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        edtTenMoi.setPadding(pad, pad, pad, pad);
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Đổi tên file")
-                .setMessage("Đuôi file sẽ giữ nguyên: " + duoiFinal)
-                .setView(edtTenMoi)
-                .setPositiveButton("Đổi tên", new DialogInterface.OnClickListener() {
+        DialogHelper.showInput(requireContext(),
+                "Đổi tên file",
+                "Đuôi file sẽ giữ nguyên: " + duoiFinal,
+                "Tên file mới",
+                tenCu,
+                "Đổi tên",
+                new DialogHelper.OnInputConfirm() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String tenMoi = edtTenMoi.getText().toString().trim();
+                    public void onConfirm(String input) {
+                        String tenMoi = input != null ? input.trim() : "";
                         if (tenMoi.isEmpty()) {
                             Toast.makeText(requireContext(),
                                     "Tên file không được để trống.", Toast.LENGTH_SHORT).show();
@@ -599,9 +683,7 @@ public class FilesFragment extends Fragment {
                                     "Không thể đổi tên file.", Toast.LENGTH_SHORT).show();
                         }
                     }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+                });
     }
 
     void chiaSe(File file) {
@@ -619,12 +701,12 @@ public class FilesFragment extends Fragment {
     }
 
     void xacNhanXoaMotFile(File file) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Xóa file?")
-                .setMessage("Bạn có chắc muốn xóa \"" + file.getName() + "\" không?")
-                .setPositiveButton("Xóa", new DialogInterface.OnClickListener() {
+        DialogHelper.showDelete(requireContext(),
+                "Xóa file?",
+                "Bạn có chắc muốn xóa \"" + file.getName() + "\" không?",
+                new DialogHelper.OnConfirm() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onConfirm() {
                         if (file.delete()) {
                             Toast.makeText(requireContext(), "Đã xóa file.", Toast.LENGTH_SHORT).show();
                             taiDanhSachFile();
@@ -632,9 +714,7 @@ public class FilesFragment extends Fragment {
                             Toast.makeText(requireContext(), "Không thể xóa file.", Toast.LENGTH_SHORT).show();
                         }
                     }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+                });
     }
 
     String layMimeType(String tenFile) {

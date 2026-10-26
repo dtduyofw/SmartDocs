@@ -1,5 +1,6 @@
 package com.example.smartdocs.ui;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -16,7 +17,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -27,6 +27,7 @@ import com.example.smartdocs.R;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.ui.adapter.DocumentAdapter;
 import com.example.smartdocs.ui.viewmodel.DocumentViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -220,6 +221,7 @@ public class HistoryFragment extends Fragment {
     }
 
     void hienDialogChiTiet(ScanDocument document) {
+        if (getContext() == null || !isAdded()) return;
         StringBuilder sb = new StringBuilder();
         sb.append("VĂN BẢN:\n");
         sb.append("─────────────────\n");
@@ -231,77 +233,63 @@ public class HistoryFragment extends Fragment {
             sb.append(document.aiSummary);
         }
 
-        android.widget.ScrollView scrollView = new android.widget.ScrollView(requireContext());
-        TextView txtContent = new TextView(requireContext());
+        Dialog dialog = DialogHelper.taoDialog(requireContext());
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.90f),
+                    (int) (getResources().getDisplayMetrics().heightPixels * 0.70f));
+        }
+
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_chi_tiet_tai_lieu, null);
+        dialog.setContentView(dialogView);
+
+        TextView txtTitle = (TextView) dialogView.findViewById(R.id.txtDetailTitle);
+        txtTitle.setText(document.title != null ? document.title : "Chi tiết tài liệu");
+
+        TextView txtContent = (TextView) dialogView.findViewById(R.id.txtDetailContent);
         txtContent.setText(sb.toString());
-        txtContent.setTextSize(14f);
-        txtContent.setLineSpacing(4f, 1f);
-        txtContent.setTextIsSelectable(true);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        txtContent.setPadding(padding, padding, padding, padding);
-        scrollView.addView(txtContent);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle(document.title)
-                .setView(scrollView)
-                .setPositiveButton("Đóng", null)
-                .setNeutralButton("Xuất PDF", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        xuatPdf(document);
-                    }
-                })
-                .setNegativeButton("Xóa", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        xacNhanXoa(document);
-                    }
-                })
-                .show();
-    }
-
-    void xuatPdf(ScanDocument document) {
-        Toast.makeText(requireContext(), "Đang tạo PDF...", Toast.LENGTH_SHORT).show();
-
-        new Thread(() -> {
-            try {
-                Uri pdfUri = PdfExporter.exportToPdf(requireContext(), document);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(),
-                                "Tạo PDF thành công!", Toast.LENGTH_SHORT).show();
-                        Intent shareIntent = PdfExporter.taoIntentShare(pdfUri);
-                        startActivity(shareIntent);
-                    });
-                }
-            } catch (Exception e) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(),
-                                "Lỗi tạo PDF: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
-                    });
-                }
+        dialogView.findViewById(R.id.btnDetailClose).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
             }
-        }).start();
+        });
+
+        dialogView.findViewById(R.id.btnDetailXoa).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                xacNhanXoa(document);
+            }
+        });
+
+        dialogView.findViewById(R.id.btnDetailChinhSua).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Intent i = DocumentPreviewActivity.taoIntent(requireContext(), document);
+                startActivity(i);
+            }
+        });
+
+        dialog.show();
     }
 
     void xacNhanXoa(ScanDocument document) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Xóa tài liệu?")
-                .setMessage("Bạn có chắc muốn xóa \"" + document.title + "\" không?")
-                .setPositiveButton("Xóa", new DialogInterface.OnClickListener() {
+        DialogHelper.showDelete(requireContext(),
+                "Xóa tài liệu?",
+                "Bạn có chắc muốn xóa \"" + document.title + "\" không?",
+                new DialogHelper.OnConfirm() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onConfirm() {
                         viewModel.deleteDocument(document);
                         if (getView() != null) {
                             Snackbar.make(recyclerHistory,
                                     "Đã xóa tài liệu.", Snackbar.LENGTH_SHORT).show();
                         }
                     }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+                });
     }
 
     void capNhatSoLuong(List<ScanDocument> documents) {
@@ -311,26 +299,40 @@ public class HistoryFragment extends Fragment {
     }
 
     void hienPopupMenu(ScanDocument document, View anchorView) {
-        String[] options = {
-                "Xem chi tiết",
-                "Xuất PDF",
-                "Xóa"
-        };
+        if (getContext() == null || !isAdded()) return;
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.bottom_sheet_menu_doc, null);
+        sheet.setContentView(sheetView);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle(document.title != null ? document.title : "Tùy chọn")
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            hienDialogChiTiet(document);
-                        } else if (which == 1) {
-                            xuatPdf(document);
-                        } else if (which == 2) {
-                            xacNhanXoa(document);
-                        }
-                    }
-                })
-                .show();
+        TextView txtTitle = (TextView) sheetView.findViewById(R.id.txtBsDocTitle);
+        txtTitle.setText(document.title != null ? document.title : "Tùy chọn");
+
+        sheetView.findViewById(R.id.itemBsXemChiTiet).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                hienDialogChiTiet(document);
+            }
+        });
+
+        sheetView.findViewById(R.id.itemBsChinhSua).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                Intent i = DocumentPreviewActivity.taoIntent(requireContext(), document);
+                startActivity(i);
+            }
+        });
+
+        sheetView.findViewById(R.id.itemBsXoaDoc).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                xacNhanXoa(document);
+            }
+        });
+
+        sheet.show();
     }
 }

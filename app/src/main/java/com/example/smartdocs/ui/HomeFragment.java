@@ -1,5 +1,6 @@
 package com.example.smartdocs.ui;
 
+import android.app.Dialog;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -37,7 +38,6 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
@@ -332,14 +332,16 @@ public class HomeFragment extends Fragment {
                 == PackageManager.PERMISSION_GRANTED) {
             moCamera();
         } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Cần quyền Camera")
-                    .setMessage("SmartDocs cần quyền Camera để chụp ảnh tài liệu.\n\nVui lòng cho phép quyền Camera để sử dụng tính năng này.")
-                    .setPositiveButton("Cấp quyền", (dialog, which) -> {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
-                    })
-                    .setNegativeButton("Hủy", null)
-                    .show();
+            DialogHelper.showConfirm(requireContext(),
+                    "Cần quyền Camera",
+                    "SmartDocs cần quyền Camera để chụp ảnh tài liệu.\n\nVui lòng cho phép quyền Camera để sử dụng tính năng này.",
+                    "Cấp quyền",
+                    new DialogHelper.OnConfirm() {
+                        @Override
+                        public void onConfirm() {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+                        }
+                    });
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
@@ -399,10 +401,9 @@ public class HomeFragment extends Fragment {
 
         rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setView(dialogView)
-                .setCancelable(true)
-                .create();
+        Dialog dialog = DialogHelper.taoDialog(requireContext());
+        dialog.setContentView(dialogView);
+        dialog.setCancelable(true);
 
         SelectedImageAdapter[] adapterArr = new SelectedImageAdapter[1];
         adapterArr[0] = new SelectedImageAdapter(requireContext(), danhSachChon, new SelectedImageAdapter.OnItemRemoveListener() {
@@ -840,35 +841,44 @@ public class HomeFragment extends Fragment {
         boolean coKey = SettingsFragment.hasCustomApiKey(requireContext());
         int count = SettingsFragment.getAiCount(requireContext());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        Dialog dialog = DialogHelper.taoDialog(requireContext());
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_ai_limit, null);
+        dialog.setContentView(view);
+
+        TextView txtTitle = (TextView) view.findViewById(R.id.txtAiLimitTitle);
+        TextView txtMessage = (TextView) view.findViewById(R.id.txtAiLimitMessage);
+        TextView btnDong = (TextView) view.findViewById(R.id.btnAiLimitDong);
+        TextView btnCaiDat = (TextView) view.findViewById(R.id.btnAiLimitCaiDat);
 
         if (coKey) {
-            builder.setTitle("Gói AI: Cá nhân");
-            builder.setMessage("Bạn đang sử dụng Gemini API Key riêng.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Đã dùng tháng này: " + count + " lần\n\nBạn có thể quản lý hoặc thay đổi key trong phần Cài đặt.");
-            builder.setPositiveButton("Cài đặt", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).chonTab(R.id.nav_settings);
-                    }
-                }
-            });
+            txtTitle.setText("Gói AI: Cá nhân");
+            txtMessage.setText("Bạn đang sử dụng Gemini API Key riêng.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Đã dùng tháng này: " + count + " lần\n\nBạn có thể quản lý hoặc thay đổi key trong phần Cài đặt.");
+            btnCaiDat.setText("Cài đặt");
         } else {
             int conLai = Math.max(0, SettingsFragment.AI_MAX_LIMIT - count);
-            builder.setTitle("Gói AI: Miễn phí");
-            builder.setMessage("Mỗi tháng bạn có " + SettingsFragment.AI_MAX_LIMIT + " lượt hỗ trợ AI thông minh hoàn toàn miễn phí.\n\n• Lượt khả dụng: Còn " + conLai + " / " + SettingsFragment.AI_MAX_LIMIT + " lượt\n• Đã sử dụng: " + count + " lượt\n• Làm mới tự động: Ngày 01 hàng tháng\n\nKhi hết lượt, bạn vẫn quét tài liệu Offline bình thường mà không bị gián đoạn.");
-            builder.setPositiveButton("Cài đặt nâng cao", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).chonTab(R.id.nav_settings);
-                    }
-                }
-            });
+            txtTitle.setText("Gói AI: Miễn phí");
+            txtMessage.setText("Mỗi tháng bạn có " + SettingsFragment.AI_MAX_LIMIT + " lượt hỗ trợ AI thông minh hoàn toàn miễn phí.\n\n• Lượt khả dụng: Còn " + conLai + " / " + SettingsFragment.AI_MAX_LIMIT + " lượt\n• Đã sử dụng: " + count + " lượt\n• Làm mới tự động: Ngày 01 hàng tháng\n\nKhi hết lượt, bạn vẫn quét tài liệu Offline bình thường mà không bị gián đoạn.");
+            btnCaiDat.setText("Cài đặt nâng cao");
         }
 
-        builder.setNegativeButton("Đóng", null);
-        builder.show();
+        btnCaiDat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).chonTab(R.id.nav_settings);
+                }
+            }
+        });
+
+        btnDong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     @Override

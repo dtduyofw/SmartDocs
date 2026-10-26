@@ -1,5 +1,6 @@
 package com.example.smartdocs.ui;
 
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -15,7 +16,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -385,6 +385,16 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
+        View btnQuickEditCard = findViewById(R.id.btnQuickEditCard);
+        if (btnQuickEditCard != null) {
+            btnQuickEditCard.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hienDialogEdit();
+                }
+            });
+        }
+
         // ── New — quay về Home để tạo scan mới ───────────
         btnNew.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -580,40 +590,48 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // ─────────────────────────────────────────
 
     /**
-     * Dialog chỉnh sửa nhanh nội dung OCR.
+     * Dialog chỉnh sửa nhanh nội dung OCR (giao diện custom).
      */
     void hienDialogEdit() {
-        android.widget.EditText editText = new android.widget.EditText(this);
-        editText.setText(document.ocrText);
-        editText.setMinLines(6);
-        editText.setMaxLines(12);
-        editText.setSingleLine(false);
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        editText.setPadding(pad, pad, pad, pad);
-        editText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-        editText.setHintTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        Dialog dialog = DialogHelper.taoDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_chinh_sua_van_ban, null);
+        dialog.setContentView(dialogView);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Chỉnh sửa văn bản")
-                .setView(editText)
-                .setPositiveButton("Cập nhật", (dialog, which) -> {
-                    String vanBanMoi = editText.getText().toString();
-                    document.ocrText = vanBanMoi;
-                    txtExtractedContent.setText(vanBanMoi);
+        TextInputEditText edt = (TextInputEditText) dialogView.findViewById(R.id.edtNoiDungOcr);
+        edt.setText(document.ocrText);
+        if (document.ocrText != null) {
+            edt.setSelection(document.ocrText.length());
+        }
 
-                    // Cập nhật vào Room Database trên background thread
-                    Executors.newSingleThreadExecutor().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            AppDatabase.getInstance(DocumentPreviewActivity.this)
-                                    .documentDao().updateOcrText(document.id, vanBanMoi, System.currentTimeMillis());
-                        }
-                    });
+        dialogView.findViewById(R.id.btnHuyEdit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 
-                    Toast.makeText(this, "Đã cập nhật và lưu văn bản.", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+        dialogView.findViewById(R.id.btnCapNhatEdit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String vanBanMoi = edt.getText() != null ? edt.getText().toString() : "";
+                document.ocrText = vanBanMoi;
+                txtExtractedContent.setText(vanBanMoi);
+
+                // Cập nhật vào Room Database trên background thread
+                Executors.newSingleThreadExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        AppDatabase.getInstance(DocumentPreviewActivity.this)
+                                .documentDao().updateOcrText(document.id, vanBanMoi, System.currentTimeMillis());
+                    }
+                });
+
+                dialog.dismiss();
+                Toast.makeText(DocumentPreviewActivity.this, "Đã cập nhật và lưu văn bản.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
     }
 
     // ─────────────────────────────────────────
