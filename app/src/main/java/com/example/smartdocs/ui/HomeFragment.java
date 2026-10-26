@@ -536,7 +536,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        txtLoadingStatus.setText("ML Kit đang nhận diện văn bản...");
+        txtLoadingStatus.setText("Đang nhận diện văn bản...");
         viewModel.setLoading(true);
 
         OcrManager.getInstance().recognizeFromUri(requireContext(), imageUri, new OcrManager.OcrCallback() {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -102,6 +102,7 @@
                 android:layout_marginEnd="6dp"
                 app:chipBackgroundColor="@color/primary"
                 android:textColor="@color/white"
+                app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
@@ -110,6 +111,7 @@
                 android:layout_height="wrap_content"
                 android:text="PDF"
                 android:layout_marginEnd="6dp"
+                app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
@@ -118,6 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="Word"
                 android:layout_marginEnd="6dp"
+                app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
@@ -126,6 +129,7 @@
                 android:layout_height="wrap_content"
                 android:text="Excel"
                 android:layout_marginEnd="6dp"
+                app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
@@ -133,6 +137,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Text"
+                app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 
         </LinearLayout>

@@ -15,7 +15,7 @@ public class ApiClient {
     static final String BASE_URL = "https://generativelanguage.googleapis.com/";
 
     // Timeout: 30 giây
-    static final int TIMEOUT_SECONDS = 30;
+    static final int TIMEOUT_SECONDS = 60;
 
     // Singleton instance
     static ApiClient instance;

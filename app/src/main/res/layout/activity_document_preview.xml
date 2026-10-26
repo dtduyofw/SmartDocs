@@ -698,7 +698,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="52dp"
                     android:layout_height="52dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="8dp"
                     app:cardBackgroundColor="@color/export_word_bg">
 
                     <ImageView
@@ -741,7 +741,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="52dp"
                     android:layout_height="52dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="8dp"
                     app:cardBackgroundColor="@color/export_pdf_bg">
 
                     <ImageView
@@ -784,7 +784,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="52dp"
                     android:layout_height="52dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="8dp"
                     app:cardBackgroundColor="@color/export_excel_bg">
 
                     <ImageView
@@ -827,7 +827,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="52dp"
                     android:layout_height="52dp"
-                    app:cardCornerRadius="12dp"
+                    app:cardCornerRadius="8dp"
                     app:cardBackgroundColor="@color/export_text_bg">
 
                     <ImageView

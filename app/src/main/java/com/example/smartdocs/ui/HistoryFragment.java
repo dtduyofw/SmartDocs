@@ -221,7 +221,7 @@ public class HistoryFragment extends Fragment {
 
     void hienDialogChiTiet(ScanDocument document) {
         StringBuilder sb = new StringBuilder();
-        sb.append("VĂN BẢN OCR:\n");
+        sb.append("VĂN BẢN:\n");
         sb.append("─────────────────\n");
         sb.append(document.ocrText != null ? document.ocrText : "(Không có)");
 

@@ -19,9 +19,12 @@ import com.example.smartdocs.data.model.ScanDocument;
 - version 3: thêm bảng qa_history, saved_files; thêm cột tags, language, updated_at;
              thêm index trên scan_documents.created_at
 - version 4: thêm bảng document_pages lưu danh sách các trang tài liệu
+- version 5: migration "vá schema" — xử lý thiết bị Android 13 bị lỗi schema validation
+             khi database cũ thiếu cột hoặc index so với khai báo Entity hiện tại.
+             Dùng CREATE ... IF NOT EXISTS / ADD COLUMN thông qua try-catch để an toàn.
  */
 @Database(entities = {ScanDocument.class, QaHistory.class, SavedFile.class, DocumentPage.class},
-        version = 4, exportSchema = false)
+        version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String DB_NAME = "smart_docs.db";
@@ -50,11 +53,10 @@ public abstract class AppDatabase extends RoomDatabase {
     // - Thêm cột tags, language, updated_at vào scan_documents
     // - Tạo index trên scan_documents.created_at để tăng tốc ORDER BY
     // - Tạo bảng qa_history để lưu lịch sử hỏi đáp AI
-    // - Tạo bảng saved_files để lưu file yêu thích (thay thế SharedPreferences)
+    // - Tạo bảng saved_files để lưu file yêu thích
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
-            // Thêm các cột mới vào scan_documents
             database.execSQL("ALTER TABLE scan_documents ADD COLUMN tags TEXT NOT NULL DEFAULT ''");
             database.execSQL("ALTER TABLE scan_documents ADD COLUMN language TEXT NOT NULL DEFAULT 'auto'");
             database.execSQL("ALTER TABLE scan_documents ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0");
@@ -84,8 +86,7 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    // Migration tu version 3 len 4:
-    // Tao bang document_pages de luu cac trang cua tai lieu quet nhieu trang
+    // Migration từ version 3 → 4: tạo bảng document_pages
     static final Migration MIGRATION_3_4 = new Migration(3, 4) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
@@ -101,7 +102,86 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    /**
+    // Migration từ version 4 → 5: vá schema cho thiết bị bị lệch cấu trúc.
+    // Nguyên nhân: thiết bị cài app từ version rất cũ (v1) bị thiếu cột hoặc index,
+    // Room trên Android 13 kiểm tra schema nghiêm hơn và throw IllegalStateException.
+    // Giải pháp: dùng try-catch để ADD COLUMN và CREATE INDEX một cách an toàn —
+    // nếu cột/index đã tồn tại thì bỏ qua, nếu chưa có thì tạo mới.
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Vá cột is_favorite nếu thiếu (thiết bị skip v1->v2)
+            try {
+                database.execSQL("ALTER TABLE scan_documents ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0");
+            } catch (Exception e) {
+                // Cột đã tồn tại, bỏ qua
+            }
+
+            // Vá cột page_count nếu thiếu
+            try {
+                database.execSQL("ALTER TABLE scan_documents ADD COLUMN page_count INTEGER NOT NULL DEFAULT 1");
+            } catch (Exception e) {
+                // Cột đã tồn tại, bỏ qua
+            }
+
+            // Vá cột tags nếu thiếu (thiết bị skip v2->v3)
+            try {
+                database.execSQL("ALTER TABLE scan_documents ADD COLUMN tags TEXT NOT NULL DEFAULT ''");
+            } catch (Exception e) {
+                // Cột đã tồn tại, bỏ qua
+            }
+
+            // Vá cột language nếu thiếu
+            try {
+                database.execSQL("ALTER TABLE scan_documents ADD COLUMN language TEXT NOT NULL DEFAULT 'auto'");
+            } catch (Exception e) {
+                // Cột đã tồn tại, bỏ qua
+            }
+
+            // Vá cột updated_at nếu thiếu
+            try {
+                database.execSQL("ALTER TABLE scan_documents ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0");
+            } catch (Exception e) {
+                // Cột đã tồn tại, bỏ qua
+            }
+
+            // Đảm bảo index tồn tại — CREATE IF NOT EXISTS an toàn
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_scan_documents_created_at ON scan_documents(created_at)");
+
+            // Đảm bảo bảng qa_history tồn tại
+            database.execSQL("CREATE TABLE IF NOT EXISTS qa_history ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "document_id INTEGER NOT NULL, "
+                    + "question TEXT NOT NULL, "
+                    + "answer TEXT NOT NULL, "
+                    + "created_at INTEGER NOT NULL, "
+                    + "FOREIGN KEY(document_id) REFERENCES scan_documents(id) "
+                    + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_qa_history_document_id ON qa_history(document_id)");
+
+            // Đảm bảo bảng saved_files tồn tại
+            database.execSQL("CREATE TABLE IF NOT EXISTS saved_files ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "file_path TEXT NOT NULL, "
+                    + "file_name TEXT, "
+                    + "file_type TEXT, "
+                    + "added_at INTEGER NOT NULL)");
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_saved_files_file_path ON saved_files(file_path)");
+
+            // Đảm bảo bảng document_pages tồn tại
+            database.execSQL("CREATE TABLE IF NOT EXISTS document_pages ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "document_id INTEGER NOT NULL, "
+                    + "page_number INTEGER NOT NULL, "
+                    + "image_uri TEXT, "
+                    + "ocr_text TEXT, "
+                    + "FOREIGN KEY(document_id) REFERENCES scan_documents(id) "
+                    + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_document_pages_document_id ON document_pages(document_id)");
+        }
+    };
+
+    /*
     Trả về singleton instance của AppDatabase.
     Dùng Double-Checked Locking để an toàn khi gọi từ nhiều thread.
      */
@@ -114,8 +194,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             AppDatabase.class,
                             DB_NAME
                     )
-                    // Thêm đầy đủ các migration — không xóa dữ liệu người dùng
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    // Thêm đầy đủ migration chain — không mất dữ liệu người dùng
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build();
                 }
             }

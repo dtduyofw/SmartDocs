@@ -6,7 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -119,16 +121,44 @@ public class FilesFragment extends Fragment {
         // 7. Bộ lọc chip
         ganSuKienFilter();
 
-        // 8. Click item
-        lvFiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        // 8. Double tap để mở file, single tap để chọn khi đang multi-select
+        GestureDetector gestureDetector = new GestureDetector(requireContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        // Tính vị trí item được double tap
+                        int pos = lvFiles.pointToPosition((int) e.getX(), (int) e.getY());
+                        if (pos == AdapterView.INVALID_POSITION) return false;
+                        File file = danhSachFileHienThi.get(pos);
+                        if (dangChonNhieu) {
+                            // Đang multi-select thì double tap vẫn toggle chọn
+                            toggleChonItem(file, null);
+                        } else {
+                            // Mở thẳng bằng app ngoài, không hỏi
+                            moFileBangAppNgoai(file);
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapConfirmed(MotionEvent e) {
+                        int pos = lvFiles.pointToPosition((int) e.getX(), (int) e.getY());
+                        if (pos == AdapterView.INVALID_POSITION) return false;
+                        File file = danhSachFileHienThi.get(pos);
+                        if (dangChonNhieu) {
+                            toggleChonItem(file, null);
+                        }
+                        // Single tap bình thường không mở file nữa — phải double tap
+                        return true;
+                    }
+                });
+
+        lvFiles.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                File file = danhSachFileHienThi.get(position);
-                if (dangChonNhieu) {
-                    toggleChonItem(file, view);
-                } else {
-                    moFile(file);
-                }
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                // Trả về false để ListView vẫn xử lý scroll bình thường
+                return false;
             }
         });
 
@@ -207,9 +237,32 @@ public class FilesFragment extends Fragment {
                     imgIcon.setImageResource(R.drawable.ic_folder);
                     imgIcon.setColorFilter(null);
                 }
+
+                // Hiển thị / ẩn checkbox theo trạng thái multi-select
+                if (dangChonNhieu) {
+                    checkbox.setVisibility(View.VISIBLE);
+                    checkbox.setChecked(selectedPaths.contains(file.getAbsolutePath()));
+                    // Ẩn menu khi đang multi-select để tránh nhầm
+                    imgMenu.setVisibility(View.GONE);
+                } else {
+                    checkbox.setVisibility(View.GONE);
+                    imgMenu.setVisibility(View.VISIBLE);
+                }
+
+                // Nền xanh nhạt khi item được chọn
                 convertView.setBackgroundColor(
                         selectedPaths.contains(file.getAbsolutePath())
                                 ? 0x220D6EDF : 0x00000000);
+
+                // Gán listener cho nút menu — phải đặt ở đây vì getView() tái sử dụng view
+                final File fileCuoiCung = file;
+                imgMenu.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        hienMenuFile(fileCuoiCung);
+                    }
+                });
+
                 return convertView;
             }
         };

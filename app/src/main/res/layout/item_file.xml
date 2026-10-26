@@ -70,6 +70,7 @@
         android:padding="2dp"
         android:clickable="true"
         android:focusable="true"
+        android:focusableInTouchMode="false"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:layout_marginStart="4dp" />
 

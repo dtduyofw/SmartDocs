@@ -229,7 +229,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             txtAiResult.setText(document.aiSummary);
             cardAiResult.setVisibility(View.VISIBLE);
         } else {
-            txtStatusBadge.setText("Đã trích xuất OCR");
+            txtStatusBadge.setText("Đã trích xuất văn bản");
             txtStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.status_badge_blue));
             cardAiResult.setVisibility(View.GONE);
         }
