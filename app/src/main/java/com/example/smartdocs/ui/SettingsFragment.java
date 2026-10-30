@@ -1,72 +1,80 @@
 package com.example.smartdocs.ui;
 
+import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.smartdocs.R;
+import com.example.smartdocs.data.QLTaiKhoan;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SettingsFragment extends Fragment {
 
-    // Tên file SharedPreferences dùng chung toàn app
+    // Ten file SharedPreferences dung chung toan app
     public static final String PREFS_NAME = "smartdocs_prefs";
 
-    // Key lưu Gemini API Key
+    // Key luu Gemini API Key (cho tuong thich he thong)
     public static final String KEY_API_KEY = "gemini_api_key";
-    // Key đếm số lần gọi AI trong tháng
+    // Key dem so lan goi AI trong thang
     public static final String KEY_AI_COUNT = "ai_count";
-    // Key lưu tháng hiện tại để reset counter
+    // Key luu thang hien tai de reset counter
     public static final String KEY_AI_MONTH = "ai_month";
-    // Giới hạn số lần dùng AI miễn phí mỗi tháng (50 lượt)
+    // Gioi han so lan dung AI mac dinh (50 luot)
     public static final int AI_MAX_LIMIT = 50;
 
-    // Key lưu chế độ giao diện (0: Hệ thống, 1: Sáng, 2: Tối)
+    // Key luu che do giao dien (0: He thong, 1: Sang, 2: Toi)
     public static final String KEY_THEME_MODE = "theme_mode";
     public static final int THEME_SYSTEM = 0;
     public static final int THEME_LIGHT = 1;
     public static final int THEME_DARK = 2;
 
-
-
-    // Views
     // Views
     ImageView imgBackSettings, imgSaveSettings;
-    TextInputEditText edtApiKey;
+    TextView txtUserEmail, txtUserUid;
     TextView txtAiPlan, txtAiPlanDesc, txtAiUsage;
     ProgressBar pbAiUsage;
-    TextView txtGetApiKey;
-    LinearLayout layoutToggleAdvanced, layoutAdvancedSettings;
-    ImageView imgToggleAdvanced;
+    MaterialButton btnAuthAction, btnNangCapGoi, btnDongBoAi;
     MaterialButton btnSaveSettings;
 
-    // Chế độ giao diện (RadioGroup & RadioButton)
+    // Che do giao dien (RadioGroup & RadioButton)
     RadioGroup rdgGiaoDien;
     RadioButton rdSang, rdHeThong, rdToi;
 
-    // Phản hồi & Thông tin
+    // Phan hoi & Thong tin
     MaterialButton btnFeedback;
     TextView txtAppVersion;
 
     SharedPreferences prefs;
+    QLTaiKhoan qlTaiKhoan;
+    Dialog dialogNangCapHienTai;
 
     @Nullable
     @Override
@@ -78,31 +86,64 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Ánh xạ views
+        // 1. Khoi tao QLTaiKhoan
+        qlTaiKhoan = QLTaiKhoan.getInstance(requireContext());
+
+        // 2. Anh xa views
         anhXaView(view);
 
-        // 2. Lấy SharedPreferences
+        // 3. Lay SharedPreferences
         prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // 3. Nạp dữ liệu đã lưu vào UI
+        // 4. Nap du lieu da luu vao UI
         napdDuLieuDaLuu();
 
-        // 4. Gán sự kiện
+        // 5. Gan su kien
         ganSuKien();
+
+        // 6. Lang nghe real-time tu Firestore: khi webhook nang cap thi tu dong cap nhat UI
+        batDauLangNgheNangCap();
+    }
+
+    // Khoi dong lang nghe real-time Firestore sau khi dang nhap
+    void batDauLangNgheNangCap() {
+        if (!qlTaiKhoan.daDangNhap()) return;
+
+        qlTaiKhoan.batDauLangNgheNangCap(new QLTaiKhoan.UpgradeCallback() {
+            @Override
+            public void onUpgradeDetected(final String loaiGoiMoi, final int tongLuotMoi) {
+                if (getActivity() == null || !isAdded()) return;
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        capNhatGiaoDienTaiKhoan();
+                        // Dong trang QR neu dang mo va mo Dialog thong bao thanh cong
+                        if (dialogNangCapHienTai != null && dialogNangCapHienTai.isShowing()) {
+                            dialogNangCapHienTai.dismiss();
+                            dialogNangCapHienTai = null;
+                        }
+                        hienDialogNangCapThanhCong(loaiGoiMoi, tongLuotMoi);
+                    }
+                });
+            }
+        });
     }
 
     void anhXaView(View view) {
         imgBackSettings = (ImageView) view.findViewById(R.id.imgBackSettings);
         imgSaveSettings = (ImageView) view.findViewById(R.id.imgSaveSettings);
-        edtApiKey = (TextInputEditText) view.findViewById(R.id.edtApiKey);
+
+        txtUserEmail = (TextView) view.findViewById(R.id.txtUserEmail);
+        txtUserUid = (TextView) view.findViewById(R.id.txtUserUid);
+        btnAuthAction = (MaterialButton) view.findViewById(R.id.btnAuthAction);
+
         txtAiPlan = (TextView) view.findViewById(R.id.txtAiPlan);
         txtAiPlanDesc = (TextView) view.findViewById(R.id.txtAiPlanDesc);
         txtAiUsage = (TextView) view.findViewById(R.id.txtAiUsage);
         pbAiUsage = (ProgressBar) view.findViewById(R.id.pbAiUsage);
-        txtGetApiKey = (TextView) view.findViewById(R.id.txtGetApiKey);
-        layoutToggleAdvanced = (LinearLayout) view.findViewById(R.id.layoutToggleAdvanced);
-        layoutAdvancedSettings = (LinearLayout) view.findViewById(R.id.layoutAdvancedSettings);
-        imgToggleAdvanced = (ImageView) view.findViewById(R.id.imgToggleAdvanced);
+        btnNangCapGoi = (MaterialButton) view.findViewById(R.id.btnNangCapGoi);
+        btnDongBoAi = (MaterialButton) view.findViewById(R.id.btnDongBoAi);
+
         btnSaveSettings = (MaterialButton) view.findViewById(R.id.btnSaveSettings);
 
         rdgGiaoDien = (RadioGroup) view.findViewById(R.id.rdgGiaoDien);
@@ -116,11 +157,9 @@ public class SettingsFragment extends Fragment {
 
     void napdDuLieuDaLuu() {
         if (!isAdded() || getContext() == null) return;
-        String apiKey = prefs.getString(KEY_API_KEY, "");
-        int aiCount = prefs.getInt(KEY_AI_COUNT, 0);
 
-        edtApiKey.setText(apiKey);
-        capNhatTrangThaiAi(apiKey, aiCount);
+        // Cap nhat thong tin tai khoan & goi AI
+        capNhatGiaoDienTaiKhoan();
 
         int themeMode = prefs.getInt(KEY_THEME_MODE, THEME_SYSTEM);
         if (themeMode == THEME_LIGHT) {
@@ -132,24 +171,48 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    void capNhatTrangThaiAi(String apiKey, int aiCount) {
-        if (!apiKey.isEmpty()) {
-            txtAiPlan.setText("Cá nhân (Không giới hạn)");
-            txtAiPlanDesc.setText("Đang sử dụng Gemini API Key riêng của bạn. Không giới hạn số lượt gọi AI.");
-            txtAiUsage.setText(aiCount + " lần gọi (Vô hạn)");
+    public void capNhatGiaoDienTaiKhoan() {
+        if (!isAdded() || getContext() == null || qlTaiKhoan == null) return;
+
+        if (qlTaiKhoan.daDangNhap()) {
+            txtUserEmail.setText(qlTaiKhoan.getEmail());
+            txtUserUid.setText("Mã nạp: " + qlTaiKhoan.getShortUid());
+            btnAuthAction.setText("Đăng xuất");
+        } else {
+            txtUserEmail.setText("Tài khoản khách");
+            txtUserUid.setText("Mã nạp: Chưa đăng nhập");
+            btnAuthAction.setText("Đăng nhập");
+        }
+
+        String loaiGoi = qlTaiKhoan.getLoaiGoi();
+        int daDung = qlTaiKhoan.getDaNiemDung();
+        int tongLuot = qlTaiKhoan.getTongLuot();
+        int conLai = qlTaiKhoan.getLuotConLai();
+
+        if ("VIP".equalsIgnoreCase(loaiGoi)) {
+            txtAiPlan.setText("Gói VIP (Không giới hạn)");
+            txtAiPlanDesc.setText("Bạn đang sở hữu gói VIP. Sử dụng AI không giới hạn số lượt.");
+            txtAiUsage.setText("Không giới hạn");
             pbAiUsage.setMax(100);
             pbAiUsage.setProgress(100);
-            layoutAdvancedSettings.setVisibility(View.VISIBLE);
-            imgToggleAdvanced.setRotation(180f);
+        } else if ("PRO".equalsIgnoreCase(loaiGoi)) {
+            txtAiPlan.setText("Siêu Cấp Pro");
+            txtAiPlanDesc.setText("Gói nâng cấp 500 lượt AI tốc độ cao.");
+            txtAiUsage.setText(conLai + " / " + tongLuot + " lượt khả dụng");
+            pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 500);
+            pbAiUsage.setProgress(Math.min(daDung, pbAiUsage.getMax()));
+        } else if ("PLUS".equalsIgnoreCase(loaiGoi)) {
+            txtAiPlan.setText("Nâng Cấp Plus");
+            txtAiPlanDesc.setText("Gói nâng cấp 200 lượt AI cộng thêm.");
+            txtAiUsage.setText(conLai + " / " + tongLuot + " lượt khả dụng");
+            pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 200);
+            pbAiUsage.setProgress(Math.min(daDung, pbAiUsage.getMax()));
         } else {
             txtAiPlan.setText("Miễn phí (Cơ bản)");
             txtAiPlanDesc.setText("Sẵn sàng sử dụng ngay, tự động làm mới vào đầu mỗi tháng.");
-            int conLai = Math.max(0, AI_MAX_LIMIT - aiCount);
-            txtAiUsage.setText(conLai + " / " + AI_MAX_LIMIT + " lượt khả dụng");
-            pbAiUsage.setMax(AI_MAX_LIMIT);
-            pbAiUsage.setProgress(aiCount);
-            layoutAdvancedSettings.setVisibility(View.GONE);
-            imgToggleAdvanced.setRotation(0f);
+            txtAiUsage.setText(conLai + " / " + tongLuot + " lượt khả dụng");
+            pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 50);
+            pbAiUsage.setProgress(Math.min(daDung, pbAiUsage.getMax()));
         }
     }
 
@@ -167,6 +230,98 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 luuCaiDat();
+            }
+        });
+
+        btnSaveSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                luuCaiDat();
+            }
+        });
+
+        // Su kien nut Dang nhap / Dang xuat
+        btnAuthAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (qlTaiKhoan.daDangNhap()) {
+                    DialogHelper.showConfirm(requireContext(), "Đăng xuất", "Bạn có chắc chắn muốn đăng xuất tài khoản AI?", "Đăng xuất", new DialogHelper.OnConfirm() {
+                        @Override
+                        public void onConfirm() {
+                            qlTaiKhoan.dangXuat();
+                            capNhatGiaoDienTaiKhoan();
+                            Toast.makeText(requireContext(), "Đã đăng xuất tài khoản.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    hienDialogDangNhap();
+                }
+            }
+        });
+
+        // Nut Nang cap goi
+        btnNangCapGoi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!qlTaiKhoan.daDangNhap()) {
+                    Toast.makeText(requireContext(), "Vui lòng đăng nhập tài khoản trước khi nâng cấp gói AI.", Toast.LENGTH_SHORT).show();
+                    hienDialogDangNhap();
+                    return;
+                }
+                hienDialogNangCapGoi();
+            }
+        });
+
+        // Nut Dong bo tu may chu Firestore
+        btnDongBoAi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!qlTaiKhoan.daDangNhap()) {
+                    Toast.makeText(requireContext(), "Vui lòng đăng nhập để đồng bộ dữ liệu từ máy chủ.", Toast.LENGTH_SHORT).show();
+                    hienDialogDangNhap();
+                    return;
+                }
+
+                final String oldGoi = qlTaiKhoan.getLoaiGoi();
+                final int oldTongLuot = qlTaiKhoan.getTongLuot();
+
+                Toast.makeText(requireContext(), "Đang kiểm tra dữ liệu từ máy chủ...", Toast.LENGTH_SHORT).show();
+                qlTaiKhoan.dongBoTuFirestore(new QLTaiKhoan.SyncCallback() {
+                    @Override
+                    public void onSynced() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    capNhatGiaoDienTaiKhoan();
+                                    boolean daNangCap = !oldGoi.equalsIgnoreCase(qlTaiKhoan.getLoaiGoi())
+                                            || qlTaiKhoan.getTongLuot() > oldTongLuot;
+                                    if (daNangCap) {
+                                        if (dialogNangCapHienTai != null && dialogNangCapHienTai.isShowing()) {
+                                            dialogNangCapHienTai.dismiss();
+                                            dialogNangCapHienTai = null;
+                                        }
+                                        hienDialogNangCapThanhCong(qlTaiKhoan.getLoaiGoi(), qlTaiKhoan.getTongLuot());
+                                    } else {
+                                        Toast.makeText(requireContext(), "Đã đồng bộ số lượt AI mới nhất thành công!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(final String loi) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(requireContext(), "Lỗi đồng bộ: " + loi, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                });
             }
         });
 
@@ -204,39 +359,7 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        layoutToggleAdvanced.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (layoutAdvancedSettings.getVisibility() == View.VISIBLE) {
-                    layoutAdvancedSettings.setVisibility(View.GONE);
-                    imgToggleAdvanced.setRotation(0f);
-                } else {
-                    layoutAdvancedSettings.setVisibility(View.VISIBLE);
-                    imgToggleAdvanced.setRotation(180f);
-                }
-            }
-        });
-
-        txtGetApiKey.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/app/apikey"));
-                    startActivity(browserIntent);
-                } catch (Exception e) {
-                    Toast.makeText(requireContext(), "Không thể mở trình duyệt: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        btnSaveSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                luuCaiDat();
-            }
-        });
-
-        // Easter egg: bấm liên tục 5 lần vào số phiên bản để reset lượt AI (cho Developer/Tester)
+        // Easter egg: bam 5 lan vao phien ban de reset bo dem
         txtAppVersion.setOnClickListener(new View.OnClickListener() {
             int clickCount = 0;
             long lastClickTime = 0;
@@ -248,10 +371,9 @@ public class SettingsFragment extends Fragment {
                     clickCount++;
                     if (clickCount >= 5) {
                         clickCount = 0;
-                        prefs.edit().putInt(KEY_AI_COUNT, 0).apply();
-                        String apiKey = prefs.getString(KEY_API_KEY, "");
-                        capNhatTrangThaiAi(apiKey, 0);
-                        Toast.makeText(requireContext(), "Developer: Đã reset bộ đếm AI về 0!", Toast.LENGTH_SHORT).show();
+                        qlTaiKhoan.nangCapDevMode("FREE", 50, null);
+                        capNhatGiaoDienTaiKhoan();
+                        Toast.makeText(requireContext(), "Developer: Đã reset bộ đếm AI!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     clickCount = 1;
@@ -262,13 +384,6 @@ public class SettingsFragment extends Fragment {
     }
 
     void luuCaiDat() {
-        String apiKey = edtApiKey.getText() != null ? edtApiKey.getText().toString().trim() : "";
-
-        if (!apiKey.isEmpty() && apiKey.length() < 10) {
-            Toast.makeText(requireContext(), "API Key không hợp lệ. Vui lòng kiểm tra lại.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         int themeMode = THEME_SYSTEM;
         if (rdSang.isChecked()) {
             themeMode = THEME_LIGHT;
@@ -276,14 +391,388 @@ public class SettingsFragment extends Fragment {
             themeMode = THEME_DARK;
         }
 
-        prefs.edit()
-                .putString(KEY_API_KEY, apiKey)
-                .putInt(KEY_THEME_MODE, themeMode)
-                .apply();
-
-        // Áp dụng theme ngay sau khi lưu
+        prefs.edit().putInt(KEY_THEME_MODE, themeMode).apply();
         apDungTheme(themeMode);
         Toast.makeText(requireContext(), "Đã lưu cài đặt!", Toast.LENGTH_SHORT).show();
+    }
+
+    // Dialog Dang nhap
+    // Mo man hinh dang nhap (Activity rieng thay the dialog cu)
+    public void hienDialogDangNhap() {
+        if (!isAdded() || getContext() == null) return;
+        Intent i = new Intent(requireContext(), DangNhapActivity.class);
+        startActivityForResult(i, 1001);
+    }
+
+    // Mo man hinh dang ky (chuyen thang sang tab dang ky)
+    public void hienDialogDangKy() {
+        if (!isAdded() || getContext() == null) return;
+        Intent i = new Intent(requireContext(), DangNhapActivity.class);
+        i.putExtra(DangNhapActivity.EXTRA_MODE, DangNhapActivity.MODE_DANG_KY);
+        startActivityForResult(i, 1001);
+    }
+
+    // Nhan ket qua tu DangNhapActivity khi dang nhap / dang ky thanh cong
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == android.app.Activity.RESULT_OK) {
+            // Cap nhat lai giao dien sau khi dang nhap / dang ky thanh cong
+            capNhatGiaoDienTaiKhoan();
+            // Khoi dong listener real-time sau khi dang nhap
+            batDauLangNgheNangCap();
+        }
+    }
+
+    // Dialog Nang cap goi & Ma VietQR
+    public void hienDialogNangCapGoi() {
+        if (!isAdded() || getContext() == null) return;
+
+        // Chi cho phep nguoi dung da dang nhap nang cap goi AI
+        if (!qlTaiKhoan.daDangNhap()) {
+            Toast.makeText(requireContext(), "Vui lòng đăng nhập tài khoản trước khi nâng cấp gói AI.", Toast.LENGTH_SHORT).show();
+            hienDialogDangNhap();
+            return;
+        }
+
+        final Dialog dialog = DialogHelper.taoDialog(requireContext());
+        dialogNangCapHienTai = dialog;
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_nang_cap_goi, null);
+        dialog.setContentView(view);
+
+        // [RF-3 FIX]: Co kiem soat vong doi de cancel download khi dong dialog
+        final AtomicBoolean isDialogActive = new AtomicBoolean(true);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface d) {
+                isDialogActive.set(false);
+                if (dialogNangCapHienTai == dialog) {
+                    dialogNangCapHienTai = null;
+                }
+            }
+        });
+
+        // Phai set lai layout sau setContentView vi setContentView reset kich thuoc window
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                (int) (requireContext().getResources().getDisplayMetrics().widthPixels * 0.92f),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        final MaterialCardView cardGoiPlus = (MaterialCardView) view.findViewById(R.id.cardGoiPlus);
+        final MaterialCardView cardGoiPro = (MaterialCardView) view.findViewById(R.id.cardGoiPro);
+        final MaterialCardView cardGoiVip = (MaterialCardView) view.findViewById(R.id.cardGoiVip);
+
+        final ImageView imgVietQr = (ImageView) view.findViewById(R.id.imgVietQr);
+        final ProgressBar pbQrLoading = (ProgressBar) view.findViewById(R.id.pbQrLoading);
+
+        final TextView txtNganHang = (TextView) view.findViewById(R.id.txtNganHang);
+        final TextView txtStk = (TextView) view.findViewById(R.id.txtStk);
+        final TextView txtChuTk = (TextView) view.findViewById(R.id.txtChuTk);
+        final TextView txtSoTien = (TextView) view.findViewById(R.id.txtSoTien);
+        final TextView txtNoiDung = (TextView) view.findViewById(R.id.txtNoiDung);
+
+        ImageView btnCopyStk = (ImageView) view.findViewById(R.id.btnCopyStk);
+        ImageView btnCopySoTien = (ImageView) view.findViewById(R.id.btnCopySoTien);
+        ImageView btnCopyNoiDung = (ImageView) view.findViewById(R.id.btnCopyNoiDung);
+
+        MaterialButton btnKiemTraThanhToan = (MaterialButton) view.findViewById(R.id.btnKiemTraThanhToan);
+        MaterialButton btnDevTest = (MaterialButton) view.findViewById(R.id.btnDevTest);
+        TextView btnDong = (TextView) view.findViewById(R.id.btnDongNangCap);
+
+        // Gia tri mac dinh
+        final String shortUid = qlTaiKhoan.getShortUid();
+        final long[] currentGia = {29000};
+        final String[] currentLoaiGoi = {"PLUS"};
+        final int[] currentLuot = {200};
+
+        // Ham cap nhat QR khi chon goi
+        final Runnable capNhatQr = new Runnable() {
+            @Override
+            public void run() {
+                txtSoTien.setText(String.format("%,d đ", currentGia[0]));
+                String noiDungCk = "VIP".equals(currentLoaiGoi[0]) ? "NAP VIP " + shortUid : "NAP AI " + shortUid;
+                txtNoiDung.setText(noiDungCk);
+
+                String urlQr = QLTaiKhoan.taoUrlVietQr(
+                        QLTaiKhoan.NGAN_HANG_DEFAULT,
+                        QLTaiKhoan.STK_DEFAULT,
+                        QLTaiKhoan.CHU_TK_DEFAULT,
+                        currentGia[0],
+                        noiDungCk
+                );
+                taiAnhVietQr(imgVietQr, pbQrLoading, urlQr, isDialogActive);
+            }
+        };
+
+        // Goi Plus mac dinh
+        capNhatQr.run();
+
+        // Chon goi Plus
+        cardGoiPlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardGoiPlus.setStrokeWidth(4);
+                cardGoiPro.setStrokeWidth(2);
+                cardGoiVip.setStrokeWidth(2);
+
+                currentGia[0] = 29000;
+                currentLoaiGoi[0] = "PLUS";
+                currentLuot[0] = 200;
+                capNhatQr.run();
+            }
+        });
+
+        // Chon goi Pro
+        cardGoiPro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardGoiPlus.setStrokeWidth(2);
+                cardGoiPro.setStrokeWidth(4);
+                cardGoiVip.setStrokeWidth(2);
+
+                currentGia[0] = 69000;
+                currentLoaiGoi[0] = "PRO";
+                currentLuot[0] = 500;
+                capNhatQr.run();
+            }
+        });
+
+        // Chon goi VIP
+        cardGoiVip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardGoiPlus.setStrokeWidth(2);
+                cardGoiPro.setStrokeWidth(2);
+                cardGoiVip.setStrokeWidth(4);
+
+                currentGia[0] = 99000;
+                currentLoaiGoi[0] = "VIP";
+                currentLuot[0] = 999999;
+                capNhatQr.run();
+            }
+        });
+
+        // Sao chep thong tin
+        btnCopyStk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saoChepVaoClipboard("Số tài khoản", txtStk.getText().toString());
+            }
+        });
+
+        btnCopySoTien.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saoChepVaoClipboard("Số tiền", String.valueOf(currentGia[0]));
+            }
+        });
+
+        btnCopyNoiDung.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saoChepVaoClipboard("Nội dung chuyển khoản", txtNoiDung.getText().toString());
+            }
+        });
+
+        // Kiem tra thanh toan tu dong (co co che chong spam click va chi bao chuc mung khi goi thuc su tang)
+        btnKiemTraThanhToan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnKiemTraThanhToan.setEnabled(false);
+                Toast.makeText(requireContext(), "Đang kiểm tra biến động giao dịch từ máy chủ...", Toast.LENGTH_SHORT).show();
+
+                final String oldGoi = qlTaiKhoan.getLoaiGoi();
+                final int oldTongLuot = qlTaiKhoan.getTongLuot();
+
+                qlTaiKhoan.dongBoTuFirestore(new QLTaiKhoan.SyncCallback() {
+                    @Override
+                    public void onSynced() {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    btnKiemTraThanhToan.setEnabled(true);
+                                    capNhatGiaoDienTaiKhoan();
+
+                                    boolean daNangCap = !oldGoi.equalsIgnoreCase(qlTaiKhoan.getLoaiGoi())
+                                            || qlTaiKhoan.getTongLuot() > oldTongLuot;
+
+                                    if (daNangCap) {
+                                        dialog.dismiss();
+                                        dialogNangCapHienTai = null;
+                                        hienDialogNangCapThanhCong(qlTaiKhoan.getLoaiGoi(), qlTaiKhoan.getTongLuot());
+                                    } else {
+                                        Toast.makeText(requireContext(), "Đã đồng bộ dữ liệu. Chưa phát hiện giao dịch nâng cấp mới.", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(final String loi) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    btnKiemTraThanhToan.setEnabled(true);
+                                    Toast.makeText(requireContext(), "Chưa ghi nhận biến động số dư. Vui lòng thử lại sau 1 phút.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Che do thu nghiem (Dev Mode)
+        btnDevTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                qlTaiKhoan.nangCapDevMode(currentLoaiGoi[0], currentLuot[0], new QLTaiKhoan.AuthCallback() {
+                    @Override
+                    public void onSuccess(final String thongBao) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    capNhatGiaoDienTaiKhoan();
+                                    dialog.dismiss();
+                                    dialogNangCapHienTai = null;
+                                    hienDialogNangCapThanhCong(currentLoaiGoi[0], qlTaiKhoan.getTongLuot());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String loi) { }
+                });
+            }
+        });
+
+        btnDong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    // Hien thi Dialog thong bao nang cap goi thanh cong
+    public void hienDialogNangCapThanhCong(final String loaiGoi, final int tongLuot) {
+        if (!isAdded() || getContext() == null) return;
+
+        // Dong dialog QR neu con dang hien thi tren man hinh
+        if (dialogNangCapHienTai != null && dialogNangCapHienTai.isShowing()) {
+            dialogNangCapHienTai.dismiss();
+            dialogNangCapHienTai = null;
+        }
+
+        final Dialog dialog = DialogHelper.taoDialog(requireContext());
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_nang_cap_thanh_cong, null);
+        dialog.setContentView(view);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                (int) (requireContext().getResources().getDisplayMetrics().widthPixels * 0.88f),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+
+        TextView txtSuccessTitle = (TextView) view.findViewById(R.id.txtSuccessTitle);
+        TextView txtSuccessPlanBadge = (TextView) view.findViewById(R.id.txtSuccessPlanBadge);
+        TextView txtSuccessDesc = (TextView) view.findViewById(R.id.txtSuccessDesc);
+        MaterialButton btnSuccessXacNhan = (MaterialButton) view.findViewById(R.id.btnSuccessXacNhan);
+
+        String tenGoiHienThi;
+        String moTaChiTiet;
+
+        if ("VIP".equalsIgnoreCase(loaiGoi)) {
+            tenGoiHienThi = "GÓI VIP (KHÔNG GIỚI HẠN)";
+            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói VIP! Bạn có thể sử dụng tất cả tính năng AI không giới hạn số lượt.";
+        } else if ("PRO".equalsIgnoreCase(loaiGoi)) {
+            tenGoiHienThi = "GÓI SIÊU CẤP PRO (500 LƯỢT)";
+            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Siêu Cấp Pro! Tài khoản của bạn hiện có " + tongLuot + " lượt AI tốc độ cao.";
+        } else {
+            tenGoiHienThi = "GÓI NÂNG CẤP PLUS (200 LƯỢT)";
+            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Nâng Cấp Plus! Tài khoản của bạn hiện có " + tongLuot + " lượt AI khả dụng.";
+        }
+
+        txtSuccessPlanBadge.setText(tenGoiHienThi);
+        txtSuccessDesc.setText(moTaChiTiet);
+
+        btnSuccessXacNhan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatGiaoDienTaiKhoan();
+            }
+        });
+
+        dialog.show();
+    }
+
+    // Ham tai anh VietQR tu mang vao ImageView (co kiem tra co cancel chong memory leak va crash)
+    void taiAnhVietQr(final ImageView imgView, final ProgressBar pb, final String urlStr, final AtomicBoolean isDialogActive) {
+        pb.setVisibility(View.VISIBLE);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (isDialogActive != null && !isDialogActive.get()) return;
+                    URL url = new URL(urlStr);
+                    InputStream inputStream = url.openStream();
+                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                    // Neu nguoi dung da dong dialog truoc khi anh tai xong -> huy ngay bitmap
+                    if (isDialogActive != null && !isDialogActive.get()) {
+                        if (bitmap != null && !bitmap.isRecycled()) {
+                            bitmap.recycle();
+                        }
+                        return;
+                    }
+
+                    if (getActivity() != null && isAdded()) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isDialogActive != null && !isDialogActive.get()) return;
+                                pb.setVisibility(View.GONE);
+                                if (bitmap != null) {
+                                    imgView.setImageBitmap(bitmap);
+                                }
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    if (getActivity() != null && isAdded()) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isDialogActive != null && !isDialogActive.get()) return;
+                                pb.setVisibility(View.GONE);
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    // Sao chep van ban vao Clipboard
+    void saoChepVaoClipboard(String nhan, String text) {
+        if (getContext() == null) return;
+        ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(nhan, text);
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(requireContext(), "Đã sao chép: " + text, Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void guiFeedbackGmail() {
@@ -321,22 +810,41 @@ public class SettingsFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        capNhatGiaoDienTaiKhoan();
+    }
 
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (!hidden) {
-            napdDuLieuDaLuu();
+            // Khi fragment hien thi lai, khoi dong lai listener neu dang nhap
+            batDauLangNgheNangCap();
+            capNhatGiaoDienTaiKhoan();
+        } else {
+            // Khi an fragment, huy listener de tiet kiem tai nguyen
+            if (qlTaiKhoan != null) qlTaiKhoan.dungLangNgheNangCap();
         }
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Dong dialog QR neu con dang hien thi de tranh window leak
+        if (dialogNangCapHienTai != null && dialogNangCapHienTai.isShowing()) {
+            dialogNangCapHienTai.dismiss();
+            dialogNangCapHienTai = null;
+        }
+        // Huy lang nghe Firestore khi fragment bi huy de tranh memory leak
+        if (qlTaiKhoan != null) qlTaiKhoan.dungLangNgheNangCap();
+    }
+
     // ─────────────────────────────────────────────────────────────
-    // Static Helper Methods (Quản lý Theme & SharedPreferences)
+    // Static Helper Methods (Quan ly Theme & Quota AI)
     // ─────────────────────────────────────────────────────────────
 
-    /*
-      Áp dụng chế độ giao diện: Sáng, Tối, hoặc Theo hệ thống.
-     */
     public static void apDungTheme(int themeMode) {
         if (themeMode == THEME_LIGHT) {
             androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
@@ -347,19 +855,12 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    /*
-      Khởi tạo theme khi ứng dụng mở .
-     */
     public static void khoiTaoTheme(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         int themeMode = prefs.getInt(KEY_THEME_MODE, THEME_SYSTEM);
         apDungTheme(themeMode);
     }
 
-    /**
-     * Tăng số lần gọi AI lên 1 (gọi mỗi khi Gemini API trả kết quả thành công).
-     * Tự động reset bộ đếm nếu bước sang tháng mới.
-     */
     public static void tangAiCount(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -377,42 +878,19 @@ public class SettingsFragment extends Fragment {
                 .apply();
     }
 
-    /**
-     * Lấy Gemini API Key đã lưu (nếu chưa cấu hình sẽ fallback về BuildConfig.GEMINI_API_KEY).
-     */
     public static String getApiKey(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String saved = prefs.getString(KEY_API_KEY, "");
-        if (saved.isEmpty()) {
-            return com.example.smartdocs.BuildConfig.GEMINI_API_KEY;
-        }
-        return saved;
+        return com.example.smartdocs.BuildConfig.GEMINI_API_KEY;
     }
 
-    /**
-     * Kiểm tra người dùng có nhập Custom Gemini API Key hay không.
-     */
     public static boolean hasCustomApiKey(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String saved = prefs.getString(KEY_API_KEY, "");
-        return saved != null && !saved.trim().isEmpty();
+        return false;
     }
 
-    /**
-     * Lấy số lượt gọi AI đã dùng trong tháng hiện tại.
-     */
     public static int getAiCount(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getInt(KEY_AI_COUNT, 0);
+        return QLTaiKhoan.getInstance(context).getDaNiemDung();
     }
 
-    /**
-     * Kiểm tra còn lượt dùng AI miễn phí không (hoặc không giới hạn nếu có Custom Key).
-     */
     public static boolean conLuotDungAi(Context context) {
-        if (hasCustomApiKey(context)) {
-            return true;
-        }
-        return getAiCount(context) < AI_MAX_LIMIT;
+        return QLTaiKhoan.getInstance(context).kiemTraConLuotAi();
     }
 }
