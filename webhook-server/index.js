@@ -18,8 +18,8 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 
-// Secret token tu Casso (dat trong bien moi truong tren Render/Railway)
-const CASSO_SECRET = process.env.CASSO_SECRET || 'doi_secret_nay_truoc_khi_deploy';
+// Secret token tu Casso (dat trong bien moi truong tren Render)
+const CASSO_SECRET = process.env.CASSO_SECRET || '';
 
 // Mapping so tien -> goi va so luot
 function xacDinhGoi(amount) {
@@ -29,21 +29,23 @@ function xacDinhGoi(amount) {
     return null;
 }
 
-// Endpoint nhan webhook tu Casso
-app.post('/webhook/casso', async (req, res) => {
-    // Kiem tra secret token
-    const token = req.headers['secure-token'] || req.headers['authorization'];
-    if (token !== CASSO_SECRET) {
-        console.warn('Webhook bi tu choi: sai secret token');
-        return res.status(401).json({ error: 'Unauthorized' });
+// Endpoint nhan webhook tu Casso (ho tro ca /webhook/casso va /)
+app.post(['/webhook/casso', '/'], async (req, res) => {
+    // Kiem tra secret token neu co cau hinh
+    if (CASSO_SECRET && CASSO_SECRET !== 'doi_secret_nay_truoc_khi_deploy') {
+        const token = req.headers['secure-token'] || req.headers['authorization'];
+        if (token !== CASSO_SECRET) {
+            console.warn('Webhook bi tu choi: sai secret token');
+            return res.status(401).json({ error: 401, message: 'Unauthorized - Sai hoac thieu Secure Token' });
+        }
     }
 
-    const payload = req.body;
+    const payload = req.body || {};
 
     // Casso gui danh sach giao dich trong field "data"
     const danhSachGiaoDich = payload.data || (payload.id ? [payload] : []);
     if (!danhSachGiaoDich.length) {
-        return res.json({ success: true, message: 'Khong co giao dich moi' });
+        return res.json({ error: 0, success: true, message: 'Ket noi thanh cong (du lieu trong)' });
     }
 
     const ketQua = [];
@@ -73,43 +75,48 @@ app.post('/webhook/casso', async (req, res) => {
             continue;
         }
 
-        // Tim user theo short_uid tren Firestore
-        const snapshot = await db.collection('users')
-            .where('short_uid', '==', shortUid)
-            .limit(1)
-            .get();
+        try {
+            // Tim user theo short_uid tren Firestore
+            const snapshot = await db.collection('users')
+                .where('short_uid', '==', shortUid)
+                .limit(1)
+                .get();
 
-        if (snapshot.empty) {
-            console.warn(`Khong tim thay user voi shortUid: ${shortUid}`);
-            ketQua.push({ id: maGiaoDich, status: 'not_found', shortUid });
-            continue;
+            if (snapshot.empty) {
+                console.warn(`Khong tim thay user voi shortUid: ${shortUid}`);
+                ketQua.push({ id: maGiaoDich, status: 'not_found', shortUid });
+                continue;
+            }
+
+            const userDoc = snapshot.docs[0];
+            const userData = userDoc.data();
+
+            // Tinh tong luot moi: VIP thi set 999999, con lai cong them vao luot hien co
+            let tongLuotMoi;
+            if (goiInfo.loaigoi === 'VIP') {
+                tongLuotMoi = 999999;
+            } else {
+                tongLuotMoi = (userData.tongluot || 0) + goiInfo.tongluot;
+            }
+
+            // Cap nhat Firestore
+            await userDoc.ref.update({
+                loaigoi: goiInfo.loaigoi,
+                tongluot: tongLuotMoi,
+                lastUpgradeAt: admin.firestore.FieldValue.serverTimestamp(),
+                lastUpgradeAmount: soTien,
+                lastUpgradeTxId: maGiaoDich
+            });
+
+            console.log(`Nang cap thanh cong: ${shortUid} -> ${goiInfo.loaigoi} (+${goiInfo.tongluot} luot), TX: ${maGiaoDich}`);
+            ketQua.push({ id: maGiaoDich, status: 'upgraded', shortUid, goi: goiInfo.loaigoi });
+        } catch (dbError) {
+            console.error(`Loi cap nhat Firestore cho ${shortUid}:`, dbError);
+            ketQua.push({ id: maGiaoDich, status: 'error', error: dbError.message });
         }
-
-        const userDoc = snapshot.docs[0];
-        const userData = userDoc.data();
-
-        // Tinh tong luot moi: VIP thi set 999999, con lai cong them vao luot hien co
-        let tongLuotMoi;
-        if (goiInfo.loaigoi === 'VIP') {
-            tongLuotMoi = 999999;
-        } else {
-            tongLuotMoi = (userData.tongluot || 0) + goiInfo.tongluot;
-        }
-
-        // Cap nhat Firestore
-        await userDoc.ref.update({
-            loaigoi: goiInfo.loaigoi,
-            tongluot: tongLuotMoi,
-            lastUpgradeAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastUpgradeAmount: soTien,
-            lastUpgradeTxId: maGiaoDich
-        });
-
-        console.log(`Nang cap thanh cong: ${shortUid} -> ${goiInfo.loaigoi} (+${goiInfo.tongluot} luot), TX: ${maGiaoDich}`);
-        ketQua.push({ id: maGiaoDich, status: 'upgraded', shortUid, goi: goiInfo.loaigoi });
     }
 
-    return res.json({ success: true, results: ketQua });
+    return res.json({ error: 0, success: true, results: ketQua });
 });
 
 // Health check
