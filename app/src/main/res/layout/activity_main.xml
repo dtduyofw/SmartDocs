@@ -1,27 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background"
     tools:context=".ui.MainActivity">
 
-    <!-- Container cho các Fragment: Home, Files, History, Settings -->
-    <FrameLayout
-        android:id="@+id/fragment_container"
+    <!-- 1. Noi dung chinh cua Activity -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/background">
 
-    <!-- Thanh Bottom Navigation cố định duy nhất cho toàn app -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/surface"
-        app:menu="@menu/bottom_nav_menu" />
+        <!-- Container cho cac Fragment: Home, Files, History, Settings -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-</LinearLayout>
+        <!-- Thanh Bottom Navigation co dinh duy nhat cho toan app -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/surface"
+            app:menu="@menu/bottom_nav_menu" />
+
+    </LinearLayout>
+
+    <!-- 2. Navigation Drawer tuy chinh theo mau -->
+    <include
+        layout="@layout/layout_nav_drawer" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

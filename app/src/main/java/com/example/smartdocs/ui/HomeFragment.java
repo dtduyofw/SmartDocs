@@ -67,6 +67,8 @@ public class HomeFragment extends Fragment {
 
     // Views — ánh xạ từ fragment_home.xml
     TextView txtGreeting;
+    MaterialCardView btnOpenDrawer;
+    TextView txtHomeAvatarChar;
     MaterialButton btnModeOffline, btnModeAi;
     LinearLayout layoutHomeContent;
 
@@ -143,6 +145,8 @@ public class HomeFragment extends Fragment {
 
     void anhXaView(View view) {
         txtGreeting = (TextView) view.findViewById(R.id.txtGreeting);
+        btnOpenDrawer = (MaterialCardView) view.findViewById(R.id.btnOpenDrawer);
+        txtHomeAvatarChar = (TextView) view.findViewById(R.id.txtHomeAvatarChar);
         btnModeOffline = (MaterialButton) view.findViewById(R.id.btnModeOffline);
         btnModeAi = (MaterialButton) view.findViewById(R.id.btnModeAi);
         layoutHomeContent = (LinearLayout) view.findViewById(R.id.layoutHomeContent);
@@ -261,6 +265,17 @@ public class HomeFragment extends Fragment {
     }
 
     void ganSuKien() {
+        if (btnOpenDrawer != null) {
+            btnOpenDrawer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (getActivity() instanceof MainActivity) {
+                        ((MainActivity) getActivity()).moDrawer();
+                    }
+                }
+            });
+        }
+
         // Đọc chế độ đã lưu gần nhất (mặc định là AI nếu chưa lưu)
         SharedPreferences prefs = requireContext().getSharedPreferences(
                 SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
@@ -765,15 +780,19 @@ public class HomeFragment extends Fragment {
 
     void capNhatAiLimit(boolean coAnimation) {
         if (!isAdded() || getContext() == null) return;
-        boolean coKey = SettingsFragment.hasCustomApiKey(requireContext());
-        int aiCount = SettingsFragment.getAiCount(requireContext());
+        com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+        boolean laVip = "VIP".equalsIgnoreCase(ql.getLoaiGoi());
+        int aiCount = ql.getDaNiemDung();
+        int tongLuot = ql.getTongLuot();
+        int conLai = ql.getLuotConLai();
+        String chuoiNgay = ql.getChuoiNgayConLai();
 
-        if (coKey) {
-            String text = "AI Limit: Không giới hạn (Custom Key)";
+        if (laVip) {
+            String text = "AI: Không giới hạn (VIP • " + chuoiNgay + ")";
             txtAiLimit.setText(text);
             txtAiLimit.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_green_dark));
             if (txtUpgrade != null) {
-                txtUpgrade.setText("Key riêng");
+                txtUpgrade.setText("VIP");
                 txtUpgrade.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_green));
             }
             if (pbAiLimit != null) {
@@ -792,20 +811,19 @@ public class HomeFragment extends Fragment {
         }
 
         if (txtUpgrade != null) {
-            txtUpgrade.setText("Chi tiết");
+            txtUpgrade.setText("Nâng cấp");
             txtUpgrade.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary));
         }
         txtAiLimit.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
 
-        int conLai = Math.max(0, SettingsFragment.AI_MAX_LIMIT - aiCount);
-        String text = "Lượt AI: Còn " + conLai + " / " + SettingsFragment.AI_MAX_LIMIT + " lượt";
-        android.text.SpannableString span = new android.text.SpannableString(text);
+        android.text.SpannableString span = new android.text.SpannableString("Lượt AI: Còn " + conLai + " / " + tongLuot + " lượt • " + chuoiNgay);
         String numStr = String.valueOf(conLai);
+        String text = span.toString();
         int start = text.indexOf(numStr);
         if (start >= 0) {
-            int mauHighlight = (aiCount >= SettingsFragment.AI_MAX_LIMIT)
+            int mauHighlight = (conLai <= 0)
                     ? ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
-                    : (aiCount >= SettingsFragment.AI_MAX_LIMIT * 0.8)
+                    : (conLai <= tongLuot * 0.2)
                     ? ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark)
                     : ContextCompat.getColor(requireContext(), R.color.primary);
 
@@ -817,8 +835,8 @@ public class HomeFragment extends Fragment {
         txtAiLimit.setText(span);
 
         if (pbAiLimit != null) {
-            pbAiLimit.setMax(SettingsFragment.AI_MAX_LIMIT);
-            int targetProgress = Math.min(aiCount, SettingsFragment.AI_MAX_LIMIT);
+            pbAiLimit.setMax(tongLuot > 0 ? tongLuot : SettingsFragment.AI_MAX_LIMIT);
+            int targetProgress = Math.min(aiCount, pbAiLimit.getMax());
             if (coAnimation) {
                 ObjectAnimator.ofInt(pbAiLimit, "progress", 0, targetProgress)
                         .setDuration(350)
@@ -826,9 +844,9 @@ public class HomeFragment extends Fragment {
             } else {
                 pbAiLimit.setProgress(targetProgress);
             }
-            int mauProgress = (aiCount >= SettingsFragment.AI_MAX_LIMIT)
+            int mauProgress = (conLai <= 0)
                     ? ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
-                    : (aiCount >= SettingsFragment.AI_MAX_LIMIT * 0.8)
+                    : (conLai <= tongLuot * 0.2)
                     ? ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark)
                     : ContextCompat.getColor(requireContext(), R.color.primary);
 
@@ -838,8 +856,11 @@ public class HomeFragment extends Fragment {
 
     void hienDialogThongTinAiLimit() {
         if (!isAdded() || getContext() == null) return;
-        boolean coKey = SettingsFragment.hasCustomApiKey(requireContext());
-        int count = SettingsFragment.getAiCount(requireContext());
+        com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+        int count = ql.getDaNiemDung();
+        int tongLuot = ql.getTongLuot();
+        int conLai = ql.getLuotConLai();
+        String loaiGoi = ql.getLoaiGoi();
 
         Dialog dialog = DialogHelper.taoDialog(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_ai_limit, null);
@@ -850,23 +871,42 @@ public class HomeFragment extends Fragment {
         TextView btnDong = (TextView) view.findViewById(R.id.btnAiLimitDong);
         TextView btnCaiDat = (TextView) view.findViewById(R.id.btnAiLimitCaiDat);
 
-        if (coKey) {
-            txtTitle.setText("Gói AI: Cá nhân");
-            txtMessage.setText("Bạn đang sử dụng Gemini API Key riêng.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Đã dùng tháng này: " + count + " lần\n\nBạn có thể quản lý hoặc thay đổi key trong phần Cài đặt.");
-            btnCaiDat.setText("Cài đặt");
+        if ("VIP".equalsIgnoreCase(loaiGoi)) {
+            txtTitle.setText("Gói AI: VIP");
+            txtMessage.setText("Bạn đang sở hữu gói VIP.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Thời hạn gói: " + ql.getChuoiNgayConLai() + "\n• Đã dùng: " + count + " lần\n\nHãy tiếp tục tận dụng AI để tăng hiệu quả làm việc!");
+            btnCaiDat.setText("Xem tài khoản");
         } else {
-            int conLai = Math.max(0, SettingsFragment.AI_MAX_LIMIT - count);
-            txtTitle.setText("Gói AI: Miễn phí");
-            txtMessage.setText("Mỗi tháng bạn có " + SettingsFragment.AI_MAX_LIMIT + " lượt hỗ trợ AI thông minh hoàn toàn miễn phí.\n\n• Lượt khả dụng: Còn " + conLai + " / " + SettingsFragment.AI_MAX_LIMIT + " lượt\n• Đã sử dụng: " + count + " lượt\n• Làm mới tự động: Ngày 01 hàng tháng\n\nKhi hết lượt, bạn vẫn quét tài liệu Offline bình thường mà không bị gián đoạn.");
-            btnCaiDat.setText("Cài đặt nâng cao");
+            txtTitle.setText("Gói AI: " + ("PLUS".equalsIgnoreCase(loaiGoi) ? "Nâng Cấp Plus" : ("PRO".equalsIgnoreCase(loaiGoi) ? "Siêu Cấp Pro" : "Miễn phí")));
+            txtMessage.setText("Bạn hiện có " + tongLuot + " lượt AI.\n\n• Lượt khả dụng: Còn " + conLai + " / " + tongLuot + " lượt\n• Thời hạn gói: " + ql.getChuoiNgayConLai() + "\n• Đã sử dụng: " + count + " lượt\n\nNâng cấp gói để nhận thêm lượt AI. Khi hết lượt, bạn vẫn quét tài liệu Offline bình thường.");
+            btnCaiDat.setText("Nâng cấp gói ngay");
         }
 
         btnCaiDat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap()) {
+                    Toast.makeText(requireContext(), "Vui lòng đăng nhập tài khoản trước khi nâng cấp gói AI.", Toast.LENGTH_SHORT).show();
+                    Intent i = new Intent(requireContext(), DangNhapActivity.class);
+                    startActivity(i);
+                    return;
+                }
+                // Mo thang dialog nang cap VietQR trong Settings tab
                 if (getActivity() instanceof MainActivity) {
                     ((MainActivity) getActivity()).chonTab(R.id.nav_settings);
+                    // Doi mot chut de Fragment Settings hien thi xong roi mo dialog
+                    new android.os.Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (getActivity() instanceof MainActivity) {
+                                SettingsFragment sf = ((MainActivity) getActivity()).settingsFragment;
+                                if (sf != null && sf.isAdded()) {
+                                    sf.hienDialogNangCapGoi();
+                                }
+                            }
+                        }
+                    }, 350);
                 }
             }
         });
@@ -881,10 +921,30 @@ public class HomeFragment extends Fragment {
         dialog.show();
     }
 
+    public void capNhatAvatarHome() {
+        if (txtHomeAvatarChar == null || getContext() == null) return;
+        com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+        if (ql.daDangNhap()) {
+            String email = ql.getEmail();
+            if (email != null && !email.isEmpty() && !email.equalsIgnoreCase("Tài khoản khách") && !email.equalsIgnoreCase("Khách vãng lai")) {
+                txtHomeAvatarChar.setText(email.substring(0, 1).toUpperCase());
+            } else {
+                txtHomeAvatarChar.setText("T");
+            }
+        } else {
+            txtHomeAvatarChar.setText("T");
+        }
+    }
+
+    public void batModeAi(boolean bat) {
+        capNhatAiMode(bat, true);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         kiemTraCapNhatUiTheoQuyenCamera();
+        capNhatAvatarHome();
         if (isAiMode) {
             capNhatAiLimit();
         }
@@ -895,6 +955,7 @@ public class HomeFragment extends Fragment {
         super.onHiddenChanged(hidden);
         if (!hidden) {
             kiemTraCapNhatUiTheoQuyenCamera();
+            capNhatAvatarHome();
             if (isAiMode) {
                 capNhatAiLimit();
             }

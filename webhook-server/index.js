@@ -21,11 +21,29 @@ const db = admin.firestore();
 // Secret token tu Casso (dat trong bien moi truong tren Render)
 const CASSO_SECRET = process.env.CASSO_SECRET || '';
 
-// Mapping so tien -> goi va so luot
+// Mapping so tien -> goi va so luot theo cac chu ky 1 thang, 3 thang, 6 thang va 1 nam
 function xacDinhGoi(amount) {
-    if (amount >= 99000) return { loaigoi: 'VIP', tongluot: 999999 };
-    if (amount >= 69000) return { loaigoi: 'PRO',  tongluot: 500 };
-    if (amount >= 29000) return { loaigoi: 'PLUS', tongluot: 200 };
+    // 1 Nam (12T)
+    if (amount >= 899000) return { loaigoi: 'VIP', tongluot: 999999, soNgay: 365 };
+    if (amount >= 599000) return { loaigoi: 'PRO', tongluot: 8000, soNgay: 365 };
+
+    // 6 Thang
+    if (amount >= 499000) return { loaigoi: 'VIP', tongluot: 999999, soNgay: 180 };
+    if (amount >= 349000) return { loaigoi: 'PRO', tongluot: 3500, soNgay: 180 };
+
+    // 3 Thang & 1 Nam Plus
+    if (amount >= 279000) return { loaigoi: 'VIP', tongluot: 999999, soNgay: 90 };
+    if (amount >= 259000) return { loaigoi: 'PLUS', tongluot: 3000, soNgay: 365 };
+    if (amount >= 189000) return { loaigoi: 'PRO', tongluot: 1600, soNgay: 90 };
+
+    // 6 Thang Plus
+    if (amount >= 149000) return { loaigoi: 'PLUS', tongluot: 1400, soNgay: 180 };
+
+    // 1 Thang & 3 Thang Plus
+    if (amount >= 99000) return { loaigoi: 'VIP', tongluot: 999999, soNgay: 30 };
+    if (amount >= 79000) return { loaigoi: 'PLUS', tongluot: 650, soNgay: 90 };
+    if (amount >= 69000) return { loaigoi: 'PRO', tongluot: 500, soNgay: 30 };
+    if (amount >= 29000) return { loaigoi: 'PLUS', tongluot: 200, soNgay: 30 };
     return null;
 }
 
@@ -99,10 +117,21 @@ app.post(['/webhook/casso', '/'], async (req, res) => {
                 tongLuotMoi = (userData.tongluot || 0) + goiInfo.tongluot;
             }
 
+            // Tinh ngay het han moi
+            const now = Date.now();
+            const themMilis = (goiInfo.soNgay || 30) * 24 * 60 * 60 * 1000;
+            let ngayHetHanMoi;
+            if (userData.ngayhethan && userData.ngayhethan > now) {
+                ngayHetHanMoi = userData.ngayhethan + themMilis;
+            } else {
+                ngayHetHanMoi = now + themMilis;
+            }
+
             // Cap nhat Firestore
             await userDoc.ref.update({
                 loaigoi: goiInfo.loaigoi,
                 tongluot: tongLuotMoi,
+                ngayhethan: ngayHetHanMoi,
                 lastUpgradeAt: admin.firestore.FieldValue.serverTimestamp(),
                 lastUpgradeAmount: soTien,
                 lastUpgradeTxId: maGiaoDich

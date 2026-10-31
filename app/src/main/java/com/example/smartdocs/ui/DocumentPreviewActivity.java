@@ -645,8 +645,10 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     }
 
     void goiGeminiAi(String loai) {
-        if (!SettingsFragment.conLuotDungAi(this)) {
-            Toast.makeText(this, "Bạn đã dùng hết lượt AI miễn phí trong tháng (" + SettingsFragment.AI_MAX_LIMIT + " lượt).", Toast.LENGTH_LONG).show();
+        com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
+        if (!ql.kiemTraConLuotAi()) {
+            int conLai = ql.getLuotConLai();
+            Toast.makeText(this, "Bạn đã dùng hết lượt AI (" + ql.getTongLuot() + " lượt). Vui lòng nâng cấp gói để tiếp tục.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -668,7 +670,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                     public void run() {
                         layoutAiLoading.setVisibility(View.GONE);
                         setAiButtonsEnabled(true);
-                        SettingsFragment.tangAiCount(DocumentPreviewActivity.this);
+                        // Tru 1 luot AI qua QLTaiKhoan (dong bo ca Firestore & SQLite)
+                        com.example.smartdocs.data.QLTaiKhoan.getInstance(DocumentPreviewActivity.this).truMotLuotAi();
 
                         document.aiSummary = ketQua;
                         txtAiResult.setText(ketQua);
@@ -715,8 +718,9 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         }    }
 
     void guiCauHoiQa() {
-        if (!SettingsFragment.conLuotDungAi(this)) {
-            Toast.makeText(this, "Bạn đã dùng hết lượt AI miễn phí trong tháng.", Toast.LENGTH_LONG).show();
+        com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
+        if (!ql.kiemTraConLuotAi()) {
+            Toast.makeText(this, "Bạn đã dùng hết lượt AI (" + ql.getTongLuot() + " lượt). Vui lòng nâng cấp gói để tiếp tục.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -761,7 +765,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                         chipNoiDungChinh.setEnabled(true);
                         chipNgayThang.setEnabled(true);
                         chipSoLieu.setEnabled(true);
-                        SettingsFragment.tangAiCount(DocumentPreviewActivity.this);
+                        // Tru 1 luot AI qua QLTaiKhoan
+                        com.example.smartdocs.data.QLTaiKhoan.getInstance(DocumentPreviewActivity.this).truMotLuotAi();
                         aiPair.noiDung = answer;
                         qaAdapter.notifyDataSetChanged();
                         lvQaHistory.setSelection(listQa.size() - 1);

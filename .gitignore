@@ -7,3 +7,8 @@ local.properties
 /captures
 .externalNativeBuild
 .cxx
+# Webhook server - khoa bi mat Firebase
+webhook-server/serviceAccountKey.json
+backend_webhook/serviceAccountKey.json
+webhook-server/node_modules/
+backend_webhook/node_modules/

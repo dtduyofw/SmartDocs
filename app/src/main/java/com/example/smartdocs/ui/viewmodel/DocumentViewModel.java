@@ -153,7 +153,7 @@ public class DocumentViewModel extends AndroidViewModel {
         GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {
             @Override
             public void onSuccess(String textDaSua) {
-                SettingsFragment.tangAiCount(getApplication());
+                com.example.smartdocs.data.QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
                 ocrResult.setValue(textDaSua.trim());
                 saveCurrentDocument();
             }
@@ -181,7 +181,7 @@ public class DocumentViewModel extends AndroidViewModel {
         GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {
             @Override
             public void onSuccess(String textDaSua) {
-                SettingsFragment.tangAiCount(getApplication());
+                com.example.smartdocs.data.QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
                 ocrResult.setValue(textDaSua.trim());
                 saveDocumentWithPages(textDaSua.trim(), null, pages, firstImageUri);
             }

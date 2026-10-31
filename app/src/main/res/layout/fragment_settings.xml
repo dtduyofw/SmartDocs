@@ -164,7 +164,7 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ── Section: Trợ lý AI (Gemini) ── -->
+            <!-- ── Section: Tài khoản & Trợ lý AI ── -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -183,7 +183,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TRỢ LÝ AI"
+                    android:text="TÀI KHOẢN &amp; TRỢ LÝ AI"
                     android:textSize="11sp"
                     android:textColor="@color/primary"
                     android:textStyle="bold"
@@ -204,6 +204,68 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
+
+                    <!-- Thong tin nguoi dung -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="@color/primary"
+                            android:background="@drawable/bg_badge_page"
+                            android:padding="8dp"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtUserEmail"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tài khoản khách"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/txtUserUid"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mã nạp: Chưa đăng nhập"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAuthAction"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:text="Đăng nhập"
+                            android:textSize="12sp"
+                            android:paddingHorizontal="12dp"
+                            app:cornerRadius="8dp" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginBottom="12dp" />
 
                     <!-- Trạng thái gói dịch vụ -->
                     <LinearLayout
@@ -235,13 +297,13 @@
 
                     </LinearLayout>
 
-                    <!-- Lượt sử dụng AI -->
+                    <!-- Mô tả gói -->
                     <TextView
                         android:id="@+id/txtAiPlanDesc"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
-                        android:text="Sẵn sàng sử dụng ngay, tự động làm mới vào đầu mỗi tháng."
+                        android:text="Tự động làm mới mỗi tháng hoặc nâng cấp để nhận thêm lượt AI."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -250,7 +312,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="6dp">
+                        android:layout_marginBottom="4dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -271,6 +333,33 @@
 
                     </LinearLayout>
 
+                    <!-- Thoi han con kha dung cua goi -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Thời hạn gói:"
+                            android:textSize="13sp"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/txtAiExpiry"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:textColor="@color/accent_green_dark"
+                            android:textStyle="bold"
+                            android:text="Còn 30 ngày" />
+
+                    </LinearLayout>
+
                     <!-- Thanh tiến trình lượt dùng -->
                     <ProgressBar
                         android:id="@+id/pbAiUsage"
@@ -283,107 +372,28 @@
                         android:progressBackgroundTint="@color/badge_ai_bg"
                         android:layout_marginBottom="14dp" />
 
-                    <!-- Divider ngăn cách phần nâng cao -->
-                    <View
+                    <!-- Nut Nang cap goi VietQR -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNangCapGoi"
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/divider"
-                        android:layout_marginBottom="10dp" />
+                        android:layout_height="46dp"
+                        android:text="Nâng cấp gói"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_sparkle"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="8dp"
+                        android:layout_marginBottom="6dp" />
 
-                    <!-- Tiêu đề mở rộng mục nâng cao -->
-                    <LinearLayout
-                        android:id="@+id/layoutToggleAdvanced"
+                    <!-- Nut Dong bo tu Firestore -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDongBoAi"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:paddingVertical="8dp">
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_key"
-                            app:tint="@color/primary"
-                            android:layout_marginEnd="8dp" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="API Key cá nhân (Không giới hạn)"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
-
-                        <ImageView
-                            android:id="@+id/imgToggleAdvanced"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_arrow_down"
-                            app:tint="@color/text_secondary" />
-
-                    </LinearLayout>
-
-                    <!-- Vùng nâng cao (Mặc định ẩn) -->
-                    <LinearLayout
-                        android:id="@+id/layoutAdvancedSettings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        android:layout_marginTop="8dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nhập Gemini API Key của bạn để mở khóa sử dụng không giới hạn lượt tóm tắt, sửa lỗi OCR và hỏi đáp tài liệu."
-                            android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
-                            android:layout_marginBottom="10dp" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutApiKey"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                            app:startIconDrawable="@drawable/ic_key"
-                            app:startIconTint="@color/text_secondary"
-                            app:passwordToggleEnabled="true"
-                            app:endIconMode="password_toggle"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/edtApiKey"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="AIzaSy..."
-                                android:inputType="textPassword"
-                                android:maxLines="1"
-                                android:fontFamily="monospace" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <!-- Link hướng dẫn lấy API Key -->
-                        <TextView
-                            android:id="@+id/txtGetApiKey"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nhận API Key miễn phí tại Google AI Studio"
-                            android:textSize="12sp"
-                            android:textColor="@color/primary"
-                            android:layout_marginTop="8dp"
-                            android:paddingVertical="4dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:background="?android:attr/selectableItemBackground" />
-
-                    </LinearLayout>
+                        android:layout_height="38dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:text="Kiểm tra &amp; Đồng bộ lượt"
+                        android:textSize="12sp"
+                        app:cornerRadius="8dp" />
 
                 </LinearLayout>
 

@@ -15,6 +15,15 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
+    <!-- Khai báo Package Visibility cho Google Play Services trên Android 11+ (API 30+) -->
+    <queries>
+        <package android:name="com.google.android.gms" />
+        <intent>
+            <action android:name="com.google.android.gms.actions.SEARCH_ACTION" />
+        </intent>
+    </queries>
+
     <application
         android:name=".SmartDocsApp"
         android:allowBackup="true"
@@ -25,6 +34,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartDocs">
+
+        <!-- Tự động tải model ML Kit OCR qua Google Play Services -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr" />
         <!-- MainActivity: Màn hình chính chụp ảnh và scan -->
         <activity
             android:name=".ui.MainActivity"
@@ -40,10 +54,16 @@
             android:name=".ui.DocumentPreviewActivity"
             android:exported="false"
             android:parentActivityName=".ui.MainActivity" />
-        <!-- ImagePreviewActivity: màn hình xem ảnh và crop trước khi OCR -->
+        <!-- ImagePreviewActivity: man hinh xem anh va crop truoc khi OCR -->
         <activity
             android:name=".ui.ImagePreviewActivity"
             android:exported="false"
+            android:parentActivityName=".ui.MainActivity" />
+        <!-- DangNhapActivity: man hinh dang nhap / dang ky thay the dialog -->
+        <activity
+            android:name=".ui.DangNhapActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
         <!--
             FileProvider: bắt buộc cho Android 7+ khi truyền URI ảnh Camera
