@@ -504,7 +504,7 @@ public class SettingsFragment extends Fragment {
         final String shortUid = qlTaiKhoan.getShortUid();
         final int[] currentChuKy = {1}; // 1 = 1 thang, 3 = 3 thang, 6 = 6 thang, 12 = 1 nam
         final String[] currentLoaiGoi = {"PLUS"};
-        final long[] currentGia = {29000};
+        final long[] currentGia = {5000};
         final int[] currentLuot = {200};
 
         // Ham cap nhat QR khi chon goi
@@ -595,34 +595,34 @@ public class SettingsFragment extends Fragment {
                 }
 
                 // Bang gia va so luot theo tung chu ky
-                long giaPlus = 29000;
+                long giaPlus = 5000;
                 int luotPlus = 200;
                 String textPlusLuot = "+200 lượt";
 
-                long giaPro = 69000;
+                long giaPro = 10000;
                 int luotPro = 500;
                 String textProLuot = "+500 lượt";
 
-                long giaVip = 99000;
+                long giaVip = 15000;
                 int luotVip = 999999;
                 String textVipLuot = "Không giới hạn";
 
                 if (ky == 1) {
-                    giaPlus = 29000; luotPlus = 200; textPlusLuot = "+200 lượt";
-                    giaPro = 69000; luotPro = 500; textProLuot = "+500 lượt";
-                    giaVip = 99000; luotVip = 999999; textVipLuot = "Không giới hạn / 1T";
+                    giaPlus = 5000; luotPlus = 200; textPlusLuot = "+200 lượt";
+                    giaPro = 10000; luotPro = 500; textProLuot = "+500 lượt";
+                    giaVip = 15000; luotVip = 999999; textVipLuot = "Không giới hạn / 1T";
                 } else if (ky == 3) {
-                    giaPlus = 79000; luotPlus = 650; textPlusLuot = "+650 lượt";
-                    giaPro = 189000; luotPro = 1600; textProLuot = "+1.600 lượt";
-                    giaVip = 279000; luotVip = 999999; textVipLuot = "Không giới hạn / 3T";
+                    giaPlus = 14000; luotPlus = 650; textPlusLuot = "+650 lượt";
+                    giaPro = 27000; luotPro = 1600; textProLuot = "+1.600 lượt";
+                    giaVip = 40000; luotVip = 999999; textVipLuot = "Không giới hạn / 3T";
                 } else if (ky == 6) {
-                    giaPlus = 149000; luotPlus = 1400; textPlusLuot = "+1.400 lượt";
-                    giaPro = 349000; luotPro = 3500; textProLuot = "+3.500 lượt";
-                    giaVip = 499000; luotVip = 999999; textVipLuot = "Không giới hạn / 6T";
+                    giaPlus = 25000; luotPlus = 1400; textPlusLuot = "+1.400 lượt";
+                    giaPro = 50000; luotPro = 3500; textProLuot = "+3.500 lượt";
+                    giaVip = 75000; luotVip = 999999; textVipLuot = "Không giới hạn / 6T";
                 } else if (ky == 12) {
-                    giaPlus = 259000; luotPlus = 3000; textPlusLuot = "+3.000 lượt";
-                    giaPro = 599000; luotPro = 8000; textProLuot = "+8.000 lượt";
-                    giaVip = 899000; luotVip = 999999; textVipLuot = "Không giới hạn / 1N";
+                    giaPlus = 45000; luotPlus = 3000; textPlusLuot = "+3.000 lượt";
+                    giaPro = 90000; luotPro = 8000; textProLuot = "+8.000 lượt";
+                    giaVip = 135000; luotVip = 999999; textVipLuot = "Không giới hạn / 1N";
                 }
 
                 if (txtGoiPlusGia != null) txtGoiPlusGia.setText(String.format("%,dđ", giaPlus));
