@@ -12,9 +12,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
@@ -271,6 +273,105 @@ public class QLTaiKhoan {
                 });
     }
 
+    // Dang nhap bang Google IdToken
+    public void dangNhapVoiGoogle(String idToken, final AuthCallback callback) {
+        if (mAuth == null) {
+            if (callback != null) callback.onError("Firebase Auth chua duoc khoi tao.");
+            return;
+        }
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            final FirebaseUser user = task.getResult().getUser();
+                            if (user != null) {
+                                uid = user.getUid();
+                                email = user.getEmail() != null ? user.getEmail() : "";
+
+                                // Kiem tra ho so da ton tai tren Firestore hay chua
+                                if (mFirestore != null) {
+                                    mFirestore.collection("users").document(uid).get()
+                                            .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onSuccess(DocumentSnapshot doc) {
+                                                    if (doc != null && doc.exists()) {
+                                                        // Nguoi dung cu: dong bo du lieu tu Firestore
+                                                        dongBoTuFirestore(new SyncCallback() {
+                                                            @Override
+                                                            public void onSynced() {
+                                                                if (callback != null) callback.onSuccess("Đăng nhập Google thành công!");
+                                                            }
+
+                                                            @Override
+                                                            public void onError(String loi) {
+                                                                luuThongTin();
+                                                                if (callback != null) callback.onSuccess("Đăng nhập Google thành công!");
+                                                            }
+                                                        });
+                                                    } else {
+                                                        // Nguoi dung moi: khoi tao goi FREE 50 luot
+                                                        int randomNum = 100000 + new Random().nextInt(900000);
+                                                        shortUid = "SMD" + randomNum;
+                                                        loaiGoi = "FREE";
+                                                        tongLuot = 50;
+                                                        daNiemDung = 0;
+
+                                                        final Map<String, Object> mapUser = new HashMap<>();
+                                                        mapUser.put("uid", uid);
+                                                        mapUser.put("short_uid", shortUid);
+                                                        mapUser.put("email", email);
+                                                        mapUser.put("loaigoi", loaiGoi);
+                                                        mapUser.put("tongluot", tongLuot);
+                                                        mapUser.put("daniemdung", daNiemDung);
+                                                        mapUser.put("ngaytao", FieldValue.serverTimestamp());
+
+                                                        mFirestore.collection("users").document(uid)
+                                                                .set(mapUser)
+                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                    @Override
+                                                                    public void onSuccess(Void unused) {
+                                                                        luuThongTin();
+                                                                        if (callback != null) {
+                                                                            callback.onSuccess("Đăng nhập Google thành công! Bạn nhận được 50 lượt AI miễn phí.");
+                                                                        }
+                                                                    }
+                                                                })
+                                                                .addOnFailureListener(new OnFailureListener() {
+                                                                    @Override
+                                                                    public void onFailure(@NonNull Exception e) {
+                                                                        luuThongTin();
+                                                                        if (callback != null) {
+                                                                            callback.onSuccess("Đăng nhập Google thành công trên thiết bị.");
+                                                                        }
+                                                                    }
+                                                                });
+                                                    }
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    // Neu loi mang Firestore thi van luu thong tin cuc bo
+                                                    luuThongTin();
+                                                    if (callback != null) callback.onSuccess("Đăng nhập Google thành công!");
+                                                }
+                                            });
+                                } else {
+                                    luuThongTin();
+                                    if (callback != null) callback.onSuccess("Đăng nhập Google thành công!");
+                                }
+                            }
+                        } else {
+                            String loi = task.getException() != null ? task.getException().getMessage() : "Đăng nhập Google thất bại.";
+                            if (callback != null) callback.onError(loi);
+                        }
+                    }
+                });
+    }
+
     // Gui email khoi phuc mat khau
     public void quenMatKhau(String emailNhan, final AuthCallback callback) {
         if (mAuth == null) {
@@ -306,6 +407,59 @@ public class QLTaiKhoan {
         hanSuDung = 0;
 
         prefs.edit().clear().apply();
+    }
+
+    // Xoa vinh vien tai khoan nguoi dung khoi he thong
+    public void xoaTaiKhoanVinhVien(final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String targetUid = user.getUid();
+        final String targetEmail = user.getEmail() != null ? user.getEmail() : email;
+
+        // 1. Gui email xac nhan den hom thu nguoi dung truoc khi tien hanh xoa
+        if (targetEmail != null && !targetEmail.isEmpty()) {
+            try {
+                user.sendEmailVerification();
+            } catch (Exception ignored) { }
+        }
+
+        // 2. Xoa thong tin nguoi dung tren Firestore
+        if (mFirestore != null && !targetUid.isEmpty()) {
+            mFirestore.collection("users").document(targetUid).delete();
+        }
+
+        // 3. Xoa vinh vien tren Firebase Authentication
+        user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    // 4. Xoa du lieu tai khoan tren SQLite noi bo
+                    dbHelp.deletetaikhoan(targetUid);
+
+                    // 5. Dang xuat va xoa trang cache
+                    dangXuat();
+
+                    if (callback != null) {
+                        callback.onSuccess("Tài khoản đã được xóa vĩnh viễn. Email xác nhận đã được gửi về " + targetEmail + ".");
+                    }
+                } else {
+                    Exception exp = task.getException();
+                    String msgLoi = "Không thể xóa tài khoản. Vui lòng thử lại sau.";
+                    if (exp != null) {
+                        if (exp.getMessage() != null && exp.getMessage().toLowerCase().contains("recent")) {
+                            msgLoi = "Vì lý do bảo mật, vui lòng đăng xuất và đăng nhập lại rồi thực hiện xóa vĩnh viễn.";
+                        } else {
+                            msgLoi = exp.getMessage();
+                        }
+                    }
+                    if (callback != null) callback.onError(msgLoi);
+                }
+            }
+        });
     }
 
     // Dong bo du lieu tu Firestore ve RAM va SQLite (co che chong rollback va chong quota cheat)

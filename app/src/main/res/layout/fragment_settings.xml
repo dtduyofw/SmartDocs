@@ -395,6 +395,22 @@
                         android:textSize="12sp"
                         app:cornerRadius="8dp" />
 
+                    <!-- Nut Xoa tai khoan vinh vien -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnXoaTaiKhoan"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:text="Xóa tài khoản vĩnh viễn"
+                        android:textColor="#DC2626"
+                        android:textSize="12sp"
+                        app:icon="@drawable/ic_delete"
+                        app:iconTint="#DC2626"
+                        app:iconSize="16dp"
+                        app:iconGravity="textStart"
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

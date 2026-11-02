@@ -33,4 +33,7 @@
 
     <!-- Image Preview screen -->
     <string name="title_image_preview">Xem trước ảnh</string>
+
+    <!-- Google Sign In -->
+    <string name="default_web_client_id" translatable="false"></string>
 </resources>

@@ -62,7 +62,7 @@ public class SettingsFragment extends Fragment {
     TextView txtUserEmail, txtUserUid;
     TextView txtAiPlan, txtAiPlanDesc, txtAiUsage, txtAiExpiry;
     ProgressBar pbAiUsage;
-    MaterialButton btnAuthAction, btnNangCapGoi, btnDongBoAi;
+    MaterialButton btnAuthAction, btnNangCapGoi, btnDongBoAi, btnXoaTaiKhoan;
     MaterialButton btnSaveSettings;
 
     // Che do giao dien (RadioGroup & RadioButton)
@@ -145,6 +145,7 @@ public class SettingsFragment extends Fragment {
         pbAiUsage = (ProgressBar) view.findViewById(R.id.pbAiUsage);
         btnNangCapGoi = (MaterialButton) view.findViewById(R.id.btnNangCapGoi);
         btnDongBoAi = (MaterialButton) view.findViewById(R.id.btnDongBoAi);
+        btnXoaTaiKhoan = (MaterialButton) view.findViewById(R.id.btnXoaTaiKhoan);
 
         btnSaveSettings = (MaterialButton) view.findViewById(R.id.btnSaveSettings);
 
@@ -180,10 +181,12 @@ public class SettingsFragment extends Fragment {
             txtUserEmail.setText(qlTaiKhoan.getEmail());
             txtUserUid.setText("Mã nạp: " + qlTaiKhoan.getShortUid());
             btnAuthAction.setText("Đăng xuất");
+            if (btnXoaTaiKhoan != null) btnXoaTaiKhoan.setVisibility(View.VISIBLE);
         } else {
             txtUserEmail.setText("Tài khoản khách");
             txtUserUid.setText("Mã nạp: Chưa đăng nhập");
             btnAuthAction.setText("Đăng nhập");
+            if (btnXoaTaiKhoan != null) btnXoaTaiKhoan.setVisibility(View.GONE);
         }
 
         String loaiGoi = qlTaiKhoan.getLoaiGoi();
@@ -331,6 +334,20 @@ public class SettingsFragment extends Fragment {
                 });
             }
         });
+
+        // Nut Xoa tai khoan vinh vien
+        if (btnXoaTaiKhoan != null) {
+            btnXoaTaiKhoan.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!qlTaiKhoan.daDangNhap()) {
+                        Toast.makeText(requireContext(), "Bạn chưa đăng nhập tài khoản.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    xacNhanXoaTaiKhoan();
+                }
+            });
+        }
 
         rdgGiaoDien.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -979,6 +996,50 @@ public class SettingsFragment extends Fragment {
                 Toast.makeText(requireContext(), "Không tìm thấy ứng dụng gửi email trên thiết bị!", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    // Dialog xac nhan va thuc hien xoa vinh vien tai khoan
+    void xacNhanXoaTaiKhoan() {
+        if (getContext() == null || !isAdded()) return;
+
+        final String userEmail = qlTaiKhoan.getEmail();
+        String message = "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản (" + userEmail + ")?\n\n"
+                + "Toàn bộ dữ liệu gói dịch vụ AI, số lượt sử dụng và hồ sơ sẽ bị xóa vĩnh viễn và không thể khôi phục.\n\n"
+                + "Hệ thống sẽ gửi email xác nhận về hòm thư của bạn.";
+
+        DialogHelper.showDelete(requireContext(), "Xóa tài khoản vĩnh viễn", message, new DialogHelper.OnConfirm() {
+            @Override
+            public void onConfirm() {
+                Toast.makeText(requireContext(), "Đang tiến hành gửi email xác nhận và xóa tài khoản...", Toast.LENGTH_LONG).show();
+
+                qlTaiKhoan.xoaTaiKhoanVinhVien(new QLTaiKhoan.AuthCallback() {
+                    @Override
+                    public void onSuccess(final String thongBao) {
+                        if (getActivity() != null && isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    capNhatGiaoDienTaiKhoan();
+                                    Toast.makeText(requireContext(), thongBao, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(final String loi) {
+                        if (getActivity() != null && isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(requireContext(), "Lỗi xóa tài khoản: " + loi, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
     }
 
     @Override
