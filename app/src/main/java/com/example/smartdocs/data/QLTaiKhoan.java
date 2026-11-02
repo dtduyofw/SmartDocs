@@ -12,11 +12,16 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
@@ -409,10 +414,34 @@ public class QLTaiKhoan {
         prefs.edit().clear().apply();
     }
 
-    // Xoa vinh vien tai khoan nguoi dung khoi he thong
-    public void xoaTaiKhoanVinhVien(final AuthCallback callback) {
+    // Kiem tra tai khoan co dung mat khau de dang nhap khong
+    public boolean laTaiKhoanMatKhau() {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            for (UserInfo info : mAuth.getCurrentUser().getProviderData()) {
+                if ("password".equals(info.getProviderId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Kiem tra tai khoan co dang nhap bang Google khong
+    public boolean laTaiKhoanGoogle() {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            for (UserInfo info : mAuth.getCurrentUser().getProviderData()) {
+                if ("google.com".equals(info.getProviderId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Xoa vinh vien tai khoan Email va Mat khau (xac thuc lai truoc khi xoa)
+    public void xoaTaiKhoanVinhVienVoiMatKhau(final String matKhau, final AuthCallback callback) {
         if (mAuth == null || mAuth.getCurrentUser() == null) {
-            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản.");
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản trên Firebase.");
             return;
         }
 
@@ -420,39 +449,120 @@ public class QLTaiKhoan {
         final String targetUid = user.getUid();
         final String targetEmail = user.getEmail() != null ? user.getEmail() : email;
 
-        // 1. Gui email xac nhan den hom thu nguoi dung truoc khi tien hanh xoa
-        if (targetEmail != null && !targetEmail.isEmpty()) {
-            try {
-                user.sendEmailVerification();
-            } catch (Exception ignored) { }
+        if (targetEmail == null || targetEmail.isEmpty()) {
+            if (callback != null) callback.onError("Không tìm thấy địa chỉ email của tài khoản.");
+            return;
         }
 
-        // 2. Xoa thong tin nguoi dung tren Firestore
+        AuthCredential credential = EmailAuthProvider.getCredential(targetEmail, matKhau);
+        user.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> taskReauth) {
+                if (taskReauth.isSuccessful()) {
+                    thucHienXoaTrietDeTrenFirebase(user, targetUid, callback);
+                } else {
+                    String loi = "Mật khẩu xác nhận không chính xác.";
+                    if (taskReauth.getException() != null && taskReauth.getException().getMessage() != null) {
+                        String msg = taskReauth.getException().getMessage().toLowerCase();
+                        if (msg.contains("password") || msg.contains("credential")) {
+                            loi = "Mật khẩu không chính xác. Vui lòng thử lại.";
+                        } else {
+                            loi = taskReauth.getException().getMessage();
+                        }
+                    }
+                    if (callback != null) callback.onError(loi);
+                }
+            }
+        });
+    }
+
+    // Xoa vinh vien tai khoan Google voi IdToken sau khi xac thuc lai
+    public void xoaTaiKhoanVinhVienVoiGoogle(final String idToken, final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản trên Firebase.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String targetUid = user.getUid();
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        user.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> taskReauth) {
+                if (taskReauth.isSuccessful()) {
+                    thucHienXoaTrietDeTrenFirebase(user, targetUid, callback);
+                } else {
+                    String loi = "Xác thực tài khoản Google thất bại.";
+                    if (taskReauth.getException() != null && taskReauth.getException().getMessage() != null) {
+                        loi = taskReauth.getException().getMessage();
+                    }
+                    if (callback != null) callback.onError(loi);
+                }
+            }
+        });
+    }
+
+    // Xoa vinh vien tai khoan nguoi dung khoi he thong Firebase
+    public void xoaTaiKhoanVinhVien(final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản trên Firebase.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String targetUid = user.getUid();
+        thucHienXoaTrietDeTrenFirebase(user, targetUid, callback);
+    }
+
+    // Quy trinh xoa: xoa Firestore truoc roi moi xoa Firebase Authentication
+    void thucHienXoaTrietDeTrenFirebase(final FirebaseUser user, final String targetUid, final AuthCallback callback) {
+        dungLangNgheNangCap();
+
+        // 1. Xoa du lieu tren Firestore truoc (khi token Firebase Auth van con hieu luc)
         if (mFirestore != null && !targetUid.isEmpty()) {
-            mFirestore.collection("users").document(targetUid).delete();
+            mFirestore.collection("users").document(targetUid).delete()
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> taskFirestore) {
+                            // 2. Xoa nguoi dung tren Firebase Authentication
+                            xoaUserAuth(user, targetUid, callback);
+                        }
+                    });
+        } else {
+            xoaUserAuth(user, targetUid, callback);
         }
+    }
 
-        // 3. Xoa vinh vien tren Firebase Authentication
+    // Xoa nguoi dung khoi Firebase Auth va don sach bo nho
+    void xoaUserAuth(final FirebaseUser user, final String targetUid, final AuthCallback callback) {
         user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    // 4. Xoa du lieu tai khoan tren SQLite noi bo
+            public void onComplete(@NonNull Task<Void> taskAuth) {
+                if (taskAuth.isSuccessful()) {
+                    // 3. Xoa du lieu tai khoan tren SQLite noi bo
                     dbHelp.deletetaikhoan(targetUid);
 
-                    // 5. Dang xuat va xoa trang cache
+                    // 4. Dang xuat Google Sign In neu co
+                    try {
+                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
+                        GoogleSignIn.getClient(context, gso).signOut();
+                    } catch (Exception ignored) { }
+
+                    // 5. Dang xuat Firebase va xoa trang cache
                     dangXuat();
 
                     if (callback != null) {
-                        callback.onSuccess("Tài khoản đã được xóa vĩnh viễn. Email xác nhận đã được gửi về " + targetEmail + ".");
+                        callback.onSuccess("Tài khoản đã được xóa vĩnh viễn khỏi Firebase và hệ thống.");
                     }
                 } else {
-                    Exception exp = task.getException();
-                    String msgLoi = "Không thể xóa tài khoản. Vui lòng thử lại sau.";
+                    Exception exp = taskAuth.getException();
+                    String msgLoi = "Không thể xóa tài khoản trên Firebase. Vui lòng thử lại sau.";
                     if (exp != null) {
-                        if (exp.getMessage() != null && exp.getMessage().toLowerCase().contains("recent")) {
-                            msgLoi = "Vì lý do bảo mật, vui lòng đăng xuất và đăng nhập lại rồi thực hiện xóa vĩnh viễn.";
-                        } else {
+                        if (exp instanceof FirebaseAuthRecentLoginRequiredException
+                                || (exp.getMessage() != null && exp.getMessage().toLowerCase().contains("recent"))) {
+                            msgLoi = "REQUIRES_RECENT_LOGIN";
+                        } else if (exp.getMessage() != null) {
                             msgLoi = exp.getMessage();
                         }
                     }
@@ -484,7 +594,7 @@ public class QLTaiKhoan {
                             if (sUid != null && !sUid.isEmpty()) shortUid = sUid;
                             if (lGoi != null && !lGoi.isEmpty()) loaiGoi = lGoi;
                             if (hHan != null && hHan > 0) {
-                                hanSuDung = Math.max(hanSuDung, hHan);
+                                hanSuDung = hHan;
                             }
 
                             // [RF-2 FIX]: Khong bao gio rollback tong luot ve gia tri nho hon
@@ -526,8 +636,11 @@ public class QLTaiKhoan {
                 });
     }
 
-    // Kiem tra con luot su dung AI khong
+    // Kiem tra con luot su dung AI khong (bat buoc phai dang nhap moi duoc dung)
     public boolean kiemTraConLuotAi() {
+        if (!daDangNhap()) {
+            return false;
+        }
         if ("VIP".equalsIgnoreCase(loaiGoi)) {
             return true;
         }
@@ -572,6 +685,8 @@ public class QLTaiKhoan {
 
     // Che do thu nghiem (Dev Mode) de test cong luot tren may
     public void nangCapDevMode(final String tenGoi, final int soLuotCong, final int soThang, final AuthCallback callback) {
+        giaHanGoi(tenGoi, soThang);
+
         if ("VIP".equalsIgnoreCase(tenGoi)) {
             loaiGoi = "VIP";
             tongLuot = 999999;
@@ -579,8 +694,6 @@ public class QLTaiKhoan {
             loaiGoi = tenGoi;
             tongLuot += soLuotCong;
         }
-
-        giaHanGoi(soThang);
 
         dbHelp.congthemluot(uid, loaiGoi, soLuotCong);
         String thoiGian = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -620,6 +733,11 @@ public class QLTaiKhoan {
 
     // Gia han han dung cua goi theo so thang
     public void giaHanGoi(int soThang) {
+        giaHanGoi(loaiGoi, soThang);
+    }
+
+    // Gia han han dung theo loai goi moi va so thang
+    public void giaHanGoi(String tenGoiMoi, int soThang) {
         int soNgay = 30;
         if (soThang == 3) soNgay = 90;
         else if (soThang == 6) soNgay = 180;
@@ -628,12 +746,29 @@ public class QLTaiKhoan {
         long now = System.currentTimeMillis();
         long themMilis = (long) soNgay * 24L * 60 * 60 * 1000;
 
-        if (hanSuDung > now) {
-            hanSuDung += themMilis;
-        } else {
+        int capCu = layCapBacGoi(loaiGoi);
+        int capMoi = layCapBacGoi(tenGoiMoi);
+
+        // Neu nang cap len goi cao hon: reset thoi han ve chu ky moi tu thoi diem hien tai
+        if (capMoi > capCu) {
             hanSuDung = now + themMilis;
+        } else {
+            // Cung goi hoac gia han: cong don thoi gian neu con han
+            if (hanSuDung > now) {
+                hanSuDung += themMilis;
+            } else {
+                hanSuDung = now + themMilis;
+            }
         }
         luuThongTin();
+    }
+
+    // Xac dinh cap bac goi: FREE: 0, PLUS: 1, PRO: 2, VIP: 3
+    public static int layCapBacGoi(String tenGoi) {
+        if ("VIP".equalsIgnoreCase(tenGoi)) return 3;
+        if ("PRO".equalsIgnoreCase(tenGoi)) return 2;
+        if ("PLUS".equalsIgnoreCase(tenGoi)) return 1;
+        return 0; // FREE
     }
 
     // Tinh so ngay con lai cua goi
@@ -727,7 +862,7 @@ public class QLTaiKhoan {
                         loaiGoi = goiMoi;
                         tongLuot = luotMoi.intValue();
                         if (daDungMoi != null) daNiemDung = daDungMoi.intValue();
-                        if (hanMoi != null && hanMoi > 0) hanSuDung = Math.max(hanSuDung, hanMoi);
+                        if (hanMoi != null && hanMoi > 0) hanSuDung = hanMoi;
                         luuThongTin();
 
                         // Thong bao callback chi khi thuc su duoc nang cap

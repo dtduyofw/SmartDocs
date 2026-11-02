@@ -1,5 +1,6 @@
 package com.example.smartdocs.ui;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -22,6 +23,10 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -29,6 +34,13 @@ import androidx.fragment.app.Fragment;
 
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.QLTaiKhoan;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -76,6 +88,48 @@ public class SettingsFragment extends Fragment {
     SharedPreferences prefs;
     QLTaiKhoan qlTaiKhoan;
     Dialog dialogNangCapHienTai;
+
+    ActivityResultLauncher<Intent> googleReauthLauncher;
+    GoogleSignInClient mGoogleSignInClient;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Khoi tao Google Sign In Client phuc vu xac thuc lai khi xoa tai khoan Google
+        String webClientId = getString(R.string.default_web_client_id);
+        GoogleSignInOptions.Builder gsoBuilder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail();
+        if (webClientId != null && !webClientId.trim().isEmpty()) {
+            gsoBuilder.requestIdToken(webClientId);
+        }
+        if (getContext() != null) {
+            mGoogleSignInClient = GoogleSignIn.getClient(requireContext(), gsoBuilder.build());
+        }
+
+        // Launcher nhan ket qua xac thuc lai bang Google
+        googleReauthLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                            try {
+                                GoogleSignInAccount account = task.getResult(ApiException.class);
+                                if (account != null && account.getIdToken() != null) {
+                                    thucHienXoaGoogleVoiToken(account.getIdToken());
+                                } else {
+                                    Toast.makeText(requireContext(), "Không lấy được mã xác thực Google.", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (ApiException e) {
+                                Toast.makeText(requireContext(), "Xác thực Google thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                }
+        );
+    }
 
     @Nullable
     @Override
@@ -261,6 +315,9 @@ public class SettingsFragment extends Fragment {
                             qlTaiKhoan.dangXuat();
                             capNhatGiaoDienTaiKhoan();
                             Toast.makeText(requireContext(), "Đã đăng xuất tài khoản.", Toast.LENGTH_SHORT).show();
+                            if (getActivity() instanceof MainActivity) {
+                                ((MainActivity) getActivity()).chonTab(R.id.nav_home);
+                            }
                         }
                     });
                 } else {
@@ -726,9 +783,7 @@ public class SettingsFragment extends Fragment {
         cardGoiPro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentLoaiGoi[0] = "PRO";
-                capNhatGiaoDienChonGoi.run();
-                capNhatChuKyVaGia.run();
+                kiemTraVaChonGoi("PRO", currentLoaiGoi, currentChuKy, capNhatGiaoDienChonGoi, capNhatChuKyVaGia);
             }
         });
 
@@ -736,9 +791,7 @@ public class SettingsFragment extends Fragment {
         cardGoiVip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentLoaiGoi[0] = "VIP";
-                capNhatGiaoDienChonGoi.run();
-                capNhatChuKyVaGia.run();
+                kiemTraVaChonGoi("VIP", currentLoaiGoi, currentChuKy, capNhatGiaoDienChonGoi, capNhatChuKyVaGia);
             }
         });
 
@@ -998,19 +1051,66 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    // Dialog xac nhan va thuc hien xoa vinh vien tai khoan
+    // Dialog xac nhan va thuc hien xoa vinh vien tai khoan tren Firebase
     void xacNhanXoaTaiKhoan() {
         if (getContext() == null || !isAdded()) return;
 
         final String userEmail = qlTaiKhoan.getEmail();
-        String message = "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản (" + userEmail + ")?\n\n"
-                + "Toàn bộ dữ liệu gói dịch vụ AI, số lượt sử dụng và hồ sơ sẽ bị xóa vĩnh viễn và không thể khôi phục.\n\n"
-                + "Hệ thống sẽ gửi email xác nhận về hòm thư của bạn.";
+
+        // 1. Neu la tai khoan dang nhap bang Email va Mat khau
+        if (qlTaiKhoan.laTaiKhoanMatKhau()) {
+            String message = "Tài khoản (" + userEmail + ") và toàn bộ dữ liệu gói AI trên hệ thống Firebase sẽ bị xóa vĩnh viễn và không thể khôi phục.";
+            DialogHelper.showPasswordDelete(requireContext(), "Xóa tài khoản vĩnh viễn", message, "Nhập mật khẩu tài khoản", new DialogHelper.OnInputConfirm() {
+                @Override
+                public void onConfirm(String matKhau) {
+                    if (matKhau.isEmpty()) {
+                        Toast.makeText(requireContext(), "Vui lòng nhập mật khẩu để xác nhận xóa tài khoản.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Toast.makeText(requireContext(), "Đang xác thực và xóa tài khoản trên Firebase...", Toast.LENGTH_SHORT).show();
+                    qlTaiKhoan.xoaTaiKhoanVinhVienVoiMatKhau(matKhau, new QLTaiKhoan.AuthCallback() {
+                        @Override
+                        public void onSuccess(final String thongBao) {
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        capNhatGiaoDienTaiKhoan();
+                                        Toast.makeText(requireContext(), thongBao, Toast.LENGTH_LONG).show();
+                                        if (getActivity() instanceof MainActivity) {
+                                            ((MainActivity) getActivity()).chonTab(R.id.nav_home);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(final String loi) {
+                            if (getActivity() != null && isAdded()) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(requireContext(), "Lỗi xóa tài khoản: " + loi, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+            return;
+        }
+
+        // 2. Neu la tai khoan dang nhap bang Google hoac cac phuong thuc khac
+        String message = "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản (" + userEmail + ") khỏi hệ thống Firebase?\n\n"
+                + "Toàn bộ dữ liệu gói dịch vụ AI, số lượt sử dụng và hồ sơ sẽ bị xóa vĩnh viễn và không thể khôi phục.";
 
         DialogHelper.showDelete(requireContext(), "Xóa tài khoản vĩnh viễn", message, new DialogHelper.OnConfirm() {
             @Override
             public void onConfirm() {
-                Toast.makeText(requireContext(), "Đang tiến hành gửi email xác nhận và xóa tài khoản...", Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), "Đang tiến hành xóa tài khoản trên Firebase...", Toast.LENGTH_SHORT).show();
 
                 qlTaiKhoan.xoaTaiKhoanVinhVien(new QLTaiKhoan.AuthCallback() {
                     @Override
@@ -1021,6 +1121,9 @@ public class SettingsFragment extends Fragment {
                                 public void run() {
                                     capNhatGiaoDienTaiKhoan();
                                     Toast.makeText(requireContext(), thongBao, Toast.LENGTH_LONG).show();
+                                    if (getActivity() instanceof MainActivity) {
+                                        ((MainActivity) getActivity()).chonTab(R.id.nav_home);
+                                    }
                                 }
                             });
                         }
@@ -1032,7 +1135,15 @@ public class SettingsFragment extends Fragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(requireContext(), "Lỗi xóa tài khoản: " + loi, Toast.LENGTH_LONG).show();
+                                    if ("REQUIRES_RECENT_LOGIN".equals(loi)) {
+                                        if (qlTaiKhoan.laTaiKhoanGoogle()) {
+                                            yeuCauXacThucLaiGoogle();
+                                        } else {
+                                            Toast.makeText(requireContext(), "Vì lý do bảo mật, vui lòng đăng nhập lại trước khi xóa tài khoản.", Toast.LENGTH_LONG).show();
+                                        }
+                                    } else {
+                                        Toast.makeText(requireContext(), "Lỗi xóa tài khoản: " + loi, Toast.LENGTH_LONG).show();
+                                    }
                                 }
                             });
                         }
@@ -1040,6 +1151,100 @@ public class SettingsFragment extends Fragment {
                 });
             }
         });
+    }
+
+    // Yeu cau xac thuc lai bang tai khoan Google truoc khi xoa
+    void yeuCauXacThucLaiGoogle() {
+        if (mGoogleSignInClient == null) {
+            String webClientId = getString(R.string.default_web_client_id);
+            GoogleSignInOptions.Builder gsoBuilder = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail();
+            if (webClientId != null && !webClientId.trim().isEmpty()) {
+                gsoBuilder.requestIdToken(webClientId);
+            }
+            mGoogleSignInClient = GoogleSignIn.getClient(requireContext(), gsoBuilder.build());
+        }
+
+        Toast.makeText(requireContext(), "Vui lòng chọn tài khoản Google để xác thực xóa vĩnh viễn.", Toast.LENGTH_SHORT).show();
+        mGoogleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                googleReauthLauncher.launch(signInIntent);
+            }
+        });
+    }
+
+    // Thuc hien xoa tai khoan Google sau khi da xac thuc lai
+    void thucHienXoaGoogleVoiToken(String idToken) {
+        Toast.makeText(requireContext(), "Đang tiến hành xóa tài khoản Google trên Firebase...", Toast.LENGTH_SHORT).show();
+        qlTaiKhoan.xoaTaiKhoanVinhVienVoiGoogle(idToken, new QLTaiKhoan.AuthCallback() {
+            @Override
+            public void onSuccess(final String thongBao) {
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            capNhatGiaoDienTaiKhoan();
+                            Toast.makeText(requireContext(), thongBao, Toast.LENGTH_LONG).show();
+                            if (getActivity() instanceof MainActivity) {
+                                ((MainActivity) getActivity()).chonTab(R.id.nav_home);
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(final String loi) {
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Lỗi xóa tài khoản Google: " + loi, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // Kiem tra va canh bao khi nguoi dung nang cap len goi cao hon trong khi goi cu van con han
+    void kiemTraVaChonGoi(final String goiMoi,
+                          final String[] currentLoaiGoi,
+                          final int[] currentChuKy,
+                          final Runnable capNhatGiaoDienChonGoi,
+                          final Runnable capNhatChuKyVaGia) {
+        String goiHienTai = qlTaiKhoan.getLoaiGoi();
+        int soNgayConLai = qlTaiKhoan.getSoNgayConLai();
+        int capCu = QLTaiKhoan.layCapBacGoi(goiHienTai);
+        int capMoi = QLTaiKhoan.layCapBacGoi(goiMoi);
+
+        // Canh bao khi nguoi dung dang o goi co phi thap hon va con han dung
+        if (capMoi > capCu && capCu > 0 && soNgayConLai > 0) {
+            int soNgayGoiMoi = 30;
+            if (currentChuKy[0] == 3) soNgayGoiMoi = 90;
+            else if (currentChuKy[0] == 6) soNgayGoiMoi = 180;
+            else if (currentChuKy[0] >= 12) soNgayGoiMoi = 365;
+
+            String tieuDe = "Lưu ý nâng cấp gói dịch vụ";
+            String thongBao = "Bạn hiện đang còn " + soNgayConLai + " ngày sử dụng gói " + goiHienTai + ".\n\n"
+                    + "Khi nâng cấp lên gói " + goiMoi + ", thời hạn sử dụng sẽ được làm mới thành " + soNgayGoiMoi + " ngày (tính từ thời điểm kích hoạt thành công).\n\n"
+                    + "Bạn có muốn tiếp tục nâng cấp lên gói " + goiMoi + " không?";
+
+            DialogHelper.showConfirm(requireContext(), tieuDe, thongBao, "Tiếp tục", new DialogHelper.OnConfirm() {
+                @Override
+                public void onConfirm() {
+                    currentLoaiGoi[0] = goiMoi;
+                    capNhatGiaoDienChonGoi.run();
+                    capNhatChuKyVaGia.run();
+                }
+            });
+        } else {
+            currentLoaiGoi[0] = goiMoi;
+            capNhatGiaoDienChonGoi.run();
+            capNhatChuKyVaGia.run();
+        }
     }
 
     @Override
@@ -1123,6 +1328,7 @@ public class SettingsFragment extends Fragment {
     }
 
     public static boolean conLuotDungAi(Context context) {
-        return QLTaiKhoan.getInstance(context).kiemTraConLuotAi();
+        QLTaiKhoan ql = QLTaiKhoan.getInstance(context);
+        return ql.daDangNhap() && ql.kiemTraConLuotAi();
     }
 }

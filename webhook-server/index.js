@@ -117,14 +117,28 @@ app.post(['/webhook/casso', '/'], async (req, res) => {
                 tongLuotMoi = (userData.tongluot || 0) + goiInfo.tongluot;
             }
 
-            // Tinh ngay het han moi
+            // Xac dinh cap bac goi: FREE: 0, PLUS: 1, PRO: 2, VIP: 3
+            const capBacMap = { 'FREE': 0, 'PLUS': 1, 'PRO': 2, 'VIP': 3 };
+            const capGoiCu = capBacMap[(userData.loaigoi || 'FREE').toUpperCase()] || 0;
+            const capGoiMoi = capBacMap[goiInfo.loaigoi.toUpperCase()] || 0;
+
+            // Tinh ngay het han moi:
+            // - Nang cap len goi cao hon: reset thoi han ve chu ky moi tinh tu thoi diem hien tai
+            // - Cung goi hoac gia han: cong don ngay het han neu van con han
             const now = Date.now();
             const themMilis = (goiInfo.soNgay || 30) * 24 * 60 * 60 * 1000;
             let ngayHetHanMoi;
-            if (userData.ngayhethan && userData.ngayhethan > now) {
-                ngayHetHanMoi = userData.ngayhethan + themMilis;
-            } else {
+
+            if (capGoiMoi > capGoiCu) {
+                // Reset ve chu ky moi tinh tu hom nay
                 ngayHetHanMoi = now + themMilis;
+            } else {
+                // Gia han cung goi: cong don tiep vao han cu neu con han
+                if (userData.ngayhethan && userData.ngayhethan > now) {
+                    ngayHetHanMoi = userData.ngayhethan + themMilis;
+                } else {
+                    ngayHetHanMoi = now + themMilis;
+                }
             }
 
             // Cap nhat Firestore

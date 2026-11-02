@@ -276,16 +276,29 @@ public class HomeFragment extends Fragment {
             });
         }
 
-        // Đọc chế độ đã lưu gần nhất (mặc định là AI nếu chưa lưu)
+        // Doc che do da luu gan nhat (neu chua dang nhap thi mac dinh la Offline)
         SharedPreferences prefs = requireContext().getSharedPreferences(
                 SettingsFragment.PREFS_NAME, Context.MODE_PRIVATE);
+        com.example.smartdocs.data.QLTaiKhoan qlKhoiTao = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
         boolean cheDoLuu = prefs.getBoolean("is_ai_mode", true);
-        capNhatAiMode(cheDoLuu, false);
+        boolean cheDoKhoiTao = qlKhoiTao.daDangNhap() && cheDoLuu;
+        capNhatAiMode(cheDoKhoiTao, false);
 
         btnModeAi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap()) {
+                    DialogHelper.showConfirm(requireContext(), "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để sử dụng tính năng AI Smart Scan. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                        @Override
+                        public void onConfirm() {
+                            Intent i = new Intent(requireContext(), DangNhapActivity.class);
+                            startActivity(i);
+                        }
+                    });
+                    return;
+                }
                 capNhatAiMode(true, true);
             }
         });
@@ -301,12 +314,34 @@ public class HomeFragment extends Fragment {
         cardAiLimit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap()) {
+                    DialogHelper.showConfirm(requireContext(), "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để quản lý gói AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                        @Override
+                        public void onConfirm() {
+                            Intent i = new Intent(requireContext(), DangNhapActivity.class);
+                            startActivity(i);
+                        }
+                    });
+                    return;
+                }
                 hienDialogThongTinAiLimit();
             }
         });
         txtUpgrade.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap()) {
+                    DialogHelper.showConfirm(requireContext(), "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để nâng cấp gói AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                        @Override
+                        public void onConfirm() {
+                            Intent i = new Intent(requireContext(), DangNhapActivity.class);
+                            startActivity(i);
+                        }
+                    });
+                    return;
+                }
                 hienDialogThongTinAiLimit();
             }
         });
@@ -492,10 +527,14 @@ public class HomeFragment extends Fragment {
             }
 
             if (isAiMode) {
-                if (SettingsFragment.conLuotDungAi(requireContext())) {
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap()) {
+                    hienThongBao("Chưa đăng nhập tài khoản AI. Đang lưu kết quả Offline...");
+                    viewModel.ocrLuuTrucTiepNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
+                } else if (SettingsFragment.conLuotDungAi(requireContext())) {
                     viewModel.ocrSuaLoiVaLuuNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
                 } else {
-                    hienThongBao("Đã hết lượt AI (" + SettingsFragment.AI_MAX_LIMIT + " lần/tháng). Đang lưu kết quả Offline...");
+                    hienThongBao("Đã hết lượt AI (" + ql.getTongLuot() + " lần/tháng). Đang lưu kết quả Offline...");
                     viewModel.ocrLuuTrucTiepNhieuTrang(textTongHop, danhSachPages, danhSachUri.get(0));
                 }
             } else {
@@ -937,12 +976,31 @@ public class HomeFragment extends Fragment {
     }
 
     public void batModeAi(boolean bat) {
+        if (bat && getContext() != null) {
+            com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+            if (!ql.daDangNhap()) {
+                DialogHelper.showConfirm(requireContext(), "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để sử dụng tính năng AI Smart Scan. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                    @Override
+                    public void onConfirm() {
+                        Intent i = new Intent(requireContext(), DangNhapActivity.class);
+                        startActivity(i);
+                    }
+                });
+                return;
+            }
+        }
         capNhatAiMode(bat, true);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (getContext() != null) {
+            com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+            if (!ql.daDangNhap() && isAiMode) {
+                capNhatAiMode(false, false);
+            }
+        }
         kiemTraCapNhatUiTheoQuyenCamera();
         capNhatAvatarHome();
         if (isAiMode) {
@@ -954,6 +1012,12 @@ public class HomeFragment extends Fragment {
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
         if (!hidden) {
+            if (getContext() != null) {
+                com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(requireContext());
+                if (!ql.daDangNhap() && isAiMode) {
+                    capNhatAiMode(false, false);
+                }
+            }
             kiemTraCapNhatUiTheoQuyenCamera();
             capNhatAvatarHome();
             if (isAiMode) {

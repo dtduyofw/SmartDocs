@@ -515,19 +515,6 @@
                                     android:layout_marginEnd="6dp" />
 
                                 <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipNgayThang"
-                                    style="@style/Widget.MaterialComponents.Chip.Action"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Có ngày tháng/hạn chót nào không?"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_primary"
-                                    app:chipBackgroundColor="@color/surface"
-                                    app:chipStrokeColor="@color/divider"
-                                    app:chipStrokeWidth="1dp"
-                                    android:layout_marginEnd="6dp" />
-
-                                <com.google.android.material.chip.Chip
                                     android:id="@+id/chipSoLieu"
                                     style="@style/Widget.MaterialComponents.Chip.Action"
                                     android:layout_width="wrap_content"

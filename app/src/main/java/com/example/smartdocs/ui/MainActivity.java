@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
     TextView txtDrawerAvatarChar, txtDrawerTen, txtDrawerGoiBadge, txtDrawerEmail;
     MaterialCardView cardDrawerUpgrade;
 
-    LinearLayout layoutDrawerHome, layoutDrawerFiles, layoutDrawerHistory, layoutDrawerFavorites;
-    ImageView imgNavHome, imgNavFiles, imgNavHistory, imgNavFavorites;
-    TextView txtNavHome, txtNavFiles, txtNavHistory, txtNavFavorites;
+    LinearLayout layoutDrawerHome, layoutDrawerFiles, layoutDrawerHistory;
+    ImageView imgNavHome, imgNavFiles, imgNavHistory;
+    TextView txtNavHome, txtNavFiles, txtNavHistory;
 
     LinearLayout layoutDrawerOffline, layoutDrawerAi, layoutDrawerShare, layoutDrawerLogout;
 
@@ -106,17 +106,14 @@ public class MainActivity extends AppCompatActivity {
         layoutDrawerHome = (LinearLayout) findViewById(R.id.layoutDrawerHome);
         layoutDrawerFiles = (LinearLayout) findViewById(R.id.layoutDrawerFiles);
         layoutDrawerHistory = (LinearLayout) findViewById(R.id.layoutDrawerHistory);
-        layoutDrawerFavorites = (LinearLayout) findViewById(R.id.layoutDrawerFavorites);
 
         imgNavHome = (ImageView) findViewById(R.id.imgNavHome);
         imgNavFiles = (ImageView) findViewById(R.id.imgNavFiles);
         imgNavHistory = (ImageView) findViewById(R.id.imgNavHistory);
-        imgNavFavorites = (ImageView) findViewById(R.id.imgNavFavorites);
 
         txtNavHome = (TextView) findViewById(R.id.txtNavHome);
         txtNavFiles = (TextView) findViewById(R.id.txtNavFiles);
         txtNavHistory = (TextView) findViewById(R.id.txtNavHistory);
-        txtNavFavorites = (TextView) findViewById(R.id.txtNavFavorites);
 
         // Drawer Actions
         layoutDrawerOffline = (LinearLayout) findViewById(R.id.layoutDrawerOffline);
@@ -200,18 +197,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 6. Chon Favorites
-        if (layoutDrawerFavorites != null) {
-            layoutDrawerFavorites.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dongDrawer();
-                    chonTab(R.id.nav_files);
-                }
-            });
-        }
-
-        // 7. Chon Offline Extraction
+        // 6. Chon Offline Extraction
         if (layoutDrawerOffline != null) {
             layoutDrawerOffline.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -231,6 +217,17 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     dongDrawer();
+                    QLTaiKhoan ql = QLTaiKhoan.getInstance(MainActivity.this);
+                    if (!ql.daDangNhap()) {
+                        DialogHelper.showConfirm(MainActivity.this, "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để sử dụng tính năng AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                            @Override
+                            public void onConfirm() {
+                                Intent i = new Intent(MainActivity.this, DangNhapActivity.class);
+                                startActivity(i);
+                            }
+                        });
+                        return;
+                    }
                     chonTab(R.id.nav_home);
                     if (homeFragment != null) {
                         homeFragment.batModeAi(true);
@@ -339,17 +336,14 @@ public class MainActivity extends AppCompatActivity {
         if (layoutDrawerHome != null) layoutDrawerHome.setBackgroundColor(Color.TRANSPARENT);
         if (layoutDrawerFiles != null) layoutDrawerFiles.setBackgroundColor(Color.TRANSPARENT);
         if (layoutDrawerHistory != null) layoutDrawerHistory.setBackgroundColor(Color.TRANSPARENT);
-        if (layoutDrawerFavorites != null) layoutDrawerFavorites.setBackgroundColor(Color.TRANSPARENT);
 
         if (imgNavHome != null) imgNavHome.setColorFilter(mauInactive);
         if (imgNavFiles != null) imgNavFiles.setColorFilter(mauInactive);
         if (imgNavHistory != null) imgNavHistory.setColorFilter(mauInactive);
-        if (imgNavFavorites != null) imgNavFavorites.setColorFilter(mauInactive);
 
         if (txtNavHome != null) txtNavHome.setTextColor(mauInactive);
         if (txtNavFiles != null) txtNavFiles.setTextColor(mauInactive);
         if (txtNavHistory != null) txtNavHistory.setTextColor(mauInactive);
-        if (txtNavFavorites != null) txtNavFavorites.setTextColor(mauInactive);
 
         // Highlight tab dang chon
         if (tabId == R.id.nav_home && layoutDrawerHome != null) {

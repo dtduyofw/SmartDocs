@@ -88,7 +88,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     TextView txtQaPlaceholder;
     TextInputEditText edtCauHoi;
     MaterialButton btnGuiCauHoi, btnClearQa;
-    Chip chipNoiDungChinh, chipNgayThang, chipSoLieu;
+    Chip chipNoiDungChinh, chipSoLieu;
     QaAdapter qaAdapter;
     ArrayList<QaPair> listQa;
 
@@ -189,7 +189,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         btnClearQa = (MaterialButton) findViewById(R.id.btnClearQa);
         // Ánh xạ chip gợi ý câu hỏi nhanh
         chipNoiDungChinh = (Chip) findViewById(R.id.chipNoiDungChinh);
-        chipNgayThang = (Chip) findViewById(R.id.chipNgayThang);
         chipSoLieu = (Chip) findViewById(R.id.chipSoLieu);
 
         // Khởi tạo adapter cho Smart Q&A
@@ -355,15 +354,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 edtCauHoi.setText("Nội dung chính là gì?");
-                guiCauHoiQa();
-            }
-        });
-
-        // ── Chip gợi ý: Ngày tháng/hạn chót ─────────────
-        chipNgayThang.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                edtCauHoi.setText("Có ngày tháng/hạn chót nào không?");
                 guiCauHoiQa();
             }
         });
@@ -646,6 +636,16 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
     void goiGeminiAi(String loai) {
         com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
+        if (!ql.daDangNhap()) {
+            DialogHelper.showConfirm(this, "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để sử dụng tính năng AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                @Override
+                public void onConfirm() {
+                    Intent i = new Intent(DocumentPreviewActivity.this, DangNhapActivity.class);
+                    startActivity(i);
+                }
+            });
+            return;
+        }
         if (!ql.kiemTraConLuotAi()) {
             int conLai = ql.getLuotConLai();
             Toast.makeText(this, "Bạn đã dùng hết lượt AI (" + ql.getTongLuot() + " lượt). Vui lòng nâng cấp gói để tiếp tục.", Toast.LENGTH_LONG).show();
@@ -719,6 +719,16 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
     void guiCauHoiQa() {
         com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
+        if (!ql.daDangNhap()) {
+            DialogHelper.showConfirm(this, "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để đặt câu hỏi cho AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
+                @Override
+                public void onConfirm() {
+                    Intent i = new Intent(DocumentPreviewActivity.this, DangNhapActivity.class);
+                    startActivity(i);
+                }
+            });
+            return;
+        }
         if (!ql.kiemTraConLuotAi()) {
             Toast.makeText(this, "Bạn đã dùng hết lượt AI (" + ql.getTongLuot() + " lượt). Vui lòng nâng cấp gói để tiếp tục.", Toast.LENGTH_LONG).show();
             return;
@@ -752,7 +762,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         // Vô hiệu hoá cả chip và nút gửi trong lúc chờ phản hồi
         btnGuiCauHoi.setEnabled(false);
         chipNoiDungChinh.setEnabled(false);
-        chipNgayThang.setEnabled(false);
         chipSoLieu.setEnabled(false);
 
         GeminiRepository.getInstance().askQuestion(apiKey, vanBan, cauHoi, chatHistory, new GeminiRepository.GeminiCallback() {
@@ -763,7 +772,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                     public void run() {
                         btnGuiCauHoi.setEnabled(true);
                         chipNoiDungChinh.setEnabled(true);
-                        chipNgayThang.setEnabled(true);
                         chipSoLieu.setEnabled(true);
                         // Tru 1 luot AI qua QLTaiKhoan
                         com.example.smartdocs.data.QLTaiKhoan.getInstance(DocumentPreviewActivity.this).truMotLuotAi();
@@ -797,7 +805,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                     public void run() {
                         btnGuiCauHoi.setEnabled(true);
                         chipNoiDungChinh.setEnabled(true);
-                        chipNgayThang.setEnabled(true);
                         chipSoLieu.setEnabled(true);
                         aiPair.noiDung = "Lỗi: " + errorMessage;
                         qaAdapter.notifyDataSetChanged();
