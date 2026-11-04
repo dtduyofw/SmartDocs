@@ -385,16 +385,6 @@
                         app:cornerRadius="8dp"
                         android:layout_marginBottom="6dp" />
 
-                    <!-- Nut Dong bo tu Firestore -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnDongBoAi"
-                        android:layout_width="match_parent"
-                        android:layout_height="38dp"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:text="Kiểm tra &amp; Đồng bộ lượt"
-                        android:textSize="12sp"
-                        app:cornerRadius="8dp" />
-
                     <!-- Nut Xoa tai khoan vinh vien -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnXoaTaiKhoan"

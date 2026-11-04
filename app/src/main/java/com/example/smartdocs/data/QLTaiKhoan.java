@@ -31,6 +31,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -636,11 +637,41 @@ public class QLTaiKhoan {
                 });
     }
 
+    // Kiem tra va xu ly ha cap ve goi FREE neu da qua han dung theo thoi gian thuc
+    public boolean kiemTraVaXuLyHetHan() {
+        if (!daDangNhap()) return false;
+        if ("FREE".equalsIgnoreCase(loaiGoi)) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (hanSuDung > 0 && now >= hanSuDung) {
+            // Goi tra phi da het han
+            loaiGoi = "FREE";
+            tongLuot = 50;
+            if (daNiemDung > tongLuot) {
+                daNiemDung = tongLuot;
+            }
+            hanSuDung = 0;
+            luuThongTin();
+
+            if (mFirestore != null && !uid.isEmpty()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("loaigoi", "FREE");
+                map.put("tongluot", 50);
+                map.put("ngayhethan", 0);
+                mFirestore.collection("users").document(uid).update(map);
+            }
+            return true;
+        }
+        return false;
+    }
+
     // Kiem tra con luot su dung AI khong (bat buoc phai dang nhap moi duoc dung)
     public boolean kiemTraConLuotAi() {
         if (!daDangNhap()) {
             return false;
         }
+        kiemTraVaXuLyHetHan();
         if ("VIP".equalsIgnoreCase(loaiGoi)) {
             return true;
         }
@@ -738,28 +769,20 @@ public class QLTaiKhoan {
 
     // Gia han han dung theo loai goi moi va so thang
     public void giaHanGoi(String tenGoiMoi, int soThang) {
-        int soNgay = 30;
-        if (soThang == 3) soNgay = 90;
-        else if (soThang == 6) soNgay = 180;
-        else if (soThang >= 12) soNgay = 365;
-
         long now = System.currentTimeMillis();
-        long themMilis = (long) soNgay * 24L * 60 * 60 * 1000;
-
         int capCu = layCapBacGoi(loaiGoi);
         int capMoi = layCapBacGoi(tenGoiMoi);
 
-        // Neu nang cap len goi cao hon: reset thoi han ve chu ky moi tu thoi diem hien tai
-        if (capMoi > capCu) {
-            hanSuDung = now + themMilis;
+        Calendar c = Calendar.getInstance();
+        if (capMoi > capCu || hanSuDung <= now) {
+            // Nang cap len goi cao hon hoac goi cu da het han: tinh tu thoi diem hien tai
+            c.setTimeInMillis(now);
         } else {
-            // Cung goi hoac gia han: cong don thoi gian neu con han
-            if (hanSuDung > now) {
-                hanSuDung += themMilis;
-            } else {
-                hanSuDung = now + themMilis;
-            }
+            // Gia han tiep: cong don vao moc het han cu
+            c.setTimeInMillis(hanSuDung);
         }
+        c.add(Calendar.MONTH, Math.max(1, soThang));
+        hanSuDung = c.getTimeInMillis();
         luuThongTin();
     }
 
@@ -771,30 +794,77 @@ public class QLTaiKhoan {
         return 0; // FREE
     }
 
-    // Tinh so ngay con lai cua goi
+    // Tinh so ngay con lai cua goi theo thoi gian thuc
     public int getSoNgayConLai() {
+        kiemTraVaXuLyHetHan();
+        if ("FREE".equalsIgnoreCase(loaiGoi)) {
+            Calendar c = Calendar.getInstance();
+            int maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+            int currentDay = c.get(Calendar.DAY_OF_MONTH);
+            return Math.max(1, maxDay - currentDay);
+        }
         if (hanSuDung <= 0) {
-            // Neu chua co han su dung, mac dinh 30 ngay
-            hanSuDung = System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000;
-            luuThongTin();
-            return 30;
+            return 0;
         }
         long now = System.currentTimeMillis();
         long diff = hanSuDung - now;
         if (diff <= 0) {
             return 0;
         }
-        int soNgay = (int) Math.ceil((double) diff / (24L * 60 * 60 * 1000));
-        return Math.max(1, soNgay);
+        return (int) Math.ceil((double) diff / (24L * 60 * 60 * 1000));
     }
 
-    // Chuoi hien thi so ngay con lai
+    // Chuoi hien thi thoi gian con lai theo thoi gian thuc (ngay, gio, phut)
     public String getChuoiNgayConLai() {
-        int soNgay = getSoNgayConLai();
-        if (soNgay <= 0) {
-            return "Hết hạn hôm nay";
+        kiemTraVaXuLyHetHan();
+        if ("FREE".equalsIgnoreCase(loaiGoi)) {
+            Calendar c = Calendar.getInstance();
+            int maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+            int currentDay = c.get(Calendar.DAY_OF_MONTH);
+            int soNgayCon = maxDay - currentDay;
+            if (soNgayCon <= 0) {
+                return "Làm mới ngày mai";
+            }
+            return "Làm mới sau " + soNgayCon + " ngày";
         }
-        return "Còn " + soNgay + " ngày";
+
+        if (hanSuDung <= 0) {
+            return "Đã hết hạn";
+        }
+
+        long now = System.currentTimeMillis();
+        long diff = hanSuDung - now;
+        if (diff <= 0) {
+            return "Đã hết hạn";
+        }
+
+        long soNgay = diff / (24L * 60 * 60 * 1000);
+        long soGio = (diff % (24L * 60 * 60 * 1000)) / (60 * 60 * 1000);
+        long soPhut = (diff % (60 * 60 * 1000)) / (60 * 1000);
+
+        if (soNgay >= 2) {
+            return "Còn " + (soNgay + (soGio > 0 ? 1 : 0)) + " ngày";
+        } else if (soNgay == 1) {
+            return "Còn 1 ngày " + soGio + "h";
+        } else {
+            // Trong vong 24 gio cuoi cung: dem nguoc thoi gian thuc gio va phut
+            if (soGio > 0) {
+                return "Còn " + soGio + " giờ " + soPhut + "p";
+            } else if (soPhut > 0) {
+                return "Còn " + soPhut + " phút";
+            } else {
+                return "Còn dưới 1 phút";
+            }
+        }
+    }
+
+    // Dinh dang moc thoi gian het han chi tiet
+    public String getMocThoiGianHetHan() {
+        if ("FREE".equalsIgnoreCase(loaiGoi) || hanSuDung <= 0) {
+            return "Đầu tháng tới";
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault());
+        return sdf.format(new Date(hanSuDung));
     }
 
     public long getHanSuDung() {

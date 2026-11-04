@@ -7,49 +7,144 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <!-- ── TOOLBAR ── -->
+    <!-- ── HEADER (APP BAR) MỚI THEO YÊU CẦU ── -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="16dp"
-        android:background="@color/surface">
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:background="@drawable/bg_header_top_rounded">
 
-        <!-- Nút back -->
-        <ImageView
-            android:id="@+id/imgBackPreview"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="@color/text_primary"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+        <!-- Góc trái (Nút Back + Avatar D tròn viền xám) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- Tiêu đề toolbar -->
-        <TextView
+            <ImageView
+                android:id="@+id/imgBackPreview"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="#CBD5E1"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginEnd="8dp" />
+
+            <FrameLayout
+                android:id="@+id/layoutAvatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_avatar_circle">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="D"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- Góc phải (Chứa cụm icon và logo SmartDocs) -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Xem tài liệu"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:gravity="center"
-            android:layout_marginEnd="40dp" />
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <!-- Cụm Icon (Phía trên): Share, Copy, Download -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/btnHeaderShare"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_share"
+                    app:tint="#CBD5E1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_marginEnd="6dp" />
+
+                <ImageView
+                    android:id="@+id/btnHeaderCopy"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_copy"
+                    app:tint="#CBD5E1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_marginEnd="6dp" />
+
+                <ImageView
+                    android:id="@+id/btnHeaderDownload"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_export"
+                    app:tint="#CBD5E1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+
+            </LinearLayout>
+
+            <!-- Tên ứng dụng (Phía dưới cụm icon): SmartDocs -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="3dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Smart"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Docs"
+                    android:textColor="#38BDF8"
+                    android:textStyle="bold"
+                    android:textSize="17sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-    <!-- ── TAB: Original / Extracted ── -->
+    <!-- ── TAB: Original / Extracted / AI ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
         android:background="@color/surface"
@@ -62,7 +157,7 @@
             android:layout_height="36dp"
             android:layout_weight="1"
             android:text="Ảnh gốc"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:gravity="center"
             android:textColor="@color/text_hint"
             android:background="@android:color/transparent"
@@ -76,10 +171,24 @@
             android:layout_height="36dp"
             android:layout_weight="1"
             android:text="Văn bản"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:gravity="center"
             android:textColor="@color/white"
             android:background="@color/primary"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Tab Trợ lý AI (mới) -->
+        <TextView
+            android:id="@+id/tabAi"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Trợ lý AI"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:textColor="@color/text_hint"
+            android:background="@android:color/transparent"
             android:clickable="true"
             android:focusable="true" />
 
@@ -101,6 +210,7 @@
 
     <!-- ── NỘI DUNG CHÍNH (cuộn được) ── -->
     <ScrollView
+        android:id="@+id/scrollViewContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -274,322 +384,269 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ── KHU VỰC TƯƠNG TÁC AI (GEMINI) ── -->
-            <LinearLayout
-                android:id="@+id/layoutAiSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp">
-
-                <!-- Tiêu đề mục AI -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="TRỢ LÝ AI"
-                    android:textSize="12sp"
-                    android:textColor="@color/primary"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginStart="4dp" />
-
-                <!-- Các nút hành động AI -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSummarize"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Tóm tắt"
-                        android:textSize="12sp"
-                        app:cornerRadius="10dp"
-                        android:layout_marginEnd="4dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnTranslate"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Dịch TV"
-                        android:textSize="12sp"
-                        app:cornerRadius="10dp"
-                        android:layout_marginHorizontal="2dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExtract"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Trích xuất"
-                        android:textSize="12sp"
-                        app:cornerRadius="10dp"
-                        android:layout_marginStart="4dp" />
-
-                </LinearLayout>
-
-                <!-- Loading AI -->
-                <LinearLayout
-                    android:id="@+id/layoutAiLoading"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:padding="12dp"
-                    android:visibility="gone">
-
-                    <ProgressBar
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:indeterminateTint="@color/primary" />
-
-                    <TextView
-                        android:id="@+id/txtAiLoading"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Gemini đang phân tích tài liệu..."
-                        android:textSize="13sp"
-                        android:textColor="@color/primary"
-                        android:layout_marginStart="10dp" />
-
-                </LinearLayout>
-
-                <!-- Card kết quả AI -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardAiResult"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/surface"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/divider"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Kết quả AI"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/primary" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnCopyAi"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Sao chép"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/txtAiResult"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="13sp"
-                            android:textColor="@color/text_primary"
-                            android:lineSpacingExtra="3dp"
-                            android:textIsSelectable="true" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Card Smart Q&A -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardQa"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/divider"
-                    app:cardBackgroundColor="@color/surface">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Hỏi đáp về tài liệu"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnClearQa"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Xóa chat"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <!-- ListView lịch sử chat -->
-                        <ListView
-                            android:id="@+id/lvQaHistory"
-                            android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:scrollbars="vertical"
-                            android:divider="@null"
-                            android:dividerHeight="0dp"
-                            android:nestedScrollingEnabled="true"
-                            android:visibility="gone" />
-
-                        <!-- Placeholder khi chưa có tin nhắn -->
-                        <TextView
-                            android:id="@+id/txtQaPlaceholder"
-                            android:layout_width="match_parent"
-                            android:layout_height="60dp"
-                            android:gravity="center"
-                            android:text="Đặt câu hỏi về nội dung tài liệu để Gemini trả lời..."
-                            android:textColor="@color/text_hint"
-                            android:textSize="12sp"
-                            android:textAlignment="center" />
-
-                        <!-- ── GỢI Ý CÂU HỎI NHANH (PROMPT CHIPS) ── -->
-                        <HorizontalScrollView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:scrollbars="none"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="2dp">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipNoiDungChinh"
-                                    style="@style/Widget.MaterialComponents.Chip.Action"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Nội dung chính là gì?"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_primary"
-                                    app:chipBackgroundColor="@color/surface"
-                                    app:chipStrokeColor="@color/divider"
-                                    app:chipStrokeWidth="1dp"
-                                    android:layout_marginEnd="6dp" />
-
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipSoLieu"
-                                    style="@style/Widget.MaterialComponents.Chip.Action"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Trích xuất các số liệu quan trọng"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_primary"
-                                    app:chipBackgroundColor="@color/surface"
-                                    app:chipStrokeColor="@color/divider"
-                                    app:chipStrokeWidth="1dp" />
-
-                            </LinearLayout>
-
-                        </HorizontalScrollView>
-
-                        <!-- Khung nhập câu hỏi -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="6dp">
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                                app:boxCornerRadiusTopStart="10dp"
-                                app:boxCornerRadiusTopEnd="10dp"
-                                app:boxCornerRadiusBottomStart="10dp"
-                                app:boxCornerRadiusBottomEnd="10dp">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/edtCauHoi"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:hint="Hỏi về tài liệu này..."
-                                    android:textSize="13sp"
-                                    android:inputType="text"
-                                    android:imeOptions="actionSend"
-                                    android:textColor="@color/text_primary"
-                                    android:textColorHint="@color/text_hint"
-                                    android:maxLines="2" />
-
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnGuiCauHoi"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Gửi"
-                                android:textSize="13sp"
-                                app:cornerRadius="10dp"
-                                android:layout_marginStart="8dp" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-            </LinearLayout>
+            <!-- layoutAiSection đã được chuyển ra ngoài ScrollView thành layoutAiTab -->
 
         </LinearLayout>
 
     </ScrollView>
 
+    <!-- ── TAB TRỢ LÝ AI — full height, không nằm trong ScrollView ── -->
+    <LinearLayout
+        android:id="@+id/layoutAiTab"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="@color/background"
+        android:visibility="gone">
+
+        <!-- Header nhỏ phía trên: tiêu đề phụ + nút xóa chat -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@color/surface"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hội thoại với Gemini"
+                android:textSize="12sp"
+                android:textColor="@color/text_hint" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearQa"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xóa chat"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
+
+        <!-- Loading inline khi AI đang xử lý -->
+        <LinearLayout
+            android:id="@+id/layoutAiLoading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@color/surface"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:indeterminateTint="@color/primary" />
+
+            <TextView
+                android:id="@+id/txtAiLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gemini đang xử lý..."
+                android:textSize="12sp"
+                android:textColor="@color/primary"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <!-- ListView chat chiếm toàn bộ chiều cao còn lại -->
+        <ListView
+            android:id="@+id/lvQaHistory"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+
+        <!-- Placeholder khi chưa có hội thoại -->
+        <LinearLayout
+            android:id="@+id/layoutQaPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtQaPlaceholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Hỏi Gemini về nội dung tài liệu\nhoặc chọn gợi ý nhanh ở bên dưới"
+                android:textColor="@color/text_hint"
+                android:textSize="13sp"
+                android:lineSpacingExtra="4dp"
+                android:textAlignment="center" />
+
+        </LinearLayout>
+
+        <!-- Hàng chip gợi ý nhanh (nằm ngay phía trên thanh nhập) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:background="@color/surface"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="4dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTomTat"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tóm tắt"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDichTV"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dịch TV"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTrichXuat"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Trích xuất"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNoiDungChinh"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nội dung chính?"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSoLieu"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Số liệu"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <!-- Input bar cố định đáy -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@color/surface">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusBottomEnd="20dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtCauHoi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Hỏi về tài liệu này..."
+                    android:textSize="13sp"
+                    android:inputType="text"
+                    android:imeOptions="actionSend"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
+                    android:maxLines="3" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuiCauHoi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gửi"
+                android:textSize="13sp"
+                app:cornerRadius="20dp"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
     <!-- ── TOOLBAR HÀNH ĐỘNG: Edit / New / Share / Export ── -->
     <View
+        android:id="@+id/viewDividerBottom"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/divider" />
 
     <LinearLayout
+        android:id="@+id/layoutBottomToolbar"
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:orientation="horizontal"

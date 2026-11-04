@@ -53,6 +53,7 @@
         <activity
             android:name=".ui.DocumentPreviewActivity"
             android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
         <!-- ImagePreviewActivity: man hinh xem anh va crop truoc khi OCR -->
         <activity

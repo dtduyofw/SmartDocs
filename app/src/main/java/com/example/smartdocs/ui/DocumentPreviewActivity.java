@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,36 +64,36 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // Views
     // ─────────────────────────────────────────
     ImageView imgBackPreview;
-    TextView tabOriginal, tabExtracted;
+    ImageView btnHeaderShare, btnHeaderCopy, btnHeaderDownload;
+    TextView tabOriginal, tabExtracted, tabAi;
     TextView txtStatusBadge;
     TextView txtExtractedContent;
     ImageView imgOriginal;
     MaterialCardView cardExtractedText, cardOriginalImage;
+    ScrollView scrollViewContent;
 
     // Dieu huong trang cho tai lieu nhieu trang
     LinearLayout layoutDieuHuongTrang;
     MaterialButton btnTrangTruoc, btnTrangSau;
     TextView txtChiSoTrang;
 
-    // AI Views
-    LinearLayout layoutAiSection, layoutAiLoading;
+    // AI Views (mới — tab chat full-screen)
+    LinearLayout layoutAiTab, layoutAiLoading;
     TextView txtAiLoading;
-    MaterialButton btnSummarize, btnTranslate, btnExtract;
-    MaterialCardView cardAiResult;
-    TextView txtAiResult;
-    MaterialButton btnCopyAi;
+    LinearLayout layoutQaPlaceholder;
+    Chip chipTomTat, chipDichTV, chipTrichXuat, chipNoiDungChinh, chipSoLieu;
 
-    // Smart Q&A Views
-    MaterialCardView cardQa;
+    // Q&A Views
     ListView lvQaHistory;
     TextView txtQaPlaceholder;
     TextInputEditText edtCauHoi;
     MaterialButton btnGuiCauHoi, btnClearQa;
-    Chip chipNoiDungChinh, chipSoLieu;
     QaAdapter qaAdapter;
     ArrayList<QaPair> listQa;
 
     // Toolbar hành động
+    LinearLayout layoutBottomToolbar;
+    View viewDividerBottom;
     LinearLayout btnEdit, btnNew, btnShare, btnExport;
 
     // Section Export As
@@ -157,46 +158,49 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
     void anhXaView() {
         imgBackPreview = (ImageView) findViewById(R.id.imgBackPreview);
+        btnHeaderShare = (ImageView) findViewById(R.id.btnHeaderShare);
+        btnHeaderCopy = (ImageView) findViewById(R.id.btnHeaderCopy);
+        btnHeaderDownload = (ImageView) findViewById(R.id.btnHeaderDownload);
         tabOriginal = (TextView) findViewById(R.id.tabOriginal);
         tabExtracted = (TextView) findViewById(R.id.tabExtracted);
+        tabAi = (TextView) findViewById(R.id.tabAi);
         txtStatusBadge = (TextView) findViewById(R.id.txtStatusBadge);
         txtExtractedContent = (TextView) findViewById(R.id.txtExtractedContent);
         imgOriginal = (ImageView) findViewById(R.id.imgOriginal);
         cardExtractedText = (MaterialCardView) findViewById(R.id.cardExtractedText);
         cardOriginalImage = (MaterialCardView) findViewById(R.id.cardOriginalImage);
+        scrollViewContent = (ScrollView) findViewById(R.id.scrollViewContent);
         layoutDieuHuongTrang = (LinearLayout) findViewById(R.id.layoutDieuHuongTrang);
         btnTrangTruoc = (MaterialButton) findViewById(R.id.btnTrangTruoc);
         btnTrangSau = (MaterialButton) findViewById(R.id.btnTrangSau);
         txtChiSoTrang = (TextView) findViewById(R.id.txtChiSoTrang);
 
-        // Ánh xạ AI Views
-        layoutAiSection = (LinearLayout) findViewById(R.id.layoutAiSection);
+        // Ánh xạ layoutAiTab và các view bên trong
+        layoutAiTab = (LinearLayout) findViewById(R.id.layoutAiTab);
         layoutAiLoading = (LinearLayout) findViewById(R.id.layoutAiLoading);
         txtAiLoading = (TextView) findViewById(R.id.txtAiLoading);
-        btnSummarize = (MaterialButton) findViewById(R.id.btnSummarize);
-        btnTranslate = (MaterialButton) findViewById(R.id.btnTranslate);
-        btnExtract = (MaterialButton) findViewById(R.id.btnExtract);
-        cardAiResult = (MaterialCardView) findViewById(R.id.cardAiResult);
-        txtAiResult = (TextView) findViewById(R.id.txtAiResult);
-        btnCopyAi = (MaterialButton) findViewById(R.id.btnCopyAi);
+        layoutQaPlaceholder = (LinearLayout) findViewById(R.id.layoutQaPlaceholder);
+        chipTomTat = (Chip) findViewById(R.id.chipTomTat);
+        chipDichTV = (Chip) findViewById(R.id.chipDichTV);
+        chipTrichXuat = (Chip) findViewById(R.id.chipTrichXuat);
+        chipNoiDungChinh = (Chip) findViewById(R.id.chipNoiDungChinh);
+        chipSoLieu = (Chip) findViewById(R.id.chipSoLieu);
 
         // Ánh xạ Smart Q&A Views
-        cardQa = (MaterialCardView) findViewById(R.id.cardQa);
         lvQaHistory = (ListView) findViewById(R.id.lvQaHistory);
         txtQaPlaceholder = (TextView) findViewById(R.id.txtQaPlaceholder);
         edtCauHoi = (TextInputEditText) findViewById(R.id.edtCauHoi);
         btnGuiCauHoi = (MaterialButton) findViewById(R.id.btnGuiCauHoi);
         btnClearQa = (MaterialButton) findViewById(R.id.btnClearQa);
-        // Ánh xạ chip gợi ý câu hỏi nhanh
-        chipNoiDungChinh = (Chip) findViewById(R.id.chipNoiDungChinh);
-        chipSoLieu = (Chip) findViewById(R.id.chipSoLieu);
 
-        // Khởi tạo adapter cho Smart Q&A
+        // Khởi tạo adapter cho chat
         listQa = new ArrayList<>();
         qaAdapter = new QaAdapter(this, listQa);
         lvQaHistory.setAdapter(qaAdapter);
 
         // Toolbar hành động
+        layoutBottomToolbar = (LinearLayout) findViewById(R.id.layoutBottomToolbar);
+        viewDividerBottom = findViewById(R.id.viewDividerBottom);
         btnEdit = (LinearLayout) findViewById(R.id.btnEdit);
         btnNew = (LinearLayout) findViewById(R.id.btnNew);
         btnShare = (LinearLayout) findViewById(R.id.btnShare);
@@ -208,9 +212,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         exportText = (LinearLayout) findViewById(R.id.exportText);
     }
 
-    /**
-     * Hiển thị nội dung tài liệu lên UI.
-     */
     void hienThiDuLieu() {
         if (document == null) return;
 
@@ -220,17 +221,14 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         // Tai danh sach cac trang neu co
         taiDanhSachTrang();
 
-        // Badge status
+        // Badge status — chỉ cho biết trạng thái OCR/AI
         boolean coAi = document.aiSummary != null && !document.aiSummary.trim().isEmpty();
         if (coAi) {
             txtStatusBadge.setText("Đã trích xuất AI");
             txtStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.status_badge_green));
-            txtAiResult.setText(document.aiSummary);
-            cardAiResult.setVisibility(View.VISIBLE);
         } else {
             txtStatusBadge.setText("Đã trích xuất văn bản");
             txtStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.status_badge_blue));
-            cardAiResult.setVisibility(View.GONE);
         }
     }
 
@@ -258,6 +256,50 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
+        // ── Cụm icon Header: Chia sẻ, Sao chép, Tải xuống ──
+        if (btnHeaderShare != null) {
+            btnHeaderShare.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chiaSePlainText();
+                }
+            });
+        }
+
+        if (btnHeaderCopy != null) {
+            btnHeaderCopy.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String text = (document != null && document.ocrText != null) ? document.ocrText : "";
+                    if (text.isEmpty()) {
+                        Toast.makeText(DocumentPreviewActivity.this, "Chưa có văn bản để sao chép.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Document Text", text);
+                    if (cm != null) {
+                        cm.setPrimaryClip(clip);
+                        Toast.makeText(DocumentPreviewActivity.this, "Đã sao chép toàn bộ văn bản.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        if (btnHeaderDownload != null) {
+            btnHeaderDownload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (layoutExportAs != null) {
+                        if (layoutExportAs.getVisibility() == View.VISIBLE) {
+                            layoutExportAs.setVisibility(View.GONE);
+                        } else {
+                            layoutExportAs.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            });
+        }
+
         // ── Tab Original ──────────────────────────────────
         tabOriginal.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -274,78 +316,35 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
-        // ── AI: Tóm tắt ──────────────────────────────────
-        btnSummarize.setOnClickListener(new View.OnClickListener() {
+        // ── Tab Trợ lý AI ─────────────────────────────────
+        tabAi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                goiGeminiAi("summarize");
+                hienTabAi();
             }
         });
 
-        // ── AI: Dịch sang tiếng Việt ─────────────────────
-        btnTranslate.setOnClickListener(new View.OnClickListener() {
+        // ── Chip nhanh: Tóm tắt ─────────────────────────
+        chipTomTat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                goiGeminiAi("translate");
+                goiAiNhanhVaoChat("summarize");
             }
         });
 
-        // ── AI: Trích xuất thông tin chính ────────────────
-        btnExtract.setOnClickListener(new View.OnClickListener() {
+        // ── Chip nhanh: Dịch TV ──────────────────────────
+        chipDichTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                goiGeminiAi("extract");
+                goiAiNhanhVaoChat("translate");
             }
         });
 
-        // ── AI: Sao chép kết quả ─────────────────────────
-        btnCopyAi.setOnClickListener(new View.OnClickListener() {
+        // ── Chip nhanh: Trích xuất ───────────────────────
+        chipTrichXuat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saoChepKetQuaAi();
-            }
-        });
-
-        // ── Smart Q&A: Gửi câu hỏi ───────────────────────
-        btnGuiCauHoi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                guiCauHoiQa();
-            }
-        });
-
-        // ── Smart Q&A: Enter trên bàn phím ───────────────
-        edtCauHoi.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    guiCauHoiQa();
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        // ── Smart Q&A: Xóa lịch sử chat ──────────────────
-        btnClearQa.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listQa.clear();
-                qaAdapter.notifyDataSetChanged();
-                lvQaHistory.setVisibility(View.GONE);
-                txtQaPlaceholder.setVisibility(View.VISIBLE);
-                Toast.makeText(DocumentPreviewActivity.this, "Đã xóa lịch sử hỏi đáp.", Toast.LENGTH_SHORT).show();
-                // Xóa lịch sử Q&A của tài liệu này khỏi Room Database
-                if (document != null && document.id > 0) {
-                    Executors.newSingleThreadExecutor().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            AppDatabase.getInstance(DocumentPreviewActivity.this)
-                                    .qaHistoryDao()
-                                    .deleteByDocumentId(document.id);
-                        }
-                    });
-                }
+                goiAiNhanhVaoChat("extract");
             }
         });
 
@@ -367,6 +366,48 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
+        // ── Q&A: Gửi câu hỏi (nút Gửi) ──────────────────
+        btnGuiCauHoi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                guiCauHoiQa();
+            }
+        });
+
+        // ── Q&A: Enter trên bàn phím ──────────────────────
+        edtCauHoi.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    guiCauHoiQa();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        // ── Q&A: Xóa lịch sử chat ────────────────────────
+        btnClearQa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listQa.clear();
+                qaAdapter.notifyDataSetChanged();
+                lvQaHistory.setVisibility(View.GONE);
+                layoutQaPlaceholder.setVisibility(View.VISIBLE);
+                Toast.makeText(DocumentPreviewActivity.this, "Đã xóa lịch sử hỏi đáp.", Toast.LENGTH_SHORT).show();
+                // Xóa lịch sử Q&A của tài liệu này khỏi Room Database
+                if (document != null && document.id > 0) {
+                    Executors.newSingleThreadExecutor().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            AppDatabase.getInstance(DocumentPreviewActivity.this)
+                                    .qaHistoryDao()
+                                    .deleteByDocumentId(document.id);
+                        }
+                    });
+                }
+            }
+        });
 
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -460,18 +501,24 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     void hienTabExtracted() {
         dangHienExtracted = true;
 
-        // Cập nhật style tab
+        // Cập nhật style tab — tab Văn bản active
         tabExtracted.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
         tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.white));
         tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
 
-        // Hiện text, ẩn ảnh
+        // Hiện text, ẩn ảnh, ẩn khu vực AI
+        if (scrollViewContent != null) scrollViewContent.setVisibility(View.VISIBLE);
         cardExtractedText.setVisibility(View.VISIBLE);
         cardOriginalImage.setVisibility(View.GONE);
-        if (layoutAiSection != null) {
-            layoutAiSection.setVisibility(View.VISIBLE);
+        if (layoutAiTab != null) {
+            layoutAiTab.setVisibility(View.GONE);
         }
+        if (layoutBottomToolbar != null) layoutBottomToolbar.setVisibility(View.VISIBLE);
+        if (viewDividerBottom != null) viewDividerBottom.setVisibility(View.VISIBLE);
+        if (txtStatusBadge != null) txtStatusBadge.setVisibility(View.VISIBLE);
 
         // Điền nội dung
         if (document != null) {
@@ -487,18 +534,24 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     void hienTabOriginal() {
         dangHienExtracted = false;
 
-        // Cập nhật style tab
+        // Cập nhật style tab — tab Ảnh gốc active
         tabOriginal.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
         tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.white));
         tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
 
         // Hiện ảnh, ẩn text và khu vực AI
+        if (scrollViewContent != null) scrollViewContent.setVisibility(View.VISIBLE);
         cardExtractedText.setVisibility(View.GONE);
         cardOriginalImage.setVisibility(View.VISIBLE);
-        if (layoutAiSection != null) {
-            layoutAiSection.setVisibility(View.GONE);
+        if (layoutAiTab != null) {
+            layoutAiTab.setVisibility(View.GONE);
         }
+        if (layoutBottomToolbar != null) layoutBottomToolbar.setVisibility(View.VISIBLE);
+        if (viewDividerBottom != null) viewDividerBottom.setVisibility(View.VISIBLE);
+        if (txtStatusBadge != null) txtStatusBadge.setVisibility(View.VISIBLE);
 
         // Load ảnh gốc
         if (danhSachPages != null && danhSachPages.size() > 1) {
@@ -512,6 +565,32 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                 imgOriginal.setImageResource(R.drawable.ic_gallery);
             }
         }
+    }
+
+    // Hiện tab Trợ lý AI: ẩn văn bản + ảnh, chỉ hiện khu vực AI + Q&A
+    void hienTabAi() {
+        dangHienExtracted = false;
+
+        // Cập nhật style tab — tab Trợ lý AI active
+        tabAi.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.white));
+        tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+
+        // Ẩn văn bản và ảnh, hiện khu vực AI + Q&A
+        if (scrollViewContent != null) scrollViewContent.setVisibility(View.GONE);
+        cardExtractedText.setVisibility(View.GONE);
+        cardOriginalImage.setVisibility(View.GONE);
+        layoutDieuHuongTrang.setVisibility(View.GONE);
+        if (layoutAiTab != null) {
+            layoutAiTab.setVisibility(View.VISIBLE);
+        }
+        if (layoutBottomToolbar != null) layoutBottomToolbar.setVisibility(View.GONE);
+        if (viewDividerBottom != null) viewDividerBottom.setVisibility(View.GONE);
+        if (layoutExportAs != null) layoutExportAs.setVisibility(View.GONE);
+        if (txtStatusBadge != null) txtStatusBadge.setVisibility(View.GONE);
     }
 
     // Tai danh sach cac trang cua tai lieu tu co so du lieu
@@ -628,13 +707,18 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // AI & Smart Q&A Handlers
     // ─────────────────────────────────────────
 
-    void setAiButtonsEnabled(boolean enabled) {
-        btnSummarize.setEnabled(enabled);
-        btnTranslate.setEnabled(enabled);
-        btnExtract.setEnabled(enabled);
+    // Vô hiệu hoá/kích hoạt tất cả chip và nút gửi khi AI đang chạy
+    void setChipsEnabled(boolean enabled) {
+        chipTomTat.setEnabled(enabled);
+        chipDichTV.setEnabled(enabled);
+        chipTrichXuat.setEnabled(enabled);
+        chipNoiDungChinh.setEnabled(enabled);
+        chipSoLieu.setEnabled(enabled);
+        btnGuiCauHoi.setEnabled(enabled);
     }
 
-    void goiGeminiAi(String loai) {
+    // Gọi API AI chuyên dụng (tóm tắt/dịch/trích xuất) và đổ kết quả vào luồng chat
+    void goiAiNhanhVaoChat(String loai) {
         com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
         if (!ql.daDangNhap()) {
             DialogHelper.showConfirm(this, "Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để sử dụng tính năng AI. Vui lòng đăng nhập để tiếp tục.", "Đăng nhập ngay", new DialogHelper.OnConfirm() {
@@ -647,7 +731,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             return;
         }
         if (!ql.kiemTraConLuotAi()) {
-            int conLai = ql.getLuotConLai();
             Toast.makeText(this, "Bạn đã dùng hết lượt AI (" + ql.getTongLuot() + " lượt). Vui lòng nâng cấp gói để tiếp tục.", Toast.LENGTH_LONG).show();
             return;
         }
@@ -658,10 +741,34 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             return;
         }
 
-        String apiKey = SettingsFragment.getApiKey(this);
-        layoutAiLoading.setVisibility(View.VISIBLE);
-        setAiButtonsEnabled(false);
+        // Xác định nhãn hiển thị trong chat
+        String tenHanhDong;
+        String loadingText;
+        if ("summarize".equals(loai)) {
+            tenHanhDong = "Tóm tắt nội dung tài liệu";
+            loadingText = "Gemini đang tóm tắt...";
+        } else if ("translate".equals(loai)) {
+            tenHanhDong = "Dịch toàn bộ sang tiếng Việt";
+            loadingText = "Gemini đang dịch...";
+        } else {
+            tenHanhDong = "Trích xuất thông tin chính";
+            loadingText = "Gemini đang trích xuất...";
+        }
 
+        // Thêm bubble user + bubble AI "đang xử lý" vào chat
+        listQa.add(new QaPair(tenHanhDong, true));
+        final QaPair aiPair = new QaPair("Đang xử lý...", false);
+        listQa.add(aiPair);
+        qaAdapter.notifyDataSetChanged();
+        lvQaHistory.setVisibility(View.VISIBLE);
+        layoutQaPlaceholder.setVisibility(View.GONE);
+        lvQaHistory.setSelection(listQa.size() - 1);
+
+        layoutAiLoading.setVisibility(View.VISIBLE);
+        txtAiLoading.setText(loadingText);
+        setChipsEnabled(false);
+
+        String apiKey = SettingsFragment.getApiKey(this);
         GeminiRepository.GeminiCallback callback = new GeminiRepository.GeminiCallback() {
             @Override
             public void onSuccess(String ketQua) {
@@ -669,17 +776,18 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         layoutAiLoading.setVisibility(View.GONE);
-                        setAiButtonsEnabled(true);
-                        // Tru 1 luot AI qua QLTaiKhoan (dong bo ca Firestore & SQLite)
+                        setChipsEnabled(true);
+                        // Tru 1 luot AI qua QLTaiKhoan
                         com.example.smartdocs.data.QLTaiKhoan.getInstance(DocumentPreviewActivity.this).truMotLuotAi();
 
+                        aiPair.noiDung = ketQua;
+                        qaAdapter.notifyDataSetChanged();
+                        lvQaHistory.setSelection(listQa.size() - 1);
+
+                        // Cập nhật badge và lưu aiSummary vào DB
                         document.aiSummary = ketQua;
-                        txtAiResult.setText(ketQua);
-                        cardAiResult.setVisibility(View.VISIBLE);
                         txtStatusBadge.setText("Đã trích xuất AI");
                         txtStatusBadge.setTextColor(ContextCompat.getColor(DocumentPreviewActivity.this, R.color.status_badge_green));
-
-                        // Lưu kết quả AI vào Room Database
                         Executors.newSingleThreadExecutor().execute(new Runnable() {
                             @Override
                             public void run() {
@@ -687,8 +795,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                                         .documentDao().updateAiSummary(document.id, ketQua, System.currentTimeMillis());
                             }
                         });
-
-                        Toast.makeText(DocumentPreviewActivity.this, "Đã xử lý AI thành công!", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -699,23 +805,22 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         layoutAiLoading.setVisibility(View.GONE);
-                        setAiButtonsEnabled(true);
-                        Toast.makeText(DocumentPreviewActivity.this, "Lỗi AI: " + errorMessage, Toast.LENGTH_LONG).show();
+                        setChipsEnabled(true);
+                        aiPair.noiDung = "Lỗi: " + errorMessage;
+                        qaAdapter.notifyDataSetChanged();
                     }
                 });
             }
         };
 
         if ("summarize".equals(loai)) {
-            txtAiLoading.setText("Gemini đang tóm tắt tài liệu...");
             GeminiRepository.getInstance().summarizeText(apiKey, vanBan, callback);
         } else if ("translate".equals(loai)) {
-            txtAiLoading.setText("Gemini đang dịch sang tiếng Việt...");
             GeminiRepository.getInstance().translateToVietnamese(apiKey, vanBan, callback);
         } else {
-            txtAiLoading.setText("Gemini đang trích xuất thông tin chính...");
             GeminiRepository.getInstance().extractKeyInfo(apiKey, vanBan, callback);
-        }    }
+        }
+    }
 
     void guiCauHoiQa() {
         com.example.smartdocs.data.QLTaiKhoan ql = com.example.smartdocs.data.QLTaiKhoan.getInstance(this);
@@ -755,14 +860,12 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         listQa.add(aiPair);
         qaAdapter.notifyDataSetChanged();
         lvQaHistory.setVisibility(View.VISIBLE);
-        txtQaPlaceholder.setVisibility(View.GONE);
+        layoutQaPlaceholder.setVisibility(View.GONE);
         lvQaHistory.setSelection(listQa.size() - 1);
 
         String apiKey = SettingsFragment.getApiKey(this);
-        // Vô hiệu hoá cả chip và nút gửi trong lúc chờ phản hồi
-        btnGuiCauHoi.setEnabled(false);
-        chipNoiDungChinh.setEnabled(false);
-        chipSoLieu.setEnabled(false);
+        // Vô hiệu hoá tất cả chip và nút gửi trong lúc chờ phản hồi
+        setChipsEnabled(false);
 
         GeminiRepository.getInstance().askQuestion(apiKey, vanBan, cauHoi, chatHistory, new GeminiRepository.GeminiCallback() {
             @Override
@@ -770,9 +873,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        btnGuiCauHoi.setEnabled(true);
-                        chipNoiDungChinh.setEnabled(true);
-                        chipSoLieu.setEnabled(true);
+                        setChipsEnabled(true);
                         // Tru 1 luot AI qua QLTaiKhoan
                         com.example.smartdocs.data.QLTaiKhoan.getInstance(DocumentPreviewActivity.this).truMotLuotAi();
                         aiPair.noiDung = answer;
@@ -803,9 +904,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        btnGuiCauHoi.setEnabled(true);
-                        chipNoiDungChinh.setEnabled(true);
-                        chipSoLieu.setEnabled(true);
+                        setChipsEnabled(true);
                         aiPair.noiDung = "Lỗi: " + errorMessage;
                         qaAdapter.notifyDataSetChanged();
                     }
@@ -873,7 +972,12 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                             }
                             qaAdapter.notifyDataSetChanged();
                             lvQaHistory.setVisibility(View.VISIBLE);
-                            txtQaPlaceholder.setVisibility(View.GONE);
+                            if (layoutQaPlaceholder != null) {
+                                layoutQaPlaceholder.setVisibility(View.GONE);
+                            }
+                            if (txtQaPlaceholder != null) {
+                                txtQaPlaceholder.setVisibility(View.GONE);
+                            }
                             lvQaHistory.setSelection(listQa.size() - 1);
                         }
                     }
@@ -882,20 +986,20 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         });
     }
 
-
-    void saoChepKetQuaAi() {
-        String ketQua = txtAiResult.getText().toString();
-        if (ketQua.isEmpty()) {
-            Toast.makeText(this, "Chưa có kết quả để sao chép.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("AI Result", ketQua);
-        if (clipboard != null) {
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Đã sao chép kết quả AI vào bộ nhớ tạm.", Toast.LENGTH_SHORT).show();
-        }
-    }
+    // Sao chep ket qua AI (da tich hop thang vao tin nhan chat)
+    // void saoChepKetQuaAi() {
+    //     String ketQua = txtAiResult.getText().toString();
+    //     if (ketQua.isEmpty()) {
+    //         Toast.makeText(this, "Chưa có kết quả để sao chép.", Toast.LENGTH_SHORT).show();
+    //         return;
+    //     }
+    //     ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+    //     ClipData clip = ClipData.newPlainText("AI Result", ketQua);
+    //     if (clipboard != null) {
+    //         clipboard.setPrimaryClip(clip);
+    //         Toast.makeText(this, "Đã sao chép kết quả AI vào bộ nhớ tạm.", Toast.LENGTH_SHORT).show();
+    //     }
+    // }
 
     //Chia sẻ văn bản plain text qua các app khác.
     void chiaSePlainText() {

@@ -74,7 +74,7 @@ public class SettingsFragment extends Fragment {
     TextView txtUserEmail, txtUserUid;
     TextView txtAiPlan, txtAiPlanDesc, txtAiUsage, txtAiExpiry;
     ProgressBar pbAiUsage;
-    MaterialButton btnAuthAction, btnNangCapGoi, btnDongBoAi, btnXoaTaiKhoan;
+    MaterialButton btnAuthAction, btnNangCapGoi, btnXoaTaiKhoan;
     MaterialButton btnSaveSettings;
 
     // Che do giao dien (RadioGroup & RadioButton)
@@ -198,7 +198,6 @@ public class SettingsFragment extends Fragment {
         txtAiExpiry = (TextView) view.findViewById(R.id.txtAiExpiry);
         pbAiUsage = (ProgressBar) view.findViewById(R.id.pbAiUsage);
         btnNangCapGoi = (MaterialButton) view.findViewById(R.id.btnNangCapGoi);
-        btnDongBoAi = (MaterialButton) view.findViewById(R.id.btnDongBoAi);
         btnXoaTaiKhoan = (MaterialButton) view.findViewById(R.id.btnXoaTaiKhoan);
 
         btnSaveSettings = (MaterialButton) view.findViewById(R.id.btnSaveSettings);
@@ -250,7 +249,11 @@ public class SettingsFragment extends Fragment {
         String chuoiNgay = qlTaiKhoan.getChuoiNgayConLai();
 
         if (txtAiExpiry != null) {
-            txtAiExpiry.setText(chuoiNgay);
+            if ("FREE".equalsIgnoreCase(loaiGoi)) {
+                txtAiExpiry.setText(chuoiNgay);
+            } else {
+                txtAiExpiry.setText(chuoiNgay + " (" + qlTaiKhoan.getMocThoiGianHetHan() + ")");
+            }
         }
 
         if ("VIP".equalsIgnoreCase(loaiGoi)) {
@@ -260,19 +263,19 @@ public class SettingsFragment extends Fragment {
             pbAiUsage.setMax(100);
             pbAiUsage.setProgress(100);
         } else if ("PRO".equalsIgnoreCase(loaiGoi)) {
-            txtAiPlan.setText("Siêu Cấp Pro");
-            txtAiPlanDesc.setText("Gói nâng cấp AI tốc độ cao.");
+            txtAiPlan.setText("Pro");
+            txtAiPlanDesc.setText("Gói nâng cấp AI.");
             txtAiUsage.setText(conLai + " / " + tongLuot + " lượt (" + chuoiNgay + ")");
             pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 500);
             pbAiUsage.setProgress(Math.min(daDung, pbAiUsage.getMax()));
         } else if ("PLUS".equalsIgnoreCase(loaiGoi)) {
-            txtAiPlan.setText("Nâng Cấp Plus");
+            txtAiPlan.setText("Plus");
             txtAiPlanDesc.setText("Gói nâng cấp lượt AI cộng thêm.");
             txtAiUsage.setText(conLai + " / " + tongLuot + " lượt (" + chuoiNgay + ")");
             pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 200);
             pbAiUsage.setProgress(Math.min(daDung, pbAiUsage.getMax()));
         } else {
-            txtAiPlan.setText("Miễn phí (Cơ bản)");
+            txtAiPlan.setText("Miễn phí");
             txtAiPlanDesc.setText("Sẵn sàng sử dụng ngay, tự động làm mới vào đầu mỗi tháng.");
             txtAiUsage.setText(conLai + " / " + tongLuot + " lượt (" + chuoiNgay + ")");
             pbAiUsage.setMax(tongLuot > 0 ? tongLuot : 50);
@@ -336,59 +339,6 @@ public class SettingsFragment extends Fragment {
                     return;
                 }
                 hienDialogNangCapGoi();
-            }
-        });
-
-        // Nut Dong bo tu may chu Firestore
-        btnDongBoAi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!qlTaiKhoan.daDangNhap()) {
-                    Toast.makeText(requireContext(), "Vui lòng đăng nhập để đồng bộ dữ liệu từ máy chủ.", Toast.LENGTH_SHORT).show();
-                    hienDialogDangNhap();
-                    return;
-                }
-
-                final String oldGoi = qlTaiKhoan.getLoaiGoi();
-                final int oldTongLuot = qlTaiKhoan.getTongLuot();
-
-                Toast.makeText(requireContext(), "Đang kiểm tra dữ liệu từ máy chủ...", Toast.LENGTH_SHORT).show();
-                qlTaiKhoan.dongBoTuFirestore(new QLTaiKhoan.SyncCallback() {
-                    @Override
-                    public void onSynced() {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    capNhatGiaoDienTaiKhoan();
-                                    boolean daNangCap = !oldGoi.equalsIgnoreCase(qlTaiKhoan.getLoaiGoi())
-                                            || qlTaiKhoan.getTongLuot() > oldTongLuot;
-                                    if (daNangCap) {
-                                        if (dialogNangCapHienTai != null && dialogNangCapHienTai.isShowing()) {
-                                            dialogNangCapHienTai.dismiss();
-                                            dialogNangCapHienTai = null;
-                                        }
-                                        hienDialogNangCapThanhCong(qlTaiKhoan.getLoaiGoi(), qlTaiKhoan.getTongLuot());
-                                    } else {
-                                        Toast.makeText(requireContext(), "Đã đồng bộ số lượt AI mới nhất thành công!", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onError(final String loi) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(requireContext(), "Lỗi đồng bộ: " + loi, Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                });
             }
         });
 
@@ -570,7 +520,7 @@ public class SettingsFragment extends Fragment {
         ImageView btnCopySoTien = (ImageView) view.findViewById(R.id.btnCopySoTien);
         ImageView btnCopyNoiDung = (ImageView) view.findViewById(R.id.btnCopyNoiDung);
 
-        MaterialButton btnKiemTraThanhToan = (MaterialButton) view.findViewById(R.id.btnKiemTraThanhToan);
+        // MaterialButton btnKiemTraThanhToan = (MaterialButton) view.findViewById(R.id.btnKiemTraThanhToan);
         MaterialButton btnDevTest = (MaterialButton) view.findViewById(R.id.btnDevTest);
         TextView btnDong = (TextView) view.findViewById(R.id.btnDongNangCap);
 
@@ -817,56 +767,13 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        // Kiem tra thanh toan tu dong (co co che chong spam click va chi bao chuc mung khi goi thuc su tang)
-        btnKiemTraThanhToan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                btnKiemTraThanhToan.setEnabled(false);
-                Toast.makeText(requireContext(), "Đang kiểm tra biến động giao dịch từ máy chủ...", Toast.LENGTH_SHORT).show();
-
-                final String oldGoi = qlTaiKhoan.getLoaiGoi();
-                final int oldTongLuot = qlTaiKhoan.getTongLuot();
-
-                qlTaiKhoan.dongBoTuFirestore(new QLTaiKhoan.SyncCallback() {
-                    @Override
-                    public void onSynced() {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    btnKiemTraThanhToan.setEnabled(true);
-                                    capNhatGiaoDienTaiKhoan();
-
-                                    boolean daNangCap = !oldGoi.equalsIgnoreCase(qlTaiKhoan.getLoaiGoi())
-                                            || qlTaiKhoan.getTongLuot() > oldTongLuot;
-
-                                    if (daNangCap) {
-                                        dialog.dismiss();
-                                        dialogNangCapHienTai = null;
-                                        hienDialogNangCapThanhCong(qlTaiKhoan.getLoaiGoi(), qlTaiKhoan.getTongLuot());
-                                    } else {
-                                        Toast.makeText(requireContext(), "Đã đồng bộ dữ liệu. Chưa phát hiện giao dịch nâng cấp mới.", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onError(final String loi) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    btnKiemTraThanhToan.setEnabled(true);
-                                    Toast.makeText(requireContext(), "Chưa ghi nhận biến động số dư. Vui lòng thử lại sau 1 phút.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        });
+        // Da tat nut kiem tra thanh toan theo yeu cau bo nut Nang cap trong dialog
+        // if (btnKiemTraThanhToan != null) {
+        //     btnKiemTraThanhToan.setOnClickListener(new View.OnClickListener() {
+        //         @Override
+        //         public void onClick(View v) { ... }
+        //     });
+        // }
 
         // Che do thu nghiem (Dev Mode)
         btnDevTest.setOnClickListener(new View.OnClickListener() {
@@ -934,14 +841,14 @@ public class SettingsFragment extends Fragment {
         String moTaChiTiet;
 
         if ("VIP".equalsIgnoreCase(loaiGoi)) {
-            tenGoiHienThi = "GÓI VIP (KHÔNG GIỚI HẠN)";
+            tenGoiHienThi = "VIP (KHÔNG GIỚI HẠN)";
             moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói VIP! Bạn có thể sử dụng tất cả tính năng AI không giới hạn số lượt.";
         } else if ("PRO".equalsIgnoreCase(loaiGoi)) {
-            tenGoiHienThi = "GÓI SIÊU CẤP PRO (500 LƯỢT)";
-            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Siêu Cấp Pro! Tài khoản của bạn hiện có " + tongLuot + " lượt AI tốc độ cao.";
+            tenGoiHienThi = "PRO (500 LƯỢT)";
+            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Pro! Tài khoản của bạn hiện có " + tongLuot + " lượt AI tốc độ cao.";
         } else {
-            tenGoiHienThi = "GÓI NÂNG CẤP PLUS (200 LƯỢT)";
-            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Nâng Cấp Plus! Tài khoản của bạn hiện có " + tongLuot + " lượt AI khả dụng.";
+            tenGoiHienThi = "PLUS (200 LƯỢT)";
+            moTaChiTiet = "Chúc mừng bạn đã nâng cấp thành công gói Plus! Tài khoản của bạn hiện có " + tongLuot + " lượt AI khả dụng.";
         }
 
         txtSuccessPlanBadge.setText(tenGoiHienThi);

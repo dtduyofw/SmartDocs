@@ -40,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout layoutDrawerUser;
     MaterialCardView cardDrawerAvatar;
     TextView txtDrawerAvatarChar, txtDrawerTen, txtDrawerGoiBadge, txtDrawerEmail;
-    MaterialCardView cardDrawerUpgrade;
 
     LinearLayout layoutDrawerHome, layoutDrawerFiles, layoutDrawerHistory;
     ImageView imgNavHome, imgNavFiles, imgNavHistory;
@@ -100,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         txtDrawerTen = (TextView) findViewById(R.id.txtDrawerTen);
         txtDrawerGoiBadge = (TextView) findViewById(R.id.txtDrawerGoiBadge);
         txtDrawerEmail = (TextView) findViewById(R.id.txtDrawerEmail);
-        cardDrawerUpgrade = (MaterialCardView) findViewById(R.id.cardDrawerUpgrade);
 
         // Drawer Nav Items
         layoutDrawerHome = (LinearLayout) findViewById(R.id.layoutDrawerHome);
@@ -143,28 +141,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 2. Chon Upgrade to Premium card
-        if (cardDrawerUpgrade != null) {
-            cardDrawerUpgrade.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dongDrawer();
-                    QLTaiKhoan ql = QLTaiKhoan.getInstance(MainActivity.this);
-                    if (!ql.daDangNhap()) {
-                        Toast.makeText(MainActivity.this, "Vui lòng đăng nhập tài khoản trước khi nâng cấp gói AI.", Toast.LENGTH_SHORT).show();
-                        Intent i = new Intent(MainActivity.this, DangNhapActivity.class);
-                        startActivity(i);
-                        return;
-                    }
-                    chonTab(R.id.nav_settings);
-                    if (settingsFragment != null) {
-                        settingsFragment.hienDialogNangCapGoi();
-                    }
-                }
-            });
-        }
-
-        // 3. Chon Home
+        // 2. Chon Home
         if (layoutDrawerHome != null) {
             layoutDrawerHome.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -310,27 +287,30 @@ public class MainActivity extends AppCompatActivity {
             }
             String loaiGoi = ql.getLoaiGoi();
             if ("VIP".equalsIgnoreCase(loaiGoi)) {
-                txtDrawerGoiBadge.setText("Gói VIP");
+                txtDrawerGoiBadge.setText("VIP");
             } else if ("PRO".equalsIgnoreCase(loaiGoi)) {
-                txtDrawerGoiBadge.setText("Gói Siêu cấp Pro");
+                txtDrawerGoiBadge.setText("Pro");
             } else if ("PLUS".equalsIgnoreCase(loaiGoi)) {
-                txtDrawerGoiBadge.setText("Gói Nâng cấp Plus");
+                txtDrawerGoiBadge.setText("Plus");
             } else {
-                txtDrawerGoiBadge.setText("Gói Miễn phí");
+                txtDrawerGoiBadge.setText("Miễn phí");
             }
         } else {
             txtDrawerTen.setText("Tài khoản khách");
             txtDrawerEmail.setText("Chưa đăng nhập tài khoản");
-            txtDrawerGoiBadge.setText("Gói Miễn phí");
+            txtDrawerGoiBadge.setText("Miễn phí");
             txtDrawerAvatarChar.setText("T");
         }
     }
 
     void capNhatDrawerActiveItem(int tabId) {
         int mauActiveBg = R.drawable.bg_nav_item_selected;
-        int mauChinh = Color.parseColor("#60A5FA");
-        int mauTrang = Color.parseColor("#FFFFFF");
-        int mauInactive = Color.parseColor("#E2E8F0");
+        // Active: mau Indigo chinh cua app
+        int mauChinh = Color.parseColor("#3F51B5");
+        // Active text: Indigo dam cho de doc tren nen sang
+        int mauActiveText = Color.parseColor("#3F51B5");
+        // Inactive: text va icon mau xam phu
+        int mauInactive = Color.parseColor("#6B7280");
 
         // Reset tat ca ve unselected
         if (layoutDrawerHome != null) layoutDrawerHome.setBackgroundColor(Color.TRANSPARENT);
@@ -349,15 +329,15 @@ public class MainActivity extends AppCompatActivity {
         if (tabId == R.id.nav_home && layoutDrawerHome != null) {
             layoutDrawerHome.setBackgroundResource(mauActiveBg);
             if (imgNavHome != null) imgNavHome.setColorFilter(mauChinh);
-            if (txtNavHome != null) txtNavHome.setTextColor(mauTrang);
+            if (txtNavHome != null) txtNavHome.setTextColor(mauActiveText);
         } else if (tabId == R.id.nav_files && layoutDrawerFiles != null) {
             layoutDrawerFiles.setBackgroundResource(mauActiveBg);
             if (imgNavFiles != null) imgNavFiles.setColorFilter(mauChinh);
-            if (txtNavFiles != null) txtNavFiles.setTextColor(mauTrang);
+            if (txtNavFiles != null) txtNavFiles.setTextColor(mauActiveText);
         } else if (tabId == R.id.nav_history && layoutDrawerHistory != null) {
             layoutDrawerHistory.setBackgroundResource(mauActiveBg);
             if (imgNavHistory != null) imgNavHistory.setColorFilter(mauChinh);
-            if (txtNavHistory != null) txtNavHistory.setTextColor(mauTrang);
+            if (txtNavHistory != null) txtNavHistory.setTextColor(mauActiveText);
         }
     }
 

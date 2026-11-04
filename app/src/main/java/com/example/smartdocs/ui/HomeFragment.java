@@ -912,11 +912,12 @@ public class HomeFragment extends Fragment {
 
         if ("VIP".equalsIgnoreCase(loaiGoi)) {
             txtTitle.setText("Gói AI: VIP");
-            txtMessage.setText("Bạn đang sở hữu gói VIP.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Thời hạn gói: " + ql.getChuoiNgayConLai() + "\n• Đã dùng: " + count + " lần\n\nHãy tiếp tục tận dụng AI để tăng hiệu quả làm việc!");
+            txtMessage.setText("Bạn đang sở hữu gói VIP.\n\n• Trạng thái: Không giới hạn số lượt sử dụng\n• Thời hạn gói: " + ql.getChuoiNgayConLai() + " (" + ql.getMocThoiGianHetHan() + ")\n• Đã dùng: " + count + " lần\n\nHãy tiếp tục tận dụng AI để tăng hiệu quả làm việc!");
             btnCaiDat.setText("Xem tài khoản");
         } else {
-            txtTitle.setText("Gói AI: " + ("PLUS".equalsIgnoreCase(loaiGoi) ? "Nâng Cấp Plus" : ("PRO".equalsIgnoreCase(loaiGoi) ? "Siêu Cấp Pro" : "Miễn phí")));
-            txtMessage.setText("Bạn hiện có " + tongLuot + " lượt AI.\n\n• Lượt khả dụng: Còn " + conLai + " / " + tongLuot + " lượt\n• Thời hạn gói: " + ql.getChuoiNgayConLai() + "\n• Đã sử dụng: " + count + " lượt\n\nNâng cấp gói để nhận thêm lượt AI. Khi hết lượt, bạn vẫn quét tài liệu Offline bình thường.");
+            String hanText = "FREE".equalsIgnoreCase(loaiGoi) ? ql.getChuoiNgayConLai() : (ql.getChuoiNgayConLai() + " (" + ql.getMocThoiGianHetHan() + ")");
+            txtTitle.setText("Gói AI: " + ("PLUS".equalsIgnoreCase(loaiGoi) ? "Plus" : ("PRO".equalsIgnoreCase(loaiGoi) ? "Siêu Cấp Pro" : "Miễn phí")));
+            txtMessage.setText("Bạn hiện có " + tongLuot + " lượt AI.\n\n• Lượt khả dụng: Còn " + conLai + " / " + tongLuot + " lượt\n• Thời hạn gói: " + hanText + "\n• Đã sử dụng: " + count + " lượt\n\nNâng cấp gói để nhận thêm lượt AI. Khi hết lượt, bạn vẫn quét tài liệu Offline bình thường.");
             btnCaiDat.setText("Nâng cấp gói ngay");
         }
 
