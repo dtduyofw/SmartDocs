@@ -14,8 +14,8 @@ room = "2.7.1"
 # Lifecycle (ViewModel + LiveData)
 lifecycle = "2.9.1"
 
-# ML Kit OCR
-mlkitTextRecognition = "16.0.1"
+ # ML Kit OCR (Bundled - Tích hợp thẳng vào APK để chống crash)
+ mlkitTextRecognition = "16.0.1"
 
 # Retrofit + OkHttp
 retrofit = "2.11.0"
@@ -46,7 +46,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle" }
 lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycle" }
 
-# ML Kit
+# ML Kit (Bundled)
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 
 # Retrofit
