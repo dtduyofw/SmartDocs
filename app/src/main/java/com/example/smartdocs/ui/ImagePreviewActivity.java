@@ -3,55 +3,45 @@ package com.example.smartdocs.ui;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
 
 import com.example.smartdocs.R;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 /*
-  ImagePreviewActivity — màn hình xem và điều chỉnh ảnh trước khi OCR.
-  Luồng:
-    1. Nhận URI ảnh từ MainActivity (qua Intent extra "uri")
-    2. Hiển thị ảnh với khung crop 4 góc
-    3. Nút Auto Crop → tự động crop vùng trung tâm (loại bỏ viền dư)
-    4. Nút Retake → quay về MainActivity để chọn lại ảnh
-    5. Nút Confirm → trả URI ảnh về MainActivity để OCR
+  ImagePreviewActivity - man hinh xem va dieu chinh vung cat anh tuong tac.
+  Cho phep nguoi dung:
+    1. Keo 4 goc hoac 4 canh de cat anh chinh xac
+    2. Bam Nut Tu dong cat de can khung vao 8% vien
+    3. Bam Nut Toan anh de mo rong khung crop phu toan bo
+    4. Xac nhan de luu bitmap vung da cat va chuyen tiep OCR
  */
 public class ImagePreviewActivity extends AppCompatActivity {
 
-    // Key truyền URI qua Intent
     public static final String KEY_IMAGE_URI = "uri";
-    // Key trả kết quả về MainActivity
     public static final String KEY_RESULT_URI = "result_uri";
-
 
     // Views
     ImageView imgPreviewCrop;
-    MaterialButton btnAutoCrop, btnRetake, btnConfirm;
-    ImageView imgCropIcon;
+    CropOverlayView cropOverlayView;
+    MaterialButton btnAutoCrop, btnResetCrop, btnRetake, btnConfirm;
 
-    // URI ảnh gốc nhận từ Intent
+    // URI anh goc nhan tu Intent
     Uri uriAnh;
-    // URI ảnh sau khi crop (có thể khác uriAnh nếu đã crop)
+    // URI anh sau khi cat
     Uri uriDaCrop;
 
-    // Bitmap đang hiển thị
+    // Bitmap goc dang hien thi
     Bitmap bitmapHienTai;
 
     @Override
@@ -59,146 +49,152 @@ public class ImagePreviewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_preview);
 
-        // 1. Ánh xạ view
+        // 1. Anh xa views
         anhXaView();
 
-        // 2. Lấy URI từ Intent
+        // 2. Lay URI tu Intent
         uriAnh = getIntent().getParcelableExtra(KEY_IMAGE_URI);
         if (uriAnh == null) {
             Toast.makeText(this, "Lỗi: không có ảnh để xem.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-        uriDaCrop = uriAnh; // Mặc định dùng ảnh gốc
+        uriDaCrop = uriAnh;
 
-        // 3. Hiển thị ảnh
+        // 3. Hien thi anh va khoi tao khung crop
         hienThiAnh(uriAnh);
 
-        // 4. Nút Auto Crop
-        btnAutoCrop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                thucHienAutoCrop();
-            }
-        });
-
-        // 5. Icon crop giữa màn hình (cùng chức năng Auto Crop)
-        imgCropIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                thucHienAutoCrop();
-            }
-        });
-
-        // 6. Nút Retake → quay về, MainActivity sẽ mở lại camera/gallery
-        btnRetake.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Trả kết quả CANCELED → MainActivity biết user muốn chụp lại
-                setResult(RESULT_CANCELED);
-                finish();
-            }
-        });
-
-        // 7. Nút Confirm → trả URI về MainActivity để OCR
-        btnConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                xacNhanAnh();
-            }
-        });
+        // 4. Gan su kien cac nut bam
+        ganSuKien();
     }
 
     void anhXaView() {
         imgPreviewCrop = (ImageView) findViewById(R.id.imgPreviewCrop);
+        cropOverlayView = (CropOverlayView) findViewById(R.id.cropOverlayView);
         btnAutoCrop = (MaterialButton) findViewById(R.id.btnAutoCrop);
+        btnResetCrop = (MaterialButton) findViewById(R.id.btnResetCrop);
         btnRetake = (MaterialButton) findViewById(R.id.btnRetake);
         btnConfirm = (MaterialButton) findViewById(R.id.btnConfirm);
-        imgCropIcon = (ImageView) findViewById(R.id.imgCropIcon);
+    }
+
+    void ganSuKien() {
+        // Nut Tu dong cat: co khung vao 8% vien tai lieu
+        if (btnAutoCrop != null) {
+            btnAutoCrop.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (cropOverlayView != null) {
+                        cropOverlayView.thucHienAutoCrop();
+                        Toast.makeText(ImagePreviewActivity.this, "Đã căn chỉnh vùng cắt tự động", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        // Nut Toan anh: dat lai khung crop phu toan bo anh
+        if (btnResetCrop != null) {
+            btnResetCrop.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (cropOverlayView != null) {
+                        cropOverlayView.datLaiToanBoAnh();
+                        Toast.makeText(ImagePreviewActivity.this, "Đã chọn toàn bộ ảnh", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        // Nut Chup lai: quay ve de chup/chon lai anh
+        if (btnRetake != null) {
+            btnRetake.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setResult(RESULT_CANCELED);
+                    finish();
+                }
+            });
+        }
+
+        // Nut Xac nhan: cat anh theo dung khung da keo va tra ket qua
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    xacNhanVaCatAnh();
+                }
+            });
+        }
     }
 
     /*
-      Hiển thị ảnh từ URI lên ImageView.
-      Tự động xoay ảnh đúng chiều dựa vào EXIF metadata.
+      Hien thi anh tu URI va truyen sang CropOverlayView de tinh toan khung cat
      */
     void hienThiAnh(Uri uri) {
         try {
             bitmapHienTai = com.example.smartdocs.ocr.BitmapUtils.layBitmapTuUri(this, uri);
             if (bitmapHienTai != null) {
-                // Xoay đúng chiều theo EXIF
+                // Xoay dung chieu theo EXIF
                 bitmapHienTai = com.example.smartdocs.ocr.BitmapUtils.xoayTheoExif(this, uri, bitmapHienTai);
                 imgPreviewCrop.setImageBitmap(bitmapHienTai);
+
+                // Thiet lap vung anh cho overlay crop tuong tac
+                if (cropOverlayView != null) {
+                    cropOverlayView.thietLapAnh(bitmapHienTai, imgPreviewCrop);
+                }
             }
         } catch (Exception e) {
-            // Fallback: set trực tiếp URI nếu đọc Bitmap lỗi
             imgPreviewCrop.setImageURI(uri);
         }
     }
 
     /*
-      Auto Crop: tự động cắt bỏ 10% viền xung quanh để loại bỏ nền dư.
-      Chạy trên background thread để không block UI.
+      Cat anh theo vung nguoi dung da keo va tra ve MainActivity
      */
-    void thucHienAutoCrop() {
-        if (bitmapHienTai == null) return;
+    void xacNhanVaCatAnh() {
+        if (bitmapHienTai == null) {
+            traKetQua(uriDaCrop);
+            return;
+        }
 
-        btnAutoCrop.setEnabled(false);
-        btnAutoCrop.setText("Đang crop...");
+        btnConfirm.setEnabled(false);
+        btnConfirm.setText("Đang xử lý...");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    // Cắt bỏ 8% viền mỗi cạnh
-                    int w = bitmapHienTai.getWidth();
-                    int h = bitmapHienTai.getHeight();
-                    int margin = (int) (Math.min(w, h) * 0.08f);
-
-                    int x = margin;
-                    int y = margin;
-                    int newW = w - margin * 2;
-                    int newH = h - margin * 2;
-
-                    Bitmap bitmapCropped = Bitmap.createBitmap(
-                            bitmapHienTai, x, y, newW, newH);
-
-                    // Lưu bitmap crop vào file tạm
-                    Uri uriCropped = luuBitmapTamThoi(bitmapCropped);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (uriCropped != null) {
-                                bitmapHienTai = bitmapCropped;
-                                uriDaCrop = uriCropped;
-                                imgPreviewCrop.setImageBitmap(bitmapCropped);
-                                Toast.makeText(ImagePreviewActivity.this,
-                                        "Tự động cắt thành công!", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(ImagePreviewActivity.this,
-                                        "Không thể crop ảnh.", Toast.LENGTH_SHORT).show();
-                            }
-                            btnAutoCrop.setEnabled(true);
-                            btnAutoCrop.setText("Tự động cắt");
-                        }
-                    });
-                } catch (Exception e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(ImagePreviewActivity.this,
-                                    "Lỗi crop: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            btnAutoCrop.setEnabled(true);
-                            btnAutoCrop.setText("Tự động cắt");
-                        }
-                    });
+                Bitmap bitmapCropped = null;
+                if (cropOverlayView != null) {
+                    bitmapCropped = cropOverlayView.layBitmapDaCrop(bitmapHienTai);
                 }
+
+                if (bitmapCropped != null) {
+                    Uri uriCropped = luuBitmapTamThoi(bitmapCropped);
+                    if (uriCropped != null) {
+                        uriDaCrop = uriCropped;
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnConfirm.setEnabled(true);
+                        btnConfirm.setText("Cắt & Tiếp tục");
+                        traKetQua(uriDaCrop);
+                    }
+                });
             }
         }).start();
     }
 
+    void traKetQua(Uri resultUri) {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(KEY_RESULT_URI, resultUri);
+        setResult(RESULT_OK, resultIntent);
+        finish();
+    }
+
     /*
-      Lưu Bitmap vào file tạm trong thư mục cache và trả về URI qua FileProvider.
+      Luu Bitmap vao file cache tam thoi va tao URI qua FileProvider
      */
     Uri luuBitmapTamThoi(Bitmap bitmap) {
         try {
@@ -206,7 +202,7 @@ public class ImagePreviewActivity extends AppCompatActivity {
             if (!cacheDir.exists()) cacheDir.mkdirs();
             File file = new File(cacheDir, "crop_" + System.currentTimeMillis() + ".jpg");
             FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 92, fos);
             fos.flush();
             fos.close();
             return FileProvider.getUriForFile(this,
@@ -216,21 +212,9 @@ public class ImagePreviewActivity extends AppCompatActivity {
         }
     }
 
-    /*
-      Xác nhận ảnh → trả URI về MainActivity.
-      MainActivity sẽ nhận kết quả qua onActivityResult.
-     */
-    void xacNhanAnh() {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(KEY_RESULT_URI, uriDaCrop);
-        setResult(RESULT_OK, resultIntent);
-        finish();
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Giải phóng Bitmap để tránh memory leak
         if (bitmapHienTai != null && !bitmapHienTai.isRecycled()) {
             bitmapHienTai.recycle();
             bitmapHienTai = null;

@@ -57,33 +57,47 @@ public class MainActivity extends AppCompatActivity {
     Fragment activeFragment;
     String activeTag = "HOME";
 
+    // Khoa sinh trac hoc bao ve app
+    LinearLayout layoutBiometricLock;
+    com.google.android.material.button.MaterialButton btnXacThucSinhTrac, btnThoatApp;
+    boolean daXacThucSinhTrac = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SettingsFragment.khoiTaoTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // 1. Anh xa views
         anhXaView();
 
-        // 2. Khoi tao Navigation Drawer
+        // 2. Khoi phuc trang thai xac thuc sinh trac hoc
+        if (savedInstanceState != null) {
+            daXacThucSinhTrac = savedInstanceState.getBoolean("da_xac_thuc_sinh_trac", false);
+        }
+
+        // 3. Kiem tra va yeu cau xac thuc neu tinh nang dang bat
+        kiemTraKhoaSinhTracHoc();
+
+        // 4. Khoi tao Navigation Drawer
         thietLapDrawer();
 
-        // 3. Khoi tao cac Fragment
+        // 5. Khoi tao cac Fragment
         khoiTaoFragments(savedInstanceState);
 
-        // 4. Thiet lap Bottom Navigation
+        // 6. Thiet lap Bottom Navigation
         thietLapBottomNav();
 
-        // 5. Khoi phuc tab neu Activity duoc tao lai
+        // 7. Khoi phuc tab neu Activity duoc tao lai
         if (savedInstanceState != null) {
             int selectedTabId = savedInstanceState.getInt("selected_tab_id", R.id.nav_home);
             chonTab(selectedTabId);
         }
 
-        // 6. Xu ly Intent neu co yeu cau mo tab cu the
+        // 8. Xu ly Intent neu co yeu cau mo tab cu the
         xuLyIntent(getIntent());
 
-        // 7. Thiet lap xu ly nut Back
+        // 9. Thiet lap xu ly nut Back
         thietLapXuLyBack();
     }
 
@@ -118,6 +132,63 @@ public class MainActivity extends AppCompatActivity {
         layoutDrawerAi = (LinearLayout) findViewById(R.id.layoutDrawerAi);
         layoutDrawerShare = (LinearLayout) findViewById(R.id.layoutDrawerShare);
         layoutDrawerLogout = (LinearLayout) findViewById(R.id.layoutDrawerLogout);
+
+        // Khoa sinh trac hoc
+        layoutBiometricLock = (LinearLayout) findViewById(R.id.layoutBiometricLock);
+        btnXacThucSinhTrac = (com.google.android.material.button.MaterialButton) findViewById(R.id.btnXacThucSinhTrac);
+        btnThoatApp = (com.google.android.material.button.MaterialButton) findViewById(R.id.btnThoatApp);
+
+        if (btnXacThucSinhTrac != null) {
+            btnXacThucSinhTrac.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    yeuCauXacThucSinhTrac();
+                }
+            });
+        }
+
+        if (btnThoatApp != null) {
+            btnThoatApp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finishAffinity();
+                }
+            });
+        }
+    }
+
+    void kiemTraKhoaSinhTracHoc() {
+        if (layoutBiometricLock == null) return;
+
+        if (BiometricHelper.daBatSinhTracHoc(this) && !daXacThucSinhTrac) {
+            layoutBiometricLock.setVisibility(View.VISIBLE);
+            yeuCauXacThucSinhTrac();
+        } else {
+            layoutBiometricLock.setVisibility(View.GONE);
+        }
+    }
+
+    void yeuCauXacThucSinhTrac() {
+        BiometricHelper.xacThuc(this, "Mở khóa SmartDocs", "Xác thực vân tay hoặc khuôn mặt để vào ứng dụng", new BiometricHelper.BiometricCallback() {
+            @Override
+            public void onSuccess() {
+                daXacThucSinhTrac = true;
+                if (layoutBiometricLock != null) {
+                    layoutBiometricLock.setVisibility(View.GONE);
+                }
+                Toast.makeText(MainActivity.this, "Đã mở khóa thành công", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(MainActivity.this, "Chưa xác thực thành công. Chạm 'Mở khóa ngay' để thử lại.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancel() {
+                // Nguoi dung bam huy, giu nguyen man hinh khoa bao ve du lieu
+            }
+        });
     }
 
     void thietLapDrawer() {
@@ -442,6 +513,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("active_tag", activeTag);
+        outState.putBoolean("da_xac_thuc_sinh_trac", daXacThucSinhTrac);
         if (bottomNav != null) {
             outState.putInt("selected_tab_id", bottomNav.getSelectedItemId());
         }

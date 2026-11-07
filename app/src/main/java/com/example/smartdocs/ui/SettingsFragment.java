@@ -80,6 +80,7 @@ public class SettingsFragment extends Fragment {
     TextView txtAuthActionText;
     View cardLanguageSetting;
     androidx.appcompat.widget.SwitchCompat swBiometric;
+    boolean dangCapNhatSwitchBio = false;
 
     // Che do giao dien (RadioGroup & RadioButton)
     RadioGroup rdgGiaoDien;
@@ -234,6 +235,13 @@ public class SettingsFragment extends Fragment {
         } else {
             rdHeThong.setChecked(true);
         }
+
+        // Nap trang thai khoa sinh trac hoc da luu
+        dangCapNhatSwitchBio = true;
+        if (swBiometric != null) {
+            swBiometric.setChecked(BiometricHelper.daBatSinhTracHoc(requireContext()));
+        }
+        dangCapNhatSwitchBio = false;
     }
 
     public void capNhatGiaoDienTaiKhoan() {
@@ -370,11 +378,46 @@ public class SettingsFragment extends Fragment {
         if (swBiometric != null) {
             swBiometric.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
                 @Override
-                public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
+                public void onCheckedChanged(final android.widget.CompoundButton buttonView, boolean isChecked) {
+                    if (dangCapNhatSwitchBio) return;
+
                     if (isChecked) {
-                        Toast.makeText(requireContext(), "Đã bật xác thực sinh trắc học", Toast.LENGTH_SHORT).show();
+                        // Kiem tra thiet bi co ho tro sinh trac hoc khong
+                        if (!BiometricHelper.coHoTroSinhTracHoc(requireContext())) {
+                            Toast.makeText(requireContext(), "Thiết bị chưa cài đặt hoặc không hỗ trợ vân tay / khuôn mặt.", Toast.LENGTH_LONG).show();
+                            dangCapNhatSwitchBio = true;
+                            buttonView.setChecked(false);
+                            dangCapNhatSwitchBio = false;
+                            return;
+                        }
+
+                        // Yeu cau xac thuc truoc khi bat
+                        BiometricHelper.xacThuc(requireActivity(), "Kích hoạt khóa bảo vệ", "Xác thực vân tay hoặc khuôn mặt để kích hoạt", new BiometricHelper.BiometricCallback() {
+                            @Override
+                            public void onSuccess() {
+                                BiometricHelper.datTrangThaiSinhTracHoc(requireContext(), true);
+                                Toast.makeText(requireContext(), "Đã bật khóa bằng vân tay / khuôn mặt.", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                Toast.makeText(requireContext(), "Kích hoạt thất bại: " + message, Toast.LENGTH_SHORT).show();
+                                dangCapNhatSwitchBio = true;
+                                buttonView.setChecked(false);
+                                dangCapNhatSwitchBio = false;
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                dangCapNhatSwitchBio = true;
+                                buttonView.setChecked(false);
+                                dangCapNhatSwitchBio = false;
+                            }
+                        });
                     } else {
-                        Toast.makeText(requireContext(), "Đã tắt xác thực sinh trắc học", Toast.LENGTH_SHORT).show();
+                        // Tat khoa sinh trac hoc
+                        BiometricHelper.datTrangThaiSinhTracHoc(requireContext(), false);
+                        Toast.makeText(requireContext(), "Đã tắt khóa bằng sinh trắc học.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

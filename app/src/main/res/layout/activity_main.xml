@@ -8,29 +8,108 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
-    <!-- 1. Noi dung chinh cua Activity -->
-    <LinearLayout
+    <!-- 1. Noi dung chinh cua Activity (boc trong FrameLayout de ho tro lop overlay khoa sinh trac hoc) -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@color/background">
+        android:layout_height="match_parent">
 
-        <!-- Container cho cac Fragment: Home, Files, History, Settings -->
-        <FrameLayout
-            android:id="@+id/fragment_container"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/background">
 
-        <!-- Thanh Bottom Navigation co dinh duy nhat cho toan app -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNav"
+            <!-- Container cho cac Fragment: Home, Files, History, Settings -->
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Thanh Bottom Navigation co dinh duy nhat cho toan app -->
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNav"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/surface"
+                app:menu="@menu/bottom_nav_menu" />
+
+        </LinearLayout>
+
+        <!-- Man hinh khoa sinh trac hoc bao ve ung dung -->
+        <LinearLayout
+            android:id="@+id/layoutBiometricLock"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/surface"
-            app:menu="@menu/bottom_nav_menu" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:background="@color/background"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
 
-    </LinearLayout>
+            <!-- Icon van tay trong vong tron -->
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:background="@drawable/bg_circle_success"
+                android:backgroundTint="@color/badge_ai_bg">
+
+                <ImageView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_fingerprint"
+                    app:tint="@color/primary" />
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SmartDocs đã khóa"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="24dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ứng dụng được bảo vệ bằng sinh trắc học. Vui lòng xác thực vân tay hoặc khuôn mặt để tiếp tục."
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="3dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnXacThucSinhTrac"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Mở khóa ngay"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_fingerprint"
+                app:iconGravity="textStart"
+                app:cornerRadius="26dp"
+                app:backgroundTint="@color/primary"
+                android:layout_marginTop="32dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnThoatApp"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thoát ứng dụng"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:layout_marginTop="12dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
     <!-- 2. Navigation Drawer tuy chinh theo mau -->
     <include

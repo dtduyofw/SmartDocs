@@ -12,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="24dp"
-        android:paddingBottom="12dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="10dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:gravity="center_horizontal">
@@ -21,59 +21,50 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Xem ảnh"
-            android:textSize="22sp"
+            android:text="Xem &amp; Cắt ảnh"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Xem lại và điều chỉnh ảnh trước khi tiếp tục."
+            android:text="Kéo 4 góc hoặc các cạnh để điều chỉnh vùng tài liệu cần cắt"
             android:textSize="13sp"
-            android:textColor="@color/text_hint"
+            android:textColor="@color/text_secondary"
             android:layout_marginTop="4dp"
             android:gravity="center" />
 
     </LinearLayout>
 
-    <!-- ── ADJUST CROP SECTION ── -->
+    <!-- ── THANH CÔNG CỤ CẮT ẢNH ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="10dp"
         android:gravity="center_vertical">
 
-        <!-- Label trái -->
-        <LinearLayout
+        <!-- Nút Đặt lại toàn bộ ảnh -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetCrop"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Toàn ảnh"
+            android:textSize="13sp"
+            app:cornerRadius="20dp"
+            android:layout_marginEnd="8dp" />
+
+        <View
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Điều chỉnh vùng cắt"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kéo góc để thay đổi vùng cắt"
-                android:textSize="12sp"
-                android:textColor="@color/text_hint"
-                android:layout_marginTop="2dp" />
-
-        </LinearLayout>
-
-        <!-- Nút Auto Crop -->
+        <!-- Nút Tự động cắt -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAutoCrop"
             android:layout_width="wrap_content"
@@ -87,17 +78,18 @@
 
     </LinearLayout>
 
-    <!-- ── VÙNG XEM ẢNH (cuộn được nếu ảnh lớn) ── -->
+    <!-- ── VÙNG HIỂN THỊ ẢNH VÀ KHUNG CROP TƯƠNG TÁC ── -->
     <FrameLayout
+        android:id="@+id/layoutImageContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="12dp"
         android:background="@color/surface">
 
-        <!-- Ảnh preview -->
+        <!-- Ảnh xem trước -->
         <ImageView
             android:id="@+id/imgPreviewCrop"
             android:layout_width="match_parent"
@@ -105,71 +97,15 @@
             android:scaleType="fitCenter"
             android:adjustViewBounds="true" />
 
-        <!-- Overlay viền crop (4 góc) -->
-        <View
-            android:id="@+id/viewCropOverlay"
+        <!-- Overlay cho phép kéo 4 góc, 4 cạnh và di chuyển khung cắt -->
+        <com.example.smartdocs.ui.CropOverlayView
+            android:id="@+id/cropOverlayView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/ic_arrow_back"
-            android:alpha="0"
-            android:visibility="gone" />
-
-        <!-- Indicator góc trên trái -->
-        <View
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="top|start"
-            android:layout_margin="16dp"
-            android:background="@color/primary" />
-
-        <!-- Indicator góc trên phải -->
-        <View
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="top|end"
-            android:layout_margin="16dp"
-            android:background="@color/primary" />
-
-        <!-- Indicator góc dưới trái -->
-        <View
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="bottom|start"
-            android:layout_margin="16dp"
-            android:background="@color/primary" />
-
-        <!-- Indicator góc dưới phải -->
-        <View
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:background="@color/primary" />
+            android:layout_height="match_parent" />
 
     </FrameLayout>
 
-    <!-- ── NÚT CROP Ở GIỮA ── -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingBottom="4dp">
-
-        <ImageView
-            android:id="@+id/imgCropIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_crop"
-            android:background="@color/primary"
-            app:tint="@color/white"
-            android:padding="12dp"
-            android:clickable="true"
-            android:focusable="true" />
-
-    </LinearLayout>
-
-    <!-- ── 2 NÚT DƯỚI: RETAKE / CONFIRM ── -->
+    <!-- ── 2 NÚT HÀNH ĐỘNG DƯỚI: CHỤP LẠI / XÁC NHẬN ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -179,9 +115,6 @@
         android:paddingTop="8dp"
         android:paddingBottom="20dp">
 
-        <!-- Nút Retake (xám, outline) -->
-
-        <!-- Nút Confirm (xanh, filled) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRetake"
             style="@style/Widget.Material3.Button.OutlinedButton"
@@ -191,18 +124,16 @@
             android:layout_weight="1"
             android:text="Chụp lại"
             android:textSize="15sp"
-            app:cornerRadius="26dp"
-            app:iconGravity="textStart" />
+            app:cornerRadius="26dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConfirm"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Xác nhận"
+            android:layout_weight="1"
+            android:text="Cắt &amp; Tiếp tục"
             android:textSize="15sp"
-            app:iconGravity="textStart"
             app:cornerRadius="26dp"
             app:backgroundTint="@color/primary" />
 
