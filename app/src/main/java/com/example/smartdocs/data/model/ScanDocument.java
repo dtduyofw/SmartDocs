@@ -1,5 +1,6 @@
 package com.example.smartdocs.data.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -46,10 +47,12 @@ public class ScanDocument {
     public int pageCount;
 
     // Nhãn phân loại tài liệu (hóa đơn, hợp đồng, ghi chú... — nhiều tag cách nhau bằng dấu phẩy)
+    @NonNull
     @ColumnInfo(name = "tags")
     public String tags;
 
     // Ngôn ngữ gốc được nhận diện từ OCR
+    @NonNull
     @ColumnInfo(name = "language")
     public String language;
 

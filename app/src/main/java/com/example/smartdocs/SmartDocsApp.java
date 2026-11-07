@@ -8,7 +8,7 @@ public class SmartDocsApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Khởi tạo chế độ giao diện (Sáng / Tối / Theo hệ thống) từ cài đặt đã lưu
+        // Khoi tao che do toi mac dinh cho toan bo ung dung
         SettingsFragment.khoiTaoTheme(this);
     }
 }

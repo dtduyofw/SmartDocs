@@ -670,32 +670,92 @@ public class HomeFragment extends Fragment {
     }
 
     void hienThiItemDocument(View itemView, ScanDocument doc) {
+        ImageView imgThumbnail = (ImageView) itemView.findViewById(R.id.imgDocThumbnail);
+        TextView txtBadgePageCount = (TextView) itemView.findViewById(R.id.txtBadgePageCount);
         TextView txtTitle = (TextView) itemView.findViewById(R.id.txtItemTitle);
         TextView txtPreview = (TextView) itemView.findViewById(R.id.txtItemOcrPreview);
         TextView txtDate = (TextView) itemView.findViewById(R.id.txtItemDate);
-        //ImageView imgStar = (ImageView) itemView.findViewById(R.id.imgStar);
         ImageView imgMenu = (ImageView) itemView.findViewById(R.id.imgMenu);
-        com.google.android.material.chip.Chip chipAi = (com.google.android.material.chip.Chip) itemView.findViewById(R.id.chipAi);
+        TextView txtBadgeAi = (TextView) itemView.findViewById(R.id.txtBadgeAi);
+        TextView txtBadgeLanguage = (TextView) itemView.findViewById(R.id.txtBadgeLanguage);
+        TextView txtBadgeTag = (TextView) itemView.findViewById(R.id.txtBadgeTag);
 
-        txtTitle.setText(doc.title != null && !doc.title.isEmpty() ? doc.title : "Tài liệu không tiêu đề");
-
-        if (doc.ocrText != null && !doc.ocrText.isEmpty()) {
-            String preview = doc.ocrText.trim();
-            if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
-            txtPreview.setText(preview);
-            txtPreview.setVisibility(View.VISIBLE);
-        } else {
-            txtPreview.setVisibility(View.GONE);
+        // Thumbnail
+        if (imgThumbnail != null) {
+            if (doc.imageUri != null && !doc.imageUri.isEmpty()) {
+                try {
+                    imgThumbnail.setImageURI(Uri.parse(doc.imageUri));
+                } catch (Exception e) {
+                    imgThumbnail.setImageResource(R.drawable.ic_gallery);
+                }
+            } else {
+                imgThumbnail.setImageResource(R.drawable.ic_gallery);
+            }
         }
 
-        boolean coAi = doc.aiSummary != null && !doc.aiSummary.trim().isEmpty();
-        chipAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
+        // Badge so trang
+        if (txtBadgePageCount != null) {
+            if (doc.pageCount > 1) {
+                txtBadgePageCount.setText(doc.pageCount + " trang");
+                txtBadgePageCount.setVisibility(View.VISIBLE);
+            } else {
+                txtBadgePageCount.setVisibility(View.GONE);
+            }
+        }
 
-        String ngay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                .format(new Date(doc.createdAt));
-        String soTrang = doc.pageCount + " trang";
-        txtDate.setText(ngay + " • " + soTrang);
-        imgMenu.setVisibility(View.GONE);
+        if (txtTitle != null) {
+            txtTitle.setText(doc.title != null && !doc.title.isEmpty() ? doc.title : "Tài liệu không tiêu đề");
+        }
+
+        if (txtPreview != null) {
+            if (doc.ocrText != null && !doc.ocrText.isEmpty()) {
+                String preview = doc.ocrText.trim();
+                if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
+                txtPreview.setText(preview);
+                txtPreview.setVisibility(View.VISIBLE);
+            } else {
+                txtPreview.setVisibility(View.GONE);
+            }
+        }
+
+        // Badge AI
+        if (txtBadgeAi != null) {
+            boolean coAi = doc.aiSummary != null && !doc.aiSummary.trim().isEmpty();
+            txtBadgeAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
+        }
+
+        // Badge Ngon ngu
+        if (txtBadgeLanguage != null) {
+            if (doc.language != null && !doc.language.trim().isEmpty() && !"auto".equalsIgnoreCase(doc.language)) {
+                String lang = doc.language.trim();
+                if ("vi".equalsIgnoreCase(lang) || "vie".equalsIgnoreCase(lang)) lang = "Tiếng Việt";
+                else if ("en".equalsIgnoreCase(lang) || "eng".equalsIgnoreCase(lang)) lang = "Tiếng Anh";
+                txtBadgeLanguage.setText(lang);
+                txtBadgeLanguage.setVisibility(View.VISIBLE);
+            } else {
+                txtBadgeLanguage.setVisibility(View.GONE);
+            }
+        }
+
+        // Badge Tag
+        if (txtBadgeTag != null) {
+            if (doc.tags != null && !doc.tags.trim().isEmpty()) {
+                txtBadgeTag.setText("#" + doc.tags.trim().replace(",", " #"));
+                txtBadgeTag.setVisibility(View.VISIBLE);
+            } else {
+                txtBadgeTag.setVisibility(View.GONE);
+            }
+        }
+
+        if (txtDate != null) {
+            String ngay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    .format(new Date(doc.createdAt));
+            txtDate.setText(ngay);
+        }
+
+        if (imgMenu != null) {
+            imgMenu.setVisibility(View.GONE);
+        }
 
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -932,22 +992,9 @@ public class HomeFragment extends Fragment {
                     startActivity(i);
                     return;
                 }
-                // Mo thang dialog nang cap VietQR trong Settings tab
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).chonTab(R.id.nav_settings);
-                    // Doi mot chut de Fragment Settings hien thi xong roi mo dialog
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (getActivity() instanceof MainActivity) {
-                                SettingsFragment sf = ((MainActivity) getActivity()).settingsFragment;
-                                if (sf != null && sf.isAdded()) {
-                                    sf.hienDialogNangCapGoi();
-                                }
-                            }
-                        }
-                    }, 350);
-                }
+                // Mo trang Profile de xem luot dung va nang cap goi
+                Intent i = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(i);
             }
         });
 

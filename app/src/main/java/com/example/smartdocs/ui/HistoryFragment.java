@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,6 +31,8 @@ import com.example.smartdocs.ui.viewmodel.DocumentViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.List;
 
@@ -308,6 +311,7 @@ public class HistoryFragment extends Fragment {
         TextView txtTitle = (TextView) sheetView.findViewById(R.id.txtBsDocTitle);
         txtTitle.setText(document.title != null ? document.title : "Tùy chọn");
 
+        // Xem chi tiết
         sheetView.findViewById(R.id.itemBsXemChiTiet).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -316,6 +320,34 @@ public class HistoryFragment extends Fragment {
             }
         });
 
+        // Xuất PDF
+        sheetView.findViewById(R.id.itemBsXuatPdf).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                xuatPdf(document);
+            }
+        });
+
+        // Chia sẻ
+        sheetView.findViewById(R.id.itemBsChiaSe).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                chiaSe(document);
+            }
+        });
+
+        // Đổi tên
+        sheetView.findViewById(R.id.itemBsDoiTen).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sheet.dismiss();
+                hienDialogDoiTen(document);
+            }
+        });
+
+        // Chỉnh sửa văn bản
         sheetView.findViewById(R.id.itemBsChinhSua).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -325,6 +357,7 @@ public class HistoryFragment extends Fragment {
             }
         });
 
+        // Xóa
         sheetView.findViewById(R.id.itemBsXoaDoc).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -334,5 +367,58 @@ public class HistoryFragment extends Fragment {
         });
 
         sheet.show();
+    }
+
+    // Xuất tài liệu ra file PDF
+    void xuatPdf(ScanDocument document) {
+        if (getContext() == null || !isAdded()) return;
+        try {
+            android.net.Uri pdfUri = PdfExporter.exportToPdf(requireContext(), document);
+            // Mở file PDF vừa xuất bằng app đọc PDF
+            Intent openIntent = new Intent(Intent.ACTION_VIEW);
+            openIntent.setDataAndType(pdfUri, "application/pdf");
+            openIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(openIntent, "Mở PDF bằng..."));
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Xuất PDF thất bại", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Chia sẻ văn bản OCR của tài liệu
+    void chiaSe(ScanDocument document) {
+        if (getContext() == null || !isAdded()) return;
+        String noiDung = document.ocrText != null && !document.ocrText.isEmpty()
+                ? document.ocrText
+                : document.title;
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, noiDung);
+        startActivity(Intent.createChooser(shareIntent, "Chia sẻ tài liệu"));
+    }
+
+    // Dialog đổi tên tài liệu
+    void hienDialogDoiTen(ScanDocument document) {
+        if (getContext() == null || !isAdded()) return;
+        android.widget.EditText edtTen = new android.widget.EditText(requireContext());
+        edtTen.setText(document.title);
+        edtTen.setSelection(edtTen.getText().length());
+        edtTen.setPadding(48, 32, 48, 16);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Đổi tên tài liệu")
+                .setView(edtTen)
+                .setPositiveButton("Lưu", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String tenMoi = edtTen.getText().toString().trim();
+                        if (!tenMoi.isEmpty()) {
+                            document.title = tenMoi;
+                            viewModel.getRepository().update(document, null);
+                            Toast.makeText(requireContext(), "Đã đổi tên", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 }

@@ -1,8 +1,10 @@
 package com.example.smartdocs.ui.adapter;
 
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,24 +14,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.model.ScanDocument;
-import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-/*
-  RecyclerView Adapter cho danh sách lịch sử tài liệu.
-  Dùng ListAdapter + DiffUtil để tự động animate thay đổi.
-  Nhóm 2: thêm star toggle, menu ⋮, hiển thị số trang.
- */
+
+// Adapter danh sach lich su tai lieu quet theo mau the co thumbnail
 public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.DocumentViewHolder> {
 
     OnItemClickListener clickListener;
     OnItemLongClickListener longClickListener;
-    OnStarClickListener starClickListener;
     OnMenuClickListener menuClickListener;
 
-    // DiffUtil
     static final DiffUtil.ItemCallback<ScanDocument> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<ScanDocument>() {
                 @Override
@@ -51,17 +47,12 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
         super(DIFF_CALLBACK);
     }
 
-    // Callback interfaces
     public interface OnItemClickListener {
         void onItemClick(ScanDocument document, int position);
     }
 
     public interface OnItemLongClickListener {
         void onItemLongClick(ScanDocument document, int position);
-    }
-
-    public interface OnStarClickListener {
-        void onStarClick(ScanDocument document, int position);
     }
 
     public interface OnMenuClickListener {
@@ -76,15 +67,10 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
         this.longClickListener = listener;
     }
 
-    public void setOnStarClickListener(OnStarClickListener listener) {
-        this.starClickListener = listener;
-    }
-
     public void setOnMenuClickListener(OnMenuClickListener listener) {
         this.menuClickListener = listener;
     }
 
-    // RecyclerView lifecycle
     @NonNull
     @Override
     public DocumentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -96,75 +82,125 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
     @Override
     public void onBindViewHolder(@NonNull DocumentViewHolder holder, int position) {
         ScanDocument document = getItem(position);
-        holder.bind(document, clickListener, longClickListener, starClickListener, menuClickListener);
+        holder.bind(document, clickListener, longClickListener, menuClickListener);
     }
 
-    // ViewHolder
     static class DocumentViewHolder extends RecyclerView.ViewHolder {
 
+        ImageView imgDocThumbnail;
+        TextView txtBadgePageCount;
         TextView txtItemTitle;
         TextView txtItemOcrPreview;
+        TextView txtBadgeAi;
+        TextView txtBadgeLanguage;
+        TextView txtBadgeTag;
         TextView txtItemDate;
-        Chip chipAi;
-        View cardItemIcon;
-        android.widget.ImageView imgStar;
-        android.widget.ImageView imgMenu;
+        ImageView imgMenu;
 
         static final SimpleDateFormat dateFormat =
                 new SimpleDateFormat("dd/MM/yyyy • HH:mm", Locale.getDefault());
 
         DocumentViewHolder(@NonNull View itemView) {
             super(itemView);
-            txtItemTitle    = (TextView) itemView.findViewById(R.id.txtItemTitle);
-            txtItemOcrPreview = (TextView) itemView.findViewById(R.id.txtItemOcrPreview);
-            txtItemDate     = (TextView) itemView.findViewById(R.id.txtItemDate);
-            chipAi          = (Chip) itemView.findViewById(R.id.chipAi);
-            cardItemIcon    = itemView.findViewById(R.id.cardItemIcon);
-            imgMenu         = (android.widget.ImageView) itemView.findViewById(R.id.imgMenu);
+            imgDocThumbnail    = (ImageView) itemView.findViewById(R.id.imgDocThumbnail);
+            txtBadgePageCount  = (TextView) itemView.findViewById(R.id.txtBadgePageCount);
+            txtItemTitle       = (TextView) itemView.findViewById(R.id.txtItemTitle);
+            txtItemOcrPreview  = (TextView) itemView.findViewById(R.id.txtItemOcrPreview);
+            txtBadgeAi         = (TextView) itemView.findViewById(R.id.txtBadgeAi);
+            txtBadgeLanguage   = (TextView) itemView.findViewById(R.id.txtBadgeLanguage);
+            txtBadgeTag        = (TextView) itemView.findViewById(R.id.txtBadgeTag);
+            txtItemDate        = (TextView) itemView.findViewById(R.id.txtItemDate);
+            imgMenu            = (ImageView) itemView.findViewById(R.id.imgMenu);
         }
 
         void bind(ScanDocument document,
                   OnItemClickListener clickListener,
                   OnItemLongClickListener longClickListener,
-                  OnStarClickListener starClickListener,
                   OnMenuClickListener menuClickListener) {
 
-            //Tiêu đề
-            txtItemTitle.setText(
-                    document.title != null && !document.title.isEmpty()
-                            ? document.title : "Tài liệu không tiêu đề"
-            );
+            // Anh thu nho trang dau cua tai lieu
+            if (imgDocThumbnail != null) {
+                if (document.imageUri != null && !document.imageUri.isEmpty()) {
+                    try {
+                        imgDocThumbnail.setImageURI(Uri.parse(document.imageUri));
+                    } catch (Exception e) {
+                        imgDocThumbnail.setImageResource(R.drawable.ic_gallery);
+                    }
+                } else {
+                    imgDocThumbnail.setImageResource(R.drawable.ic_gallery);
+                }
+            }
 
-            //Preview OCR
-            if (document.ocrText != null && !document.ocrText.isEmpty()) {
-                String preview = document.ocrText.trim();
-                if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
-                txtItemOcrPreview.setText(preview);
-                txtItemOcrPreview.setVisibility(View.VISIBLE);
-            } else {
-                txtItemOcrPreview.setVisibility(View.GONE);
+            // Badge so trang de goc anh
+            if (txtBadgePageCount != null) {
+                if (document.pageCount > 1) {
+                    txtBadgePageCount.setText(document.pageCount + " trang");
+                    txtBadgePageCount.setVisibility(View.VISIBLE);
+                } else {
+                    txtBadgePageCount.setVisibility(View.GONE);
+                }
+            }
+
+            // Tieu de tai lieu
+            if (txtItemTitle != null) {
+                txtItemTitle.setText(
+                        document.title != null && !document.title.isEmpty()
+                                ? document.title : "Tài liệu không tiêu đề"
+                );
+            }
+
+            // Preview van ban OCR (toi da 2 dong)
+            if (txtItemOcrPreview != null) {
+                if (document.ocrText != null && !document.ocrText.isEmpty()) {
+                    String preview = document.ocrText.trim();
+                    if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
+                    txtItemOcrPreview.setText(preview);
+                    txtItemOcrPreview.setVisibility(View.VISIBLE);
+                } else {
+                    txtItemOcrPreview.setVisibility(View.GONE);
+                }
             }
 
             // Badge AI
-            boolean coAi = document.aiSummary != null && !document.aiSummary.trim().isEmpty();
-            chipAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
-
-            //Ngày giờ + số trang
-            String ngay = dateFormat.format(new Date(document.createdAt));
-            String soTrang = document.pageCount + " trang";
-            txtItemDate.setText(ngay + " • " + soTrang);
-
-            // Ẩn icon cái bút ở lịch sử quét
-            if (cardItemIcon != null) {
-                cardItemIcon.setVisibility(View.GONE);
+            if (txtBadgeAi != null) {
+                boolean coAi = document.aiSummary != null && !document.aiSummary.trim().isEmpty();
+                txtBadgeAi.setVisibility(coAi ? View.VISIBLE : View.GONE);
             }
 
-            // Star icon — ẩn trong danh sách lịch sử quét
-            if (imgStar != null) {
-                imgStar.setVisibility(View.GONE);
+            // Badge Ngon ngu
+            if (txtBadgeLanguage != null) {
+                if (document.language != null && !document.language.trim().isEmpty() && !"auto".equalsIgnoreCase(document.language)) {
+                    String lang = document.language.trim();
+                    if ("vi".equalsIgnoreCase(lang) || "vie".equalsIgnoreCase(lang)) {
+                        lang = "Tiếng Việt";
+                    } else if ("en".equalsIgnoreCase(lang) || "eng".equalsIgnoreCase(lang)) {
+                        lang = "Tiếng Anh";
+                    }
+                    txtBadgeLanguage.setText(lang);
+                    txtBadgeLanguage.setVisibility(View.VISIBLE);
+                } else {
+                    txtBadgeLanguage.setVisibility(View.GONE);
+                }
             }
 
-            // Menu
+            // Badge Tag phan loai
+            if (txtBadgeTag != null) {
+                if (document.tags != null && !document.tags.trim().isEmpty()) {
+                    String formattedTags = "#" + document.tags.trim().replace(",", " #");
+                    txtBadgeTag.setText(formattedTags);
+                    txtBadgeTag.setVisibility(View.VISIBLE);
+                } else {
+                    txtBadgeTag.setVisibility(View.GONE);
+                }
+            }
+
+            // Ngay gio quet
+            if (txtItemDate != null) {
+                String ngay = dateFormat.format(new Date(document.createdAt));
+                txtItemDate.setText(ngay);
+            }
+
+            // Menu 3 cham
             if (imgMenu != null) {
                 imgMenu.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -177,7 +213,7 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
                 });
             }
 
-            //Click toàn item
+            // Click xem chi tiet
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -188,7 +224,7 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
                 }
             });
 
-            //Long click
+            // Nhan giu item
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {

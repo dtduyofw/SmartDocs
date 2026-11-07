@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Layout cho mỗi item tài liệu trong RecyclerView lịch sử.
-    Hiển thị: tiêu đề, preview OCR, badge AI/OFFLINE, star, ngày giờ.
--->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -10,45 +6,70 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="5dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/surface"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/setting_card_bg"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/setting_card_stroke"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="14dp"
-        android:gravity="center_vertical">
+        android:padding="12dp">
 
-        <!-- Cột trái: icon tài liệu-->
+        <!-- Cột trái: Khung ảnh thu nhỏ (Thumbnail) tài liệu -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardItemIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="12dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/badge_ai_bg"
+            android:id="@+id/cardThumbnail"
+            android:layout_width="64dp"
+            android:layout_height="84dp"
+            app:cardBackgroundColor="@color/surface"
             app:cardCornerRadius="8dp"
-            app:cardElevation="0dp">
+            app:cardElevation="0dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
 
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/app_name"
-                android:src="@drawable/ic_edit"
-                app:tint="@color/primary" />
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imgDocThumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Ảnh tài liệu"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_gallery" />
+
+                <!-- Badge số trang đè góc dưới ảnh nếu > 1 trang -->
+                <TextView
+                    android:id="@+id/txtBadgePageCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/bg_badge_page"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="1dp"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+            </FrameLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Cột phải: icon star -->
+        <!-- Cột giữa: Thông tin tài liệu -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -57,69 +78,104 @@
                 android:id="@+id/txtItemTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-            <!-- Preview 2 dòng đầu văn bản OCR -->
+            <!-- Trích dẫn văn bản OCR -->
             <TextView
                 android:id="@+id/txtItemOcrPreview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:lineSpacingExtra="1dp"
                 android:maxLines="2"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
-            <!-- Row badge AI + OFFLINE -->
+            <!-- Hàng badges: AI + Ngôn ngữ + Tag -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/layoutBadges"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
+                android:layout_marginTop="5dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Badge: AI -->
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAi"
+                <!-- Badge AI -->
+                <TextView
+                    android:id="@+id/txtBadgeAi"
                     android:layout_width="wrap_content"
-                    android:layout_height="24dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_badge_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingHorizontal="7dp"
+                    android:paddingVertical="2dp"
                     android:text="AI"
-                    android:textColor="@color/badge_ai_text"
+                    android:textColor="@color/setting_pill_badge_text"
                     android:textSize="10sp"
-                    android:visibility="gone"
-                    app:chipBackgroundColor="@color/badge_ai_bg"
-                    app:chipMinHeight="24dp"
-                    app:chipStrokeWidth="0dp"
-                    app:ensureMinTouchTargetSize="false" />
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <!-- Badge Ngôn ngữ -->
+                <TextView
+                    android:id="@+id/txtBadgeLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_badge_subtle"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+
+                <!-- Badge Tags -->
+                <TextView
+                    android:id="@+id/txtBadgeTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
+                    android:textColor="@color/primary"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-            <!-- Ngày giờ -->
+            <!-- Ngày quét -->
             <TextView
                 android:id="@+id/txtItemDate"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif"
                 android:textColor="@color/text_hint"
                 android:textSize="11sp" />
 
         </LinearLayout>
-        <!-- Icon menu -->
+
+        <!-- Cột phải: Menu 3 chấm -->
         <ImageView
             android:id="@+id/imgMenu"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_more_vert"
-            android:alpha="0.5"
-            android:padding="2dp"
-            android:clickable="true"
-            android:focusable="true"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_marginStart="4dp"
-            android:contentDescription="Tùy chọn khác" />
+            android:clickable="true"
+            android:contentDescription="Tùy chọn khác"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_more_vert"
+            app:tint="@color/text_secondary" />
 
     </LinearLayout>
 

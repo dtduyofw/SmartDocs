@@ -194,8 +194,9 @@ public abstract class AppDatabase extends RoomDatabase {
                             AppDatabase.class,
                             DB_NAME
                     )
-                    // Thêm đầy đủ migration chain — không mất dữ liệu người dùng
+                    // Them day du migration chain, them fallback xoa tao lai tranh crash khi lech schema
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .fallbackToDestructiveMigration()
                     .build();
                 }
             }
