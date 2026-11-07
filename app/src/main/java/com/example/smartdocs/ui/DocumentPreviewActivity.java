@@ -63,8 +63,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // ─────────────────────────────────────────
     // Views
     // ─────────────────────────────────────────
-    ImageView imgBackPreview;
-    ImageView btnHeaderShare, btnHeaderCopy, btnHeaderDownload;
     TextView tabOriginal, tabExtracted, tabAi;
     TextView txtStatusBadge;
     TextView txtExtractedContent;
@@ -157,10 +155,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     }
 
     void anhXaView() {
-        imgBackPreview = (ImageView) findViewById(R.id.imgBackPreview);
-        btnHeaderShare = (ImageView) findViewById(R.id.btnHeaderShare);
-        btnHeaderCopy = (ImageView) findViewById(R.id.btnHeaderCopy);
-        btnHeaderDownload = (ImageView) findViewById(R.id.btnHeaderDownload);
         tabOriginal = (TextView) findViewById(R.id.tabOriginal);
         tabExtracted = (TextView) findViewById(R.id.tabExtracted);
         tabAi = (TextView) findViewById(R.id.tabAi);
@@ -248,57 +242,6 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
-        // ── Nút Back ──────────────────────────────────────
-        imgBackPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-
-        // ── Cụm icon Header: Chia sẻ, Sao chép, Tải xuống ──
-        if (btnHeaderShare != null) {
-            btnHeaderShare.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    chiaSePlainText();
-                }
-            });
-        }
-
-        if (btnHeaderCopy != null) {
-            btnHeaderCopy.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String text = (document != null && document.ocrText != null) ? document.ocrText : "";
-                    if (text.isEmpty()) {
-                        Toast.makeText(DocumentPreviewActivity.this, "Chưa có văn bản để sao chép.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("Document Text", text);
-                    if (cm != null) {
-                        cm.setPrimaryClip(clip);
-                        Toast.makeText(DocumentPreviewActivity.this, "Đã sao chép toàn bộ văn bản.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        }
-
-        if (btnHeaderDownload != null) {
-            btnHeaderDownload.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (layoutExportAs != null) {
-                        if (layoutExportAs.getVisibility() == View.VISIBLE) {
-                            layoutExportAs.setVisibility(View.GONE);
-                        } else {
-                            layoutExportAs.setVisibility(View.VISIBLE);
-                        }
-                    }
-                }
-            });
-        }
 
         // ── Tab Original ──────────────────────────────────
         tabOriginal.setOnClickListener(new View.OnClickListener() {
@@ -554,8 +497,12 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         if (txtStatusBadge != null) txtStatusBadge.setVisibility(View.VISIBLE);
 
         // Load ảnh gốc
-        if (danhSachPages != null && danhSachPages.size() > 1) {
-            layoutDieuHuongTrang.setVisibility(View.VISIBLE);
+        if (danhSachPages != null && !danhSachPages.isEmpty()) {
+            if (danhSachPages.size() > 1) {
+                layoutDieuHuongTrang.setVisibility(View.VISIBLE);
+            } else {
+                layoutDieuHuongTrang.setVisibility(View.GONE);
+            }
             capNhatHienThiTrang(viTriTrangHienTai);
         } else {
             layoutDieuHuongTrang.setVisibility(View.GONE);

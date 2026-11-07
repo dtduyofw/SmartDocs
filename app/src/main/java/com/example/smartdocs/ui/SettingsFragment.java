@@ -72,17 +72,21 @@ public class SettingsFragment extends Fragment {
     // Views
     ImageView imgBackSettings, imgSaveSettings;
     TextView txtUserEmail, txtUserUid;
+    TextView txtSettingsAvatarChar;
+    MaterialCardView cardProfileHeader;
     TextView txtAiPlan, txtAiPlanDesc, txtAiUsage, txtAiExpiry;
     ProgressBar pbAiUsage;
-    MaterialButton btnAuthAction, btnNangCapGoi, btnXoaTaiKhoan;
-    MaterialButton btnSaveSettings;
+    View btnAuthAction, btnMoProfile, btnNangCapGoi, btnXoaTaiKhoan;
+    TextView txtAuthActionText;
+    View cardLanguageSetting;
+    androidx.appcompat.widget.SwitchCompat swBiometric;
 
     // Che do giao dien (RadioGroup & RadioButton)
     RadioGroup rdgGiaoDien;
     RadioButton rdSang, rdHeThong, rdToi;
 
     // Phan hoi & Thong tin
-    MaterialButton btnFeedback;
+    View btnFeedback;
     TextView txtAppVersion;
 
     SharedPreferences prefs;
@@ -188,26 +192,31 @@ public class SettingsFragment extends Fragment {
         imgBackSettings = (ImageView) view.findViewById(R.id.imgBackSettings);
         imgSaveSettings = (ImageView) view.findViewById(R.id.imgSaveSettings);
 
+        cardProfileHeader = (MaterialCardView) view.findViewById(R.id.cardProfileHeader);
+        txtSettingsAvatarChar = (TextView) view.findViewById(R.id.txtSettingsAvatarChar);
         txtUserEmail = (TextView) view.findViewById(R.id.txtUserEmail);
         txtUserUid = (TextView) view.findViewById(R.id.txtUserUid);
-        btnAuthAction = (MaterialButton) view.findViewById(R.id.btnAuthAction);
+        btnAuthAction = view.findViewById(R.id.btnAuthAction);
+        txtAuthActionText = (TextView) view.findViewById(R.id.txtAuthActionText);
+        btnMoProfile = view.findViewById(R.id.btnMoProfile);
 
         txtAiPlan = (TextView) view.findViewById(R.id.txtAiPlan);
         txtAiPlanDesc = (TextView) view.findViewById(R.id.txtAiPlanDesc);
         txtAiUsage = (TextView) view.findViewById(R.id.txtAiUsage);
         txtAiExpiry = (TextView) view.findViewById(R.id.txtAiExpiry);
         pbAiUsage = (ProgressBar) view.findViewById(R.id.pbAiUsage);
-        btnNangCapGoi = (MaterialButton) view.findViewById(R.id.btnNangCapGoi);
-        btnXoaTaiKhoan = (MaterialButton) view.findViewById(R.id.btnXoaTaiKhoan);
-
-        btnSaveSettings = (MaterialButton) view.findViewById(R.id.btnSaveSettings);
+        btnNangCapGoi = view.findViewById(R.id.btnNangCapGoi);
+        btnXoaTaiKhoan = view.findViewById(R.id.btnXoaTaiKhoan);
 
         rdgGiaoDien = (RadioGroup) view.findViewById(R.id.rdgGiaoDien);
         rdSang = (RadioButton) view.findViewById(R.id.rdSang);
         rdHeThong = (RadioButton) view.findViewById(R.id.rdHeThong);
         rdToi = (RadioButton) view.findViewById(R.id.rdToi);
 
-        btnFeedback = (MaterialButton) view.findViewById(R.id.btnFeedback);
+        cardLanguageSetting = view.findViewById(R.id.cardLanguageSetting);
+        swBiometric = (androidx.appcompat.widget.SwitchCompat) view.findViewById(R.id.swBiometric);
+
+        btnFeedback = view.findViewById(R.id.btnFeedback);
         txtAppVersion = (TextView) view.findViewById(R.id.txtAppVersion);
     }
 
@@ -233,12 +242,18 @@ public class SettingsFragment extends Fragment {
         if (qlTaiKhoan.daDangNhap()) {
             txtUserEmail.setText(qlTaiKhoan.getEmail());
             txtUserUid.setText("Mã nạp: " + qlTaiKhoan.getShortUid());
-            btnAuthAction.setText("Đăng xuất");
+            if (txtAuthActionText != null) txtAuthActionText.setText("Đăng xuất");
+            if (txtSettingsAvatarChar != null && qlTaiKhoan.getEmail() != null && !qlTaiKhoan.getEmail().isEmpty()) {
+                txtSettingsAvatarChar.setText(qlTaiKhoan.getEmail().substring(0, 1).toUpperCase());
+            }
             if (btnXoaTaiKhoan != null) btnXoaTaiKhoan.setVisibility(View.VISIBLE);
         } else {
             txtUserEmail.setText("Tài khoản khách");
             txtUserUid.setText("Mã nạp: Chưa đăng nhập");
-            btnAuthAction.setText("Đăng nhập");
+            if (txtAuthActionText != null) txtAuthActionText.setText("Đăng nhập");
+            if (txtSettingsAvatarChar != null) {
+                txtSettingsAvatarChar.setText("K");
+            }
             if (btnXoaTaiKhoan != null) btnXoaTaiKhoan.setVisibility(View.GONE);
         }
 
@@ -300,34 +315,70 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        btnSaveSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                luuCaiDat();
-            }
-        });
-
         // Su kien nut Dang nhap / Dang xuat
-        btnAuthAction.setOnClickListener(new View.OnClickListener() {
+        if (btnAuthAction != null) {
+            btnAuthAction.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (qlTaiKhoan.daDangNhap()) {
+                        DialogHelper.showConfirm(requireContext(), "Đăng xuất", "Bạn có chắc chắn muốn đăng xuất tài khoản AI?", "Đăng xuất", new DialogHelper.OnConfirm() {
+                            @Override
+                            public void onConfirm() {
+                                qlTaiKhoan.dangXuat();
+                                capNhatGiaoDienTaiKhoan();
+                                Toast.makeText(requireContext(), "Đã đăng xuất tài khoản.", Toast.LENGTH_SHORT).show();
+                                if (getActivity() instanceof MainActivity) {
+                                    ((MainActivity) getActivity()).chonTab(R.id.nav_home);
+                                }
+                            }
+                        });
+                    } else {
+                        hienDialogDangNhap();
+                    }
+                }
+            });
+        }
+
+        // Su kien mo Profile khi cham vao Profile Card hoac nut mui ten
+        View.OnClickListener moProfileListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (qlTaiKhoan.daDangNhap()) {
-                    DialogHelper.showConfirm(requireContext(), "Đăng xuất", "Bạn có chắc chắn muốn đăng xuất tài khoản AI?", "Đăng xuất", new DialogHelper.OnConfirm() {
-                        @Override
-                        public void onConfirm() {
-                            qlTaiKhoan.dangXuat();
-                            capNhatGiaoDienTaiKhoan();
-                            Toast.makeText(requireContext(), "Đã đăng xuất tài khoản.", Toast.LENGTH_SHORT).show();
-                            if (getActivity() instanceof MainActivity) {
-                                ((MainActivity) getActivity()).chonTab(R.id.nav_home);
-                            }
-                        }
-                    });
-                } else {
-                    hienDialogDangNhap();
-                }
+                Intent i = new Intent(requireContext(), ProfileActivity.class);
+                startActivity(i);
             }
-        });
+        };
+
+        if (cardProfileHeader != null) {
+            cardProfileHeader.setOnClickListener(moProfileListener);
+        }
+
+        if (btnMoProfile != null) {
+            btnMoProfile.setOnClickListener(moProfileListener);
+        }
+
+        // Su kien ngon ngu
+        if (cardLanguageSetting != null) {
+            cardLanguageSetting.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(requireContext(), "Ứng dụng đang hỗ trợ Tiếng Việt", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // Su kien toggle sinh trac hoc
+        if (swBiometric != null) {
+            swBiometric.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        Toast.makeText(requireContext(), "Đã bật xác thực sinh trắc học", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(requireContext(), "Đã tắt xác thực sinh trắc học", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
 
         // Nut Nang cap goi
         btnNangCapGoi.setOnClickListener(new View.OnClickListener() {

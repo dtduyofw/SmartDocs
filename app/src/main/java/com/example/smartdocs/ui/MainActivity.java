@@ -130,13 +130,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     dongDrawer();
-                    QLTaiKhoan ql = QLTaiKhoan.getInstance(MainActivity.this);
-                    if (ql.daDangNhap()) {
-                        chonTab(R.id.nav_settings);
-                    } else {
-                        Intent i = new Intent(MainActivity.this, DangNhapActivity.class);
-                        startActivity(i);
-                    }
+                    Intent i = new Intent(MainActivity.this, ProfileActivity.class);
+                    startActivity(i);
                 }
             });
         }

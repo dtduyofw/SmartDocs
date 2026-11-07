@@ -41,4 +41,20 @@
     <color name="export_excel_tint">#A5D6A7</color>
     <color name="export_text_bg">#2D3748</color>
     <color name="export_text_tint">#E0E0E0</color>
+
+    <!-- Settings Screen Dark Mode Colors -->
+    <color name="setting_card_bg">#1E1E1E</color>
+    <color name="setting_card_stroke">#2D3748</color>
+    <color name="setting_icon_bg">#2A2A2E</color>
+    <color name="setting_icon_tint">#E2E8F0</color>
+    <color name="setting_danger_stroke">#4A1E1E</color>
+    <color name="setting_danger_icon_bg">#3D1E1E</color>
+    <color name="setting_segmented_bg">#26262A</color>
+    <color name="setting_segmented_active_bg">#38383E</color>
+    <color name="setting_segmented_active_stroke">#4A4A52</color>
+    <color name="setting_pill_badge_bg">#2E1B4E</color>
+    <color name="setting_pill_badge_text">#C084FC</color>
+    <color name="setting_tag_badge_bg">#3D1E1E</color>
+    <color name="setting_tag_badge_text">#FB7185</color>
+    <color name="setting_progress_bg">#2D3748</color>
 </resources>

@@ -66,6 +66,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
+        <!-- ProfileActivity: man hinh ho so ca nhan va quan ly tai khoan -->
+        <activity
+            android:name=".ui.ProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ui.MainActivity" />
         <!--
             FileProvider: bắt buộc cho Android 7+ khi truyền URI ảnh Camera
             cho Intent chụp ảnh (ACTION_IMAGE_CAPTURE).

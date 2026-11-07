@@ -7,136 +7,6 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <!-- ── HEADER (APP BAR) MỚI THEO YÊU CẦU ── -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp"
-        android:background="@drawable/bg_header_top_rounded">
-
-        <!-- Góc trái (Nút Back + Avatar D tròn viền xám) -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/imgBackPreview"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="#CBD5E1"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_marginEnd="8dp" />
-
-            <FrameLayout
-                android:id="@+id/layoutAvatar"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_avatar_circle">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="D"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-            </FrameLayout>
-
-        </LinearLayout>
-
-        <!-- Góc phải (Chứa cụm icon và logo SmartDocs) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="end">
-
-            <!-- Cụm Icon (Phía trên): Share, Copy, Download -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:id="@+id/btnHeaderShare"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
-                    android:src="@drawable/ic_share"
-                    app:tint="#CBD5E1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:layout_marginEnd="6dp" />
-
-                <ImageView
-                    android:id="@+id/btnHeaderCopy"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
-                    android:src="@drawable/ic_copy"
-                    app:tint="#CBD5E1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:layout_marginEnd="6dp" />
-
-                <ImageView
-                    android:id="@+id/btnHeaderDownload"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:padding="5dp"
-                    android:src="@drawable/ic_export"
-                    app:tint="#CBD5E1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless" />
-
-            </LinearLayout>
-
-            <!-- Tên ứng dụng (Phía dưới cụm icon): SmartDocs -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="3dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Smart"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold"
-                    android:textSize="17sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Docs"
-                    android:textColor="#38BDF8"
-                    android:textStyle="bold"
-                    android:textSize="17sp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </LinearLayout>
 
     <!-- ── TAB: Original / Extracted / AI ── -->
     <LinearLayout
@@ -199,7 +69,7 @@
         android:id="@+id/txtStatusBadge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DA TRICH XUAT"
+        android:text="ĐÃ TRÍCH XUẤT"
         android:textSize="11sp"
         android:textStyle="bold"
         android:textColor="@color/status_badge_green"
