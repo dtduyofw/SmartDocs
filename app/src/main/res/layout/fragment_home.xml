@@ -9,27 +9,28 @@
     android:background="@color/background"
     tools:context=".ui.MainActivity">
 
-    <!-- ── HEADER: Greeting + Icon app ── -->
+    <!-- ── HEADER: Avatar + Tên app ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/primary"
+        android:background="@color/header_bg"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="16dp"
         android:paddingBottom="20dp"
         android:gravity="center_vertical">
 
-        <!-- Nut Avatar mo Drawer ben trai -->
+        <!-- Nút Avatar mở Drawer bên trái -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnOpenDrawer"
             android:layout_width="42dp"
             android:layout_height="42dp"
             app:cardCornerRadius="10dp"
             app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="#8D6E63"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider"
+            app:cardBackgroundColor="#27272A"
             android:clickable="true"
             android:focusable="true">
 
@@ -39,13 +40,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="T"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Ten app SmartDocs sang sat ben phai cua man hinh -->
+        <!-- Tên app SmartDocs -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -58,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SmartDocs"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -93,8 +94,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="8dp"
-                    app:cardElevation="1dp"
-                    app:strokeWidth="0dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/divider"
                     app:cardBackgroundColor="@color/surface">
 
                     <LinearLayout
@@ -118,7 +120,7 @@
                             app:strokeWidth="0dp"
                             app:cornerRadius="6dp" />
 
-                        <!-- Nút AI-->
+                        <!-- Nút AI -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnModeAi"
                             android:layout_width="0dp"
@@ -147,7 +149,9 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="10dp"
                 app:cardCornerRadius="14dp"
-                app:cardElevation="1dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
                 app:cardBackgroundColor="@color/surface"
                 android:clickable="true"
                 android:focusable="true"
@@ -171,10 +175,10 @@
                             android:layout_width="28dp"
                             android:layout_height="28dp"
                             android:src="@drawable/ic_sparkle"
-                            android:tint="@color/primary"
+                            android:tint="@color/text_secondary"
                             android:layout_marginEnd="10dp" />
 
-                        <!-- Text AI Limit: "Giới hạn AI: X / 50 tháng này" -->
+                        <!-- Text AI Limit -->
                         <TextView
                             android:id="@+id/txtAiLimit"
                             android:layout_width="0dp"
@@ -184,14 +188,14 @@
                             android:textSize="13sp"
                             android:textColor="@color/text_secondary" />
 
-                        <!-- Mũi tên / Upgrade -->
+                        <!-- Chi tiết -->
                         <TextView
                             android:id="@+id/txtUpgrade"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Chi tiết"
                             android:textSize="13sp"
-                            android:textColor="@color/primary"
+                            android:textColor="@color/text_primary"
                             android:textStyle="bold"
                             android:paddingStart="8dp"
                             android:paddingEnd="4dp"
@@ -200,7 +204,7 @@
 
                     </LinearLayout>
 
-                    <!-- Thanh tiến trình ProgressBar -->
+                    <!-- Thanh tiến trình -->
                     <ProgressBar
                         android:id="@+id/pbAiLimit"
                         style="?android:attr/progressBarStyleHorizontal"
@@ -209,14 +213,13 @@
                         android:layout_marginTop="8dp"
                         android:max="50"
                         android:progress="0"
-                        android:progressTint="@color/primary" />
+                        android:progressTint="@color/text_secondary" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
             <!-- ── 2 CARD LỚN: GALLERY VÀ CAMERA ── -->
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -226,16 +229,18 @@
                 android:paddingTop="14dp"
                 android:paddingBottom="4dp">
 
-                <!-- Card Gallery (trái) — màu Indigo -->
+                <!-- Card Gallery (trái) — xám tối, viền mờ -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardGallery"
                     android:layout_width="0dp"
                     android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/card_gallery"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/divider"
+                    app:cardBackgroundColor="@color/surface"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
@@ -246,20 +251,20 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <!-- Icon -->
+                        <!-- Icon container -->
                         <com.google.android.material.card.MaterialCardView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            app:cardCornerRadius="14dp"
-                            app:cardBackgroundColor="#4D7986CB"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            app:cardCornerRadius="10dp"
+                            app:cardBackgroundColor="#27272A"
                             app:cardElevation="0dp">
 
                             <ImageView
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_gallery"
-                                android:tint="@color/white" />
+                                app:tint="@color/text_primary" />
 
                         </com.google.android.material.card.MaterialCardView>
 
@@ -274,8 +279,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/btn_gallery"
-                            android:textColor="@color/white"
-                            android:textSize="17sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <!-- Mô tả -->
@@ -283,7 +288,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/btn_gallery_sub"
-                            android:textColor="#BFC8FF"
+                            android:textColor="@color/text_hint"
                             android:textSize="12sp"
                             android:layout_marginTop="2dp" />
 
@@ -291,26 +296,28 @@
 
                     <!-- Mũi tên góc dưới phải -->
                     <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
                         android:layout_gravity="bottom|end"
                         android:layout_margin="12dp"
                         android:src="@drawable/ic_chevron_right"
-                        android:tint="#80FFFFFF"
+                        app:tint="@color/text_hint"
                         android:padding="4dp" />
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Card Camera màu Green -->
+                <!-- Card Camera (phải) — xám tối, icon & chữ sáng trắng đồng bộ với Thư viện -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCamera"
                     android:layout_width="0dp"
                     android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="4dp"
-                    app:cardBackgroundColor="#51A2C7"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/divider"
+                    app:cardBackgroundColor="@color/surface"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
@@ -321,20 +328,20 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <!-- Icon -->
+                        <!-- Icon container -->
                         <com.google.android.material.card.MaterialCardView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            app:cardCornerRadius="14dp"
-                            app:cardBackgroundColor="#4D66BB6A"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            app:cardCornerRadius="10dp"
+                            app:cardBackgroundColor="#27272A"
                             app:cardElevation="0dp">
 
                             <ImageView
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_camera"
-                                android:tint="@color/white" />
+                                app:tint="@color/text_primary" />
 
                         </com.google.android.material.card.MaterialCardView>
 
@@ -349,8 +356,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/btn_camera"
-                            android:textColor="@color/white"
-                            android:textSize="17sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <!-- Mô tả -->
@@ -358,7 +365,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/btn_camera_sub"
-                            android:textColor="#B2DFDB"
+                            android:textColor="@color/text_hint"
                             android:textSize="12sp"
                             android:layout_marginTop="2dp" />
 
@@ -366,12 +373,12 @@
 
                     <!-- Mũi tên góc dưới phải -->
                     <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
                         android:layout_gravity="bottom|end"
                         android:layout_margin="12dp"
                         android:src="@drawable/ic_chevron_right"
-                        android:tint="#80FFFFFF"
+                        app:tint="@color/text_hint"
                         android:padding="4dp" />
 
                 </com.google.android.material.card.MaterialCardView>
@@ -385,7 +392,9 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="14dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="3dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider"
                 android:visibility="gone"
                 android:id="@+id/cardPreviewWrapper">
 
@@ -434,14 +443,15 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnScan"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="10dp"
                 android:text="Quét văn bản"
+                android:textColor="@color/background"
+                app:backgroundTint="@color/primary"
                 android:enabled="false"
                 android:visibility="gone"
-                app:cornerRadius="12dp"
-                app:backgroundTint="@color/primary" />
+                app:cornerRadius="12dp" />
 
             <!-- ── PROGRESS BAR (ẩn mặc định) ── -->
             <LinearLayout
@@ -458,22 +468,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:indeterminate="true"
-                    app:indicatorColor="@color/primary" />
+                    app:indicatorColor="@color/text_secondary" />
 
                 <TextView
                     android:id="@+id/txtLoadingStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Đang xử lý..."
-                    android:textColor="@color/primary"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:layout_marginTop="6dp" />
 
             </LinearLayout>
-
-
-
-
 
             <!-- ── SECTION: TÀI LIỆU GẦN ĐÂY ── -->
             <LinearLayout
@@ -508,7 +514,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/label_view_all"
                         android:textSize="13sp"
-                        android:textColor="@color/primary"
+                        android:textColor="@color/text_secondary"
                         android:padding="4dp"
                         android:clickable="true"
                         android:focusable="true" />
@@ -528,7 +534,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:src="@drawable/ic_history"
-                        android:alpha="0.3" />
+                        android:alpha="0.25" />
 
                     <TextView
                         android:layout_width="wrap_content"

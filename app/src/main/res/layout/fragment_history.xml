@@ -13,7 +13,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary"
+        android:background="@color/background"
         android:paddingStart="16dp"
         android:paddingEnd="8dp"
         android:paddingTop="12dp"
@@ -27,7 +27,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_arrow_back"
-            android:tint="@color/white"
+            app:tint="@color/text_primary"
             android:padding="8dp"
             android:clickable="true"
             android:focusable="true"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/title_history"
-            android:textColor="@color/white"
+            android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="4dp" />
@@ -54,6 +54,7 @@
         android:layout_marginBottom="6dp"
         app:startIconDrawable="@drawable/ic_search"
         app:startIconTint="@color/text_hint"
+        app:boxBackgroundColor="@color/surface"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxCornerRadiusTopStart="24dp"
         app:boxCornerRadiusTopEnd="24dp"
@@ -66,6 +67,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/hint_search"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />

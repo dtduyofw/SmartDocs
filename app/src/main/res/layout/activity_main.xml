@@ -95,6 +95,8 @@
                 app:iconGravity="textStart"
                 app:cornerRadius="26dp"
                 app:backgroundTint="@color/primary"
+                android:textColor="@color/background"
+                app:iconTint="@color/background"
                 android:layout_marginTop="32dp" />
 
             <com.google.android.material.button.MaterialButton

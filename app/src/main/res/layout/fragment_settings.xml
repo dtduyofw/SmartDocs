@@ -102,10 +102,11 @@
                         android:id="@+id/cardSettingsAvatar"
                         android:layout_width="52dp"
                         android:layout_height="52dp"
-                        app:cardBackgroundColor="@color/primary"
+                        app:cardBackgroundColor="#27272A"
                         app:cardCornerRadius="26dp"
                         app:cardElevation="0dp"
-                        app:strokeWidth="0dp">
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
 
                         <TextView
                             android:id="@+id/txtSettingsAvatarChar"
@@ -114,7 +115,7 @@
                             android:layout_gravity="center"
                             android:fontFamily="sans-serif-medium"
                             android:text="U"
-                            android:textColor="@color/white"
+                            android:textColor="@color/text_primary"
                             android:textSize="22sp"
                             android:textStyle="bold" />
 

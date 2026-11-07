@@ -362,10 +362,10 @@ public class FilesFragment extends Fragment {
         for (Chip chip : tatCa) {
             if (chip == chipDuocChon) {
                 chip.setChipBackgroundColorResource(R.color.primary);
-                chip.setTextColor(0xFFFFFFFF);
+                chip.setTextColor(getResources().getColor(R.color.background));
             } else {
                 chip.setChipBackgroundColorResource(android.R.color.transparent);
-                chip.setTextColor(getResources().getColor(R.color.text_hint));
+                chip.setTextColor(getResources().getColor(R.color.text_secondary));
             }
         }
     }

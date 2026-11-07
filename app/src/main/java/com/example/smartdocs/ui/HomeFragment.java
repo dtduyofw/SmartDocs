@@ -827,8 +827,8 @@ public class HomeFragment extends Fragment {
     void animateNutMode(final MaterialButton btnBat, final MaterialButton btnTat) {
         if (getContext() == null) return;
         final int mauChinh = ContextCompat.getColor(requireContext(), R.color.primary);
+        final int mauToi = ContextCompat.getColor(requireContext(), R.color.background);
         final int mauPhu = ContextCompat.getColor(requireContext(), R.color.text_secondary);
-        final int mauTrang = Color.WHITE;
         final int mauTrongSuot = Color.TRANSPARENT;
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
@@ -840,16 +840,16 @@ public class HomeFragment extends Fragment {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float f = animation.getAnimatedFraction();
 
-                // Nút được chọn (Active)
+                // Nút được chọn (Active) - nền trắng sáng, chữ và icon màu tối
                 int bgBat = (int) evaluator.evaluate(f, mauTrongSuot, mauChinh);
-                int textBat = (int) evaluator.evaluate(f, mauPhu, mauTrang);
+                int textBat = (int) evaluator.evaluate(f, mauPhu, mauToi);
                 btnBat.setBackgroundTintList(ColorStateList.valueOf(bgBat));
                 btnBat.setTextColor(textBat);
                 btnBat.setIconTint(ColorStateList.valueOf(textBat));
 
-                // Nút không chọn (Inactive)
+                // Nút không chọn (Inactive) - nền trong suốt, chữ và icon màu xám
                 int bgTat = (int) evaluator.evaluate(f, mauChinh, mauTrongSuot);
-                int textTat = (int) evaluator.evaluate(f, mauTrang, mauPhu);
+                int textTat = (int) evaluator.evaluate(f, mauToi, mauPhu);
                 btnTat.setBackgroundTintList(ColorStateList.valueOf(bgTat));
                 btnTat.setTextColor(textTat);
                 btnTat.setIconTint(ColorStateList.valueOf(textTat));
@@ -862,11 +862,12 @@ public class HomeFragment extends Fragment {
     void datMauNutKhongAnimation(MaterialButton btnBat, MaterialButton btnTat) {
         if (getContext() == null) return;
         int mauChinh = ContextCompat.getColor(requireContext(), R.color.primary);
+        int mauToi = ContextCompat.getColor(requireContext(), R.color.background);
         int mauPhu = ContextCompat.getColor(requireContext(), R.color.text_secondary);
 
         btnBat.setBackgroundTintList(ColorStateList.valueOf(mauChinh));
-        btnBat.setTextColor(Color.WHITE);
-        btnBat.setIconTint(ColorStateList.valueOf(Color.WHITE));
+        btnBat.setTextColor(mauToi);
+        btnBat.setIconTint(ColorStateList.valueOf(mauToi));
 
         btnTat.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         btnTat.setTextColor(mauPhu);

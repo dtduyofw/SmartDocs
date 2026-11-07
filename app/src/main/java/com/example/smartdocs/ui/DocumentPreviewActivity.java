@@ -446,7 +446,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
         // Cập nhật style tab — tab Văn bản active
         tabExtracted.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
-        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.white));
+        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.background));
         tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
         tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
@@ -479,7 +479,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
         // Cập nhật style tab — tab Ảnh gốc active
         tabOriginal.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
-        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.white));
+        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.background));
         tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
         tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
@@ -520,7 +520,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
         // Cập nhật style tab — tab Trợ lý AI active
         tabAi.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
-        tabAi.setTextColor(ContextCompat.getColor(this, R.color.white));
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.background));
         tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
         tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);

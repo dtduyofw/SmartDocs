@@ -320,15 +320,6 @@ public class HistoryFragment extends Fragment {
             }
         });
 
-        // Xuất PDF
-        sheetView.findViewById(R.id.itemBsXuatPdf).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sheet.dismiss();
-                xuatPdf(document);
-            }
-        });
-
         // Chia sẻ
         sheetView.findViewById(R.id.itemBsChiaSe).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -367,21 +358,6 @@ public class HistoryFragment extends Fragment {
         });
 
         sheet.show();
-    }
-
-    // Xuất tài liệu ra file PDF
-    void xuatPdf(ScanDocument document) {
-        if (getContext() == null || !isAdded()) return;
-        try {
-            android.net.Uri pdfUri = PdfExporter.exportToPdf(requireContext(), document);
-            // Mở file PDF vừa xuất bằng app đọc PDF
-            Intent openIntent = new Intent(Intent.ACTION_VIEW);
-            openIntent.setDataAndType(pdfUri, "application/pdf");
-            openIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(openIntent, "Mở PDF bằng..."));
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Xuất PDF thất bại", Toast.LENGTH_SHORT).show();
-        }
     }
 
     // Chia sẻ văn bản OCR của tài liệu

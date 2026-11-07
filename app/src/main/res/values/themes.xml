@@ -1,16 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme — Material3 DayNight, không có ActionBar mặc định -->
     <style name="Base.Theme.SmartDocs" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Màu chủ đạo — Indigo -->
+        <!-- Màu chủ đạo — trắng tối giản -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorSecondary">@color/accent_green</item>
         <item name="colorSecondaryVariant">@color/accent_green_dark</item>
         <!-- Text trên Primary color -->
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Status bar màu Indigo -->
-        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/primary_dark</item>
+        <!-- Status bar đen nhám -->
+        <item name="android:statusBarColor">#09090B</item>
+        <item name="android:navigationBarColor">#09090B</item>
         <!-- Background toàn app -->
+        <item name="android:windowBackground">@color/background</item>
         <item name="android:colorBackground">@color/background</item>
         <!-- Surface, text, outline cho Material3 -->
         <item name="colorSurface">@color/surface</item>

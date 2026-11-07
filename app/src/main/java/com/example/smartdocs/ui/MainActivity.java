@@ -371,12 +371,9 @@ public class MainActivity extends AppCompatActivity {
 
     void capNhatDrawerActiveItem(int tabId) {
         int mauActiveBg = R.drawable.bg_nav_item_selected;
-        // Active: mau Indigo chinh cua app
-        int mauChinh = Color.parseColor("#3F51B5");
-        // Active text: Indigo dam cho de doc tren nen sang
-        int mauActiveText = Color.parseColor("#3F51B5");
-        // Inactive: text va icon mau xam phu
-        int mauInactive = Color.parseColor("#6B7280");
+        int mauChinh = ContextCompat.getColor(this, R.color.text_primary);
+        int mauActiveText = ContextCompat.getColor(this, R.color.text_primary);
+        int mauInactive = ContextCompat.getColor(this, R.color.text_secondary);
 
         // Reset tat ca ve unselected
         if (layoutDrawerHome != null) layoutDrawerHome.setBackgroundColor(Color.TRANSPARENT);

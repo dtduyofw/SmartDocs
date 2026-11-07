@@ -101,7 +101,7 @@
                 android:text="Tất cả"
                 android:layout_marginEnd="6dp"
                 app:chipBackgroundColor="@color/primary"
-                android:textColor="@color/white"
+                android:textColor="@color/background"
                 app:checkedIconVisible="false"
                 style="@style/Widget.MaterialComponents.Chip.Filter" />
 

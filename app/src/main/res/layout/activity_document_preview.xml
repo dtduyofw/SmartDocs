@@ -43,7 +43,7 @@
             android:text="Văn bản"
             android:textSize="13sp"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="@color/background"
             android:background="@color/primary"
             android:clickable="true"
             android:focusable="true" />
@@ -475,6 +475,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                app:boxBackgroundColor="@color/surface"
+                app:boxStrokeColor="@color/divider"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
@@ -501,6 +503,8 @@
                 android:layout_height="wrap_content"
                 android:text="Gửi"
                 android:textSize="13sp"
+                app:backgroundTint="@color/primary"
+                android:textColor="@color/background"
                 app:cornerRadius="20dp"
                 android:layout_marginStart="8dp" />
 
