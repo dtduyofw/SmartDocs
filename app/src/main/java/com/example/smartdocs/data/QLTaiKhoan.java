@@ -52,8 +52,8 @@ public class QLTaiKhoan {
     static final String KEY_HAN_SU_DUNG = "current_han_su_dung";
 
     // Thong tin mac dinh ngan hang nhan tien VietQR
-    public static final String NGAN_HANG_DEFAULT = "MB Bank";
-    public static final String STK_DEFAULT = "0762228968";
+    public static final String NGAN_HANG_DEFAULT = "MBBank";
+    public static final String STK_DEFAULT = "0707914299999";
     public static final String CHU_TK_DEFAULT = "DO TRONG DUY";
 
     // Firebase
@@ -878,15 +878,16 @@ public class QLTaiKhoan {
 
     // Tao duong dan anh VietQR dong theo chuan API
     public static String taoUrlVietQr(String nganHang, String stk, String tenChuTk, long soTien, String noiDung) {
+        String maNganHang = (nganHang != null && !nganHang.trim().isEmpty()) ? nganHang.replaceAll("\\s+", "") : "MBBank";
         try {
             String encNoiDung = URLEncoder.encode(noiDung, "UTF-8");
             String encTenChuTk = URLEncoder.encode(tenChuTk, "UTF-8");
-            return "https://img.vietqr.io/image/" + nganHang + "-" + stk + "-compact2.png" +
+            return "https://img.vietqr.io/image/" + maNganHang + "-" + stk + "-compact2.png" +
                     "?amount=" + soTien +
                     "&addInfo=" + encNoiDung +
                     "&accountName=" + encTenChuTk;
         } catch (Exception e) {
-            return "https://img.vietqr.io/image/" + nganHang + "-" + stk + "-compact2.png";
+            return "https://img.vietqr.io/image/" + maNganHang + "-" + stk + "-compact2.png";
         }
     }
 

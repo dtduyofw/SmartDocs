@@ -25,7 +25,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="Quay lại"
+            android:contentDescription="@string/action_back"
             android:focusable="true"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
@@ -37,7 +37,7 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
-            android:text="Cài đặt"
+            android:text="@string/settings_title"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -48,7 +48,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="Lưu cài đặt"
+            android:contentDescription="@string/action_save_settings"
             android:focusable="true"
             android:padding="8dp"
             android:src="@drawable/ic_check"
@@ -137,7 +137,7 @@
                             android:ellipsize="end"
                             android:fontFamily="sans-serif-medium"
                             android:maxLines="1"
-                            android:text="Tài khoản khách"
+                            android:text="@string/guest_account"
                             android:textColor="@color/text_primary"
                             android:textSize="17sp"
                             android:textStyle="bold" />
@@ -148,7 +148,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:fontFamily="sans-serif"
-                            android:text="Mã nạp: Chưa đăng nhập"
+                            android:text="@string/recharge_code_not_logged_in"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -162,7 +162,7 @@
                         android:layout_marginEnd="6dp"
                         android:background="@drawable/bg_badge_pill"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Miễn phí"
+                        android:text="@string/plan_free"
                         android:textColor="@color/setting_pill_badge_text"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -187,7 +187,7 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06"
-                android:text="GIAO DIỆN &amp; HIỂN THỊ"
+                android:text="@string/section_display_interface"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -237,16 +237,17 @@
                         android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif"
-                        android:text="Ngôn ngữ hiển thị"
+                        android:text="@string/setting_language"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp" />
 
                     <TextView
+                        android:id="@+id/txtLanguageValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:fontFamily="sans-serif"
-                        android:text="Tiếng Việt"
+                        android:text="@string/language_vietnamese"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
@@ -311,7 +312,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif"
-                            android:text="Khóa vân tay / FaceID"
+                            android:text="@string/setting_biometric_title"
                             android:textColor="@color/text_primary"
                             android:textSize="15sp" />
 
@@ -320,7 +321,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif"
-                            android:text="Bảo vệ dữ liệu khi mở ứng dụng"
+                            android:text="@string/setting_biometric_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -345,7 +346,7 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06"
-                android:text="HỖ TRỢ &amp; THÔNG TIN"
+                android:text="@string/section_support_info"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -401,7 +402,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif"
-                            android:text="Hỗ trợ &amp; Góp ý"
+                            android:text="@string/setting_feedback_title"
                             android:textColor="@color/text_primary"
                             android:textSize="15sp" />
 
@@ -410,7 +411,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif"
-                            android:text="Gửi phản hồi trực tiếp tới lập trình viên"
+                            android:text="@string/setting_feedback_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -471,7 +472,7 @@
                         android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif"
-                        android:text="Phiên bản ứng dụng"
+                        android:text="@string/setting_app_version"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp" />
 
@@ -498,7 +499,7 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06"
-                android:text="TÀI KHOẢN"
+                android:text="@string/section_account"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -508,7 +509,7 @@
                 android:id="@+id/btnAuthAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="24dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -549,68 +550,7 @@
                         android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Đăng xuất"
-                        android:textColor="#FF3B30"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="#FFA49E" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Nút Xóa tài khoản vĩnh viễn: Component hình chữ nhật bo góc 16dp, text & icon đỏ -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnXoaTaiKhoan"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/setting_card_bg"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="1dp"
-                app:strokeColor="@color/setting_danger_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingTop="16dp"
-                    android:paddingEnd="16dp"
-                    android:paddingBottom="16dp">
-
-                    <FrameLayout
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/bg_icon_container_danger">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_delete"
-                            app:tint="#FF3B30" />
-
-                    </FrameLayout>
-
-                    <TextView
-                        android:id="@+id/txtXoaTaiKhoan"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Xóa tài khoản vĩnh viễn"
+                        android:text="@string/btn_logout"
                         android:textColor="#FF3B30"
                         android:textSize="15sp"
                         android:textStyle="bold" />

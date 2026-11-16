@@ -63,8 +63,14 @@ public class MainActivity extends AppCompatActivity {
     boolean daXacThucSinhTrac = false;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(SettingsFragment.capNhatContextNgonNgu(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         SettingsFragment.khoiTaoTheme(this);
+        SettingsFragment.datNgonNgu(this, SettingsFragment.layNgonNgu(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 

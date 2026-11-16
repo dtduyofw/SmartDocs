@@ -107,6 +107,11 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     boolean dangHienExtracted = true; // Tab đang active
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(SettingsFragment.capNhatContextNgonNgu(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_document_preview);

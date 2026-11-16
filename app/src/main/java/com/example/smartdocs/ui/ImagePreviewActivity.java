@@ -45,6 +45,11 @@ public class ImagePreviewActivity extends AppCompatActivity {
     Bitmap bitmapHienTai;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(SettingsFragment.capNhatContextNgonNgu(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_preview);

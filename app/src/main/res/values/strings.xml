@@ -36,4 +36,41 @@
 
     <!-- Google Sign In -->
     <string name="default_web_client_id" translatable="false"></string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="action_back">Quay lại</string>
+    <string name="action_save_settings">Lưu cài đặt</string>
+    <string name="guest_account">Tài khoản khách</string>
+    <string name="recharge_code_not_logged_in">Mã nạp: Chưa đăng nhập</string>
+    <string name="recharge_code_prefix">Mã nạp: %1$s</string>
+    <string name="plan_free">Miễn phí</string>
+    <string name="plan_plus">Plus</string>
+    <string name="plan_pro">Pro</string>
+    <string name="plan_vip">Gói VIP (Không giới hạn)</string>
+    <string name="section_display_interface">GIAO DIỆN &amp; HIỂN THỊ</string>
+    <string name="setting_language">Ngôn ngữ hiển thị</string>
+    <string name="language_vietnamese">Tiếng Việt</string>
+    <string name="language_english">English</string>
+    <string name="language_vietnamese_option">Tiếng Việt (Mặc định)</string>
+    <string name="language_english_option">English (Tiếng Anh)</string>
+    <string name="setting_biometric_title">Khóa vân tay / FaceID</string>
+    <string name="setting_biometric_desc">Bảo vệ dữ liệu khi mở ứng dụng</string>
+    <string name="section_support_info">HỖ TRỢ &amp; THÔNG TIN</string>
+    <string name="setting_feedback_title">Hỗ trợ &amp; Góp ý</string>
+    <string name="setting_feedback_desc">Gửi phản hồi trực tiếp tới lập trình viên</string>
+    <string name="setting_app_version">Phiên bản ứng dụng</string>
+    <string name="section_account">TÀI KHOẢN</string>
+    <string name="btn_login">Đăng nhập</string>
+    <string name="btn_logout">Đăng xuất</string>
+    <string name="cancel">Hủy</string>
+    <string name="dialog_logout_title">Đăng xuất</string>
+    <string name="dialog_logout_message">Bạn có chắc chắn muốn đăng xuất tài khoản AI?</string>
+    <string name="msg_logged_out">Đã đăng xuất tài khoản.</string>
+    <string name="bio_not_supported">Thiết bị chưa cài đặt hoặc không hỗ trợ vân tay / khuôn mặt.</string>
+    <string name="bio_enable_title">Kích hoạt khóa bảo vệ</string>
+    <string name="bio_enable_desc">Xác thực vân tay hoặc khuôn mặt để kích hoạt</string>
+    <string name="bio_enabled_success">Đã bật khóa bằng vân tay / khuôn mặt.</string>
+    <string name="bio_disabled">Đã tắt khóa bằng sinh trắc học.</string>
+    <string name="msg_settings_saved">Đã lưu cài đặt!</string>
 </resources>
