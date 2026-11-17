@@ -73,6 +73,8 @@ public class QLTaiKhoan {
     int tongLuot = 50;
     int daNiemDung = 0;
     long hanSuDung = 0;
+    String maXacNhanXoa = "";
+    long thoiGianHetHanMaXoa = 0;
 
     static QLTaiKhoan instance;
 
@@ -180,7 +182,7 @@ public class QLTaiKhoan {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
-                            FirebaseUser user = task.getResult().getUser();
+                            final FirebaseUser user = task.getResult().getUser();
                             if (user != null) {
                                 uid = user.getUid();
                                 email = emailDangKy;
@@ -199,33 +201,24 @@ public class QLTaiKhoan {
                                 mapUser.put("loaigoi", loaiGoi);
                                 mapUser.put("tongluot", tongLuot);
                                 mapUser.put("daniemdung", daNiemDung);
+                                mapUser.put("emailVerified", false);
                                 mapUser.put("ngaytao", FieldValue.serverTimestamp());
 
                                 if (mFirestore != null) {
-                                    mFirestore.collection("users").document(uid)
-                                            .set(mapUser)
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void unused) {
-                                                    luuThongTin();
-                                                    if (callback != null) {
-                                                        callback.onSuccess("Đăng ký thành công! Bạn có 50 lượt AI miễn phí.");
-                                                    }
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    luuThongTin();
-                                                    if (callback != null) {
-                                                        callback.onSuccess("Đăng ký thành công trên thiết bị.");
-                                                    }
-                                                }
-                                            });
-                                } else {
-                                    luuThongTin();
-                                    if (callback != null) callback.onSuccess("Đăng ký tài khoản thành công!");
+                                    mFirestore.collection("users").document(uid).set(mapUser);
                                 }
+
+                                // Gui email xac nhan kich hoat tai khoan
+                                user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> taskVerify) {
+                                        // Dang xuat ngay lap tuc de bat buoc nguoi dung phai kich hoat email truoc khi dang nhap
+                                        dangXuat();
+                                        if (callback != null) {
+                                            callback.onSuccess("Đăng ký thành công! Email xác nhận kích hoạt đã được gửi tới " + emailDangKy + ". Vui lòng kiểm tra hộp thư và nhấn vào liên kết kích hoạt trước khi đăng nhập.");
+                                        }
+                                    }
+                                });
                             }
                         } else {
                             String loi = task.getException() != null ? task.getException().getMessage() : "Lỗi không xác định khi đăng ký.";
@@ -235,7 +228,7 @@ public class QLTaiKhoan {
                 });
     }
 
-    // Dang nhap bang Email va Mat khau
+    // Dang nhap bang Email va Mat khau (co kiem tra kich hoat tai khoan qua email)
     public void dangNhap(final String emailDangNhap, String matKhau, final AuthCallback callback) {
         if (mAuth == null) {
             if (callback != null) callback.onError("Firebase Auth chua duoc khoi tao.");
@@ -247,32 +240,81 @@ public class QLTaiKhoan {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
-                            FirebaseUser user = task.getResult().getUser();
+                            final FirebaseUser user = task.getResult().getUser();
                             if (user != null) {
-                                uid = user.getUid();
-                                email = emailDangNhap;
-
-                                // Dong bo du lieu tu Firestore ve may
-                                dongBoTuFirestore(new SyncCallback() {
+                                // Reload lai thong tin user de lay trang thai emailVerified moi nhat tu Firebase
+                                user.reload().addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
-                                    public void onSynced() {
-                                        if (callback != null) {
-                                            callback.onSuccess("Đăng nhập thành công!");
+                                    public void onComplete(@NonNull Task<Void> taskReload) {
+                                        if (!user.isEmailVerified()) {
+                                            // Tu dong gui lai email xac nhan kich hoat tai khoan
+                                            user.sendEmailVerification();
+                                            dangXuat();
+                                            if (callback != null) {
+                                                callback.onError("CHUA_KICH_HOAT:" + emailDangNhap);
+                                            }
+                                            return;
                                         }
-                                    }
 
-                                    @Override
-                                    public void onError(String loi) {
-                                        // Neu loi dong bo thi van cho phep dang nhap voi du lieu cu
-                                        luuThongTin();
-                                        if (callback != null) {
-                                            callback.onSuccess("Đăng nhập thành công!");
-                                        }
+                                        uid = user.getUid();
+                                        email = emailDangNhap;
+
+                                        // Dong bo du lieu tu Firestore ve may
+                                        dongBoTuFirestore(new SyncCallback() {
+                                            @Override
+                                            public void onSynced() {
+                                                if (callback != null) {
+                                                    callback.onSuccess("Đăng nhập thành công!");
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onError(String loi) {
+                                                // Neu loi dong bo thi van cho phep dang nhap voi du lieu cu
+                                                luuThongTin();
+                                                if (callback != null) {
+                                                    callback.onSuccess("Đăng nhập thành công!");
+                                                }
+                                            }
+                                        });
                                     }
                                 });
                             }
                         } else {
                             String loi = task.getException() != null ? task.getException().getMessage() : "Sai email hoặc mật khẩu.";
+                            if (callback != null) callback.onError(loi);
+                        }
+                    }
+                });
+    }
+
+    // Gui lai email xac nhan kich hoat tai khoan
+    public void guiLaiEmailKichHoat(final String emailDangNhap, String matKhau, final AuthCallback callback) {
+        if (mAuth == null) {
+            if (callback != null) callback.onError("Firebase Auth chua duoc khoi tao.");
+            return;
+        }
+
+        mAuth.signInWithEmailAndPassword(emailDangNhap, matKhau)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful() && task.getResult() != null && task.getResult().getUser() != null) {
+                            FirebaseUser user = task.getResult().getUser();
+                            user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> taskVerify) {
+                                    dangXuat();
+                                    if (taskVerify.isSuccessful()) {
+                                        if (callback != null) callback.onSuccess("Đã gửi lại email xác nhận kích hoạt tới " + emailDangNhap + ". Vui lòng kiểm tra hộp thư!");
+                                    } else {
+                                        String loi = taskVerify.getException() != null ? taskVerify.getException().getMessage() : "Không thể gửi email kích hoạt.";
+                                        if (callback != null) callback.onError(loi);
+                                    }
+                                }
+                            });
+                        } else {
+                            String loi = task.getException() != null ? task.getException().getMessage() : "Không thể xác thực để gửi lại email.";
                             if (callback != null) callback.onError(loi);
                         }
                     }
@@ -514,6 +556,114 @@ public class QLTaiKhoan {
         final FirebaseUser user = mAuth.getCurrentUser();
         final String targetUid = user.getUid();
         thucHienXoaTrietDeTrenFirebase(user, targetUid, callback);
+    }
+
+    // Gui email xac nhan va ma OTP xoa tai khoan (ap dung cho ca tai khoan Email va Google)
+    public void yeuCauXoaTaiKhoan(final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản trên Firebase.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String targetUid = user.getUid();
+        final String targetEmail = user.getEmail() != null ? user.getEmail() : email;
+
+        if (targetEmail == null || targetEmail.isEmpty()) {
+            if (callback != null) callback.onError("Không tìm thấy địa chỉ email của tài khoản.");
+            return;
+        }
+
+        // Sinh ma xac nhan 6 chu so ngau nhien
+        int randomCode = 100000 + new Random().nextInt(900000);
+        maXacNhanXoa = String.valueOf(randomCode);
+        thoiGianHetHanMaXoa = System.currentTimeMillis() + 15 * 60 * 1000; // Hieu luc 15 phut
+
+        // 1. Luu yeu cau xoa vao collection yeu_cau_xoa tren Firestore
+        if (mFirestore != null) {
+            Map<String, Object> reqData = new HashMap<>();
+            reqData.put("uid", targetUid);
+            reqData.put("email", targetEmail);
+            reqData.put("code", maXacNhanXoa);
+            reqData.put("expireAt", thoiGianHetHanMaXoa);
+            reqData.put("createdAt", FieldValue.serverTimestamp());
+            mFirestore.collection("yeu_cau_xoa").document(targetUid).set(reqData);
+
+            // 2. Ghi vao collection mail de ho tro trigger gui email
+            Map<String, Object> mailData = new HashMap<>();
+            mailData.put("to", targetEmail);
+            Map<String, Object> messageData = new HashMap<>();
+            messageData.put("subject", "[SmartDocs] Mã xác nhận xóa tài khoản: " + maXacNhanXoa);
+            messageData.put("text", "Xin chào,\n\nBạn hoặc ai đó vừa gửi yêu cầu xóa vĩnh viễn tài khoản SmartDocs liên kết với địa chỉ email: " + targetEmail + ".\n\nMã xác nhận xóa tài khoản của bạn là: " + maXacNhanXoa + "\n(Mã có hiệu lực trong vòng 15 phút).\n\nNếu bạn không yêu cầu xóa tài khoản, vui lòng bỏ qua email này và đổi mật khẩu để bảo vệ tài khoản.\n\nTrân trọng,\nĐội ngũ SmartDocs");
+            mailData.put("message", messageData);
+            mailData.put("createdAt", FieldValue.serverTimestamp());
+            mFirestore.collection("mail").add(mailData);
+        }
+
+        if (callback != null) {
+            callback.onSuccess(maXacNhanXoa);
+        }
+    }
+
+    // Xac thuc ma nhap tu email va thuc hien xoa vinh vien tai khoan
+    public void xacNhanMaVaXoaTaiKhoan(final String maNhap, final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Không tìm thấy phiên đăng nhập tài khoản trên Firebase.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String targetUid = user.getUid();
+        final String targetEmail = user.getEmail() != null ? user.getEmail() : email;
+
+        if (maNhap == null || maNhap.trim().isEmpty()) {
+            if (callback != null) callback.onError("Vui lòng nhập mã xác nhận.");
+            return;
+        }
+
+        if (System.currentTimeMillis() > thoiGianHetHanMaXoa) {
+            if (callback != null) callback.onError("Mã xác nhận đã hết hạn. Vui lòng bấm 'Gửi lại mã' để nhận mã mới.");
+            return;
+        }
+
+        if (!maNhap.trim().equals(maXacNhanXoa)) {
+            if (callback != null) callback.onError("Mã xác nhận không chính xác. Vui lòng kiểm tra lại email.");
+            return;
+        }
+
+        // Gui email thong bao xoa thanh cong ve collection mail
+        if (mFirestore != null) {
+            Map<String, Object> mailDone = new HashMap<>();
+            mailDone.put("to", targetEmail);
+            Map<String, Object> msgDone = new HashMap<>();
+            msgDone.put("subject", "[SmartDocs] Tài khoản của bạn đã được xóa thành công");
+            msgDone.put("text", "Xin chào,\n\nTài khoản SmartDocs liên kết với địa chỉ email " + targetEmail + " đã được xóa vĩnh viễn khỏi hệ thống theo yêu cầu của bạn.\n\nCảm ơn bạn đã đồng hành cùng SmartDocs thời gian qua.\n\nTrân trọng,\nĐội ngũ SmartDocs");
+            mailDone.put("message", msgDone);
+            mailDone.put("createdAt", FieldValue.serverTimestamp());
+            mFirestore.collection("mail").add(mailDone);
+
+            // Xoa document yeu cau xoa
+            mFirestore.collection("yeu_cau_xoa").document(targetUid).delete();
+        }
+
+        // Xoa tai khoan vinh vien khoi he thong
+        thucHienXoaTrietDeTrenFirebase(user, targetUid, new AuthCallback() {
+            @Override
+            public void onSuccess(String thongBao) {
+                maXacNhanXoa = "";
+                thoiGianHetHanMaXoa = 0;
+                if (callback != null) {
+                    callback.onSuccess("Tài khoản của bạn đã được xóa hoàn toàn. Email xác nhận đã được gửi về hộp thư.");
+                }
+            }
+
+            @Override
+            public void onError(String loi) {
+                if (callback != null) {
+                    callback.onError(loi);
+                }
+            }
+        });
     }
 
     // Quy trinh xoa: xoa Firestore truoc roi moi xoa Firebase Authentication

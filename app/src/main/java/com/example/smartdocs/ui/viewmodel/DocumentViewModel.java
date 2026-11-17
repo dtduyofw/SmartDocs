@@ -12,6 +12,7 @@ import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.data.repository.DocumentRepository;
 import com.example.smartdocs.api.GeminiRepository;
+import com.example.smartdocs.ocr.DocumentClassifierHelper;
 import com.example.smartdocs.ui.SettingsFragment;
 
 import java.util.List;
@@ -210,6 +211,7 @@ public class DocumentViewModel extends AndroidViewModel {
                 System.currentTimeMillis(),
                 title
         );
+        document.tags = DocumentClassifierHelper.phanLoaiNhanh(ocr);
         if (pages != null && !pages.isEmpty()) {
             document.pageCount = pages.size();
         }
@@ -270,6 +272,7 @@ public class DocumentViewModel extends AndroidViewModel {
                 System.currentTimeMillis(),
                 title
         );
+        document.tags = DocumentClassifierHelper.phanLoaiNhanh(ocr);
         document.pageCount = 1;
 
         setLoading(true);

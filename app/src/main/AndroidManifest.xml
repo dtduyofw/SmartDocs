@@ -55,6 +55,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
+        <!-- BanDoTuDuyActivity: man hinh truc quan hoa ban do tu duy 4 tang -->
+        <activity
+            android:name=".ui.BanDoTuDuyActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.DocumentPreviewActivity" />
         <!-- ImagePreviewActivity: man hinh xem anh va crop truoc khi OCR -->
         <activity
             android:name=".ui.ImagePreviewActivity"

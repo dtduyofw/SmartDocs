@@ -64,6 +64,17 @@ public class DocumentRepository {
         });
     }
 
+    // Cap nhat nhan phan loai tags
+    public void updateTags(int id, String tags, OnCompleteCallback callback) {
+        executor.execute(() -> {
+            documentDao.updateTags(id, tags, System.currentTimeMillis());
+            if (callback != null) {
+                new android.os.Handler(android.os.Looper.getMainLooper())
+                        .post(callback::onComplete);
+            }
+        });
+    }
+
     // ─────────────────────────────────────────
     // WRITE — bắt buộc chạy trên background thread
     // ─────────────────────────────────────────

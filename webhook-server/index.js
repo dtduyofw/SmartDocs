@@ -167,6 +167,35 @@ app.get('/', (req, res) => {
     res.json({ status: 'SmartDocs Webhook Server dang chay' });
 });
 
+// Endpoint gui email thong bao hoac xac nhan xoa tai khoan
+app.post('/api/gui-email-xac-nhan', async (req, res) => {
+    const { email, code, type } = req.body || {};
+    if (!email) {
+        return res.status(400).json({ error: 400, message: 'Thieu dia chi email' });
+    }
+
+    console.log(`[Email Service] Gui email loai "${type || 'xac_nhan_xoa'}" toi: ${email}, Ma: ${code || 'N/A'}`);
+
+    try {
+        await db.collection('mail').add({
+            to: email,
+            message: {
+                subject: type === 'thong_bao_xoa'
+                    ? '[SmartDocs] Tài khoản của bạn đã được xóa thành công'
+                    : `[SmartDocs] Mã xác nhận xóa tài khoản: ${code}`,
+                text: type === 'thong_bao_xoa'
+                    ? `Xin chào,\n\nTài khoản SmartDocs liên kết với email ${email} đã được xóa thành công.\n\nTrân trọng,\nĐội ngũ SmartDocs`
+                    : `Xin chào,\n\nMã xác nhận xóa tài khoản SmartDocs của bạn là: ${code}.\n(Mã có hiệu lực trong 15 phút).\n\nTrân trọng,\nĐội ngũ SmartDocs`
+            },
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return res.json({ success: true, message: 'Da ghi nhan yeu cau gui email' });
+    } catch (e) {
+        console.error('Loi luu mail Firestore:', e);
+        return res.status(500).json({ error: 500, message: e.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Webhook server khoi dong tren cong ${PORT}`);

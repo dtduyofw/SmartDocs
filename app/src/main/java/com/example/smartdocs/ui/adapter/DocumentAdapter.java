@@ -1,5 +1,7 @@
 package com.example.smartdocs.ui.adapter;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.model.ScanDocument;
+import com.example.smartdocs.ocr.DocumentClassifierHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,9 +40,13 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
                 @Override
                 public boolean areContentsTheSame(@NonNull ScanDocument oldItem,
                                                   @NonNull ScanDocument newItem) {
-                    return oldItem.title.equals(newItem.title)
-                            && oldItem.ocrText.equals(newItem.ocrText)
-                            && oldItem.createdAt == newItem.createdAt;
+                    return java.util.Objects.equals(oldItem.title, newItem.title)
+                            && java.util.Objects.equals(oldItem.ocrText, newItem.ocrText)
+                            && java.util.Objects.equals(oldItem.tags, newItem.tags)
+                            && java.util.Objects.equals(oldItem.aiSummary, newItem.aiSummary)
+                            && oldItem.createdAt == newItem.createdAt
+                            && oldItem.isFavorite == newItem.isFavorite
+                            && oldItem.pageCount == newItem.pageCount;
                 }
             };
 
@@ -186,9 +193,33 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
             // Badge Tag phan loai
             if (txtBadgeTag != null) {
                 if (document.tags != null && !document.tags.trim().isEmpty()) {
-                    String formattedTags = "#" + document.tags.trim().replace(",", " #");
-                    txtBadgeTag.setText(formattedTags);
+                    String tag = document.tags.trim();
+                    txtBadgeTag.setText("#" + tag.replace(",", " #"));
                     txtBadgeTag.setVisibility(View.VISIBLE);
+
+                    // To mau badge rieng biet cho tung loai tai lieu
+                    GradientDrawable bgBadge = new GradientDrawable();
+                    float density = itemView.getResources().getDisplayMetrics().density;
+                    bgBadge.setCornerRadius(6 * density);
+
+                    if (tag.contains(DocumentClassifierHelper.TAG_HOA_DON)) {
+                        bgBadge.setColor(Color.parseColor("#2A2015"));
+                        txtBadgeTag.setTextColor(Color.parseColor("#F59E0B"));
+                    } else if (tag.contains(DocumentClassifierHelper.TAG_GIAY_TO)) {
+                        bgBadge.setColor(Color.parseColor("#172033"));
+                        txtBadgeTag.setTextColor(Color.parseColor("#3B82F6"));
+                    } else if (tag.contains(DocumentClassifierHelper.TAG_HOC_TAP)) {
+                        bgBadge.setColor(Color.parseColor("#142820"));
+                        txtBadgeTag.setTextColor(Color.parseColor("#10B981"));
+                    } else if (tag.contains(DocumentClassifierHelper.TAG_SO_LIEU)) {
+                        bgBadge.setColor(Color.parseColor("#261C3B"));
+                        txtBadgeTag.setTextColor(Color.parseColor("#A855F7"));
+                    } else {
+                        bgBadge.setColor(Color.parseColor("#27272A"));
+                        txtBadgeTag.setTextColor(Color.parseColor("#A1A1AA"));
+                    }
+                    txtBadgeTag.setBackground(bgBadge);
+                    txtBadgeTag.setPadding((int) (6 * density), (int) (2 * density), (int) (6 * density), (int) (2 * density));
                 } else {
                     txtBadgeTag.setVisibility(View.GONE);
                 }

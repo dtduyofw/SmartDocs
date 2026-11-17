@@ -56,4 +56,8 @@ public interface DocumentDao {
     // Cập nhật kết quả AI theo ID, đồng thời ghi nhận thời gian chỉnh sửa
     @Query("UPDATE scan_documents SET ai_summary = :aiSummary, updated_at = :updatedAt WHERE id = :id")
     void updateAiSummary(int id, String aiSummary, long updatedAt);
+
+    // Cập nhật nhãn phân loại tài liệu theo ID
+    @Query("UPDATE scan_documents SET tags = :tags, updated_at = :updatedAt WHERE id = :id")
+    void updateTags(int id, String tags, long updatedAt);
 }

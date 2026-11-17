@@ -18,14 +18,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Typeface;
+
 import com.example.smartdocs.R;
 import com.example.smartdocs.data.model.ScanDocument;
+import com.example.smartdocs.ocr.DocumentClassifierHelper;
 import com.example.smartdocs.ui.adapter.DocumentAdapter;
 import com.example.smartdocs.ui.viewmodel.DocumentViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -44,6 +48,11 @@ public class HistoryFragment extends Fragment {
     TextView txtDocCount;
     RecyclerView recyclerHistory;
     LinearLayout layoutEmpty;
+
+    // Filter Chips
+    TextView chipFilterTatCa, chipFilterHoaDon, chipFilterGiayTo, chipFilterHocTap, chipFilterSoLieu, chipFilterKhac;
+    String tagDangLoc = "ALL";
+    List<ScanDocument> danhSachGoc = new java.util.ArrayList<>();
 
     // ViewModel & Adapter
     DocumentViewModel viewModel;
@@ -81,13 +90,16 @@ public class HistoryFragment extends Fragment {
         // 4. Thiết lập RecyclerView + Adapter
         thietLapRecyclerView();
 
-        // 5. Observe dữ liệu từ Room
+        // 5. Thiet lap bo loc tag danh muc
+        thietLapBoLocTag();
+
+        // 6. Observe dữ liệu từ Room
         observeViewModel();
 
-        // 6. Thiết lập tìm kiếm realtime
+        // 7. Thiết lập tìm kiếm realtime
         thietLapTimKiem();
 
-        // 7. Thiết lập vuốt xóa
+        // 8. Thiết lập vuốt xóa
         thietLapVuotXoa();
     }
 
@@ -97,6 +109,13 @@ public class HistoryFragment extends Fragment {
         txtDocCount = (TextView) view.findViewById(R.id.txtDocCount);
         recyclerHistory = (RecyclerView) view.findViewById(R.id.recyclerHistory);
         layoutEmpty = (LinearLayout) view.findViewById(R.id.layoutEmpty);
+
+        chipFilterTatCa = (TextView) view.findViewById(R.id.chipFilterTatCa);
+        chipFilterHoaDon = (TextView) view.findViewById(R.id.chipFilterHoaDon);
+        chipFilterGiayTo = (TextView) view.findViewById(R.id.chipFilterGiayTo);
+        chipFilterHocTap = (TextView) view.findViewById(R.id.chipFilterHocTap);
+        chipFilterSoLieu = (TextView) view.findViewById(R.id.chipFilterSoLieu);
+        chipFilterKhac = (TextView) view.findViewById(R.id.chipFilterKhac);
     }
 
     void thietLapRecyclerView() {
@@ -133,18 +152,134 @@ public class HistoryFragment extends Fragment {
 
     void observeViewModel() {
         viewModel.getAllDocuments().observe(getViewLifecycleOwner(), documents -> {
-            if (documents == null || documents.isEmpty()) {
-                layoutEmpty.setVisibility(View.VISIBLE);
-                recyclerHistory.setVisibility(View.GONE);
-                txtDocCount.setText("Chưa có tài liệu nào");
-            } else {
-                layoutEmpty.setVisibility(View.GONE);
-                recyclerHistory.setVisibility(View.VISIBLE);
-                adapter.submitList(documents);
-                int soLuong = documents.size();
-                txtDocCount.setText(soLuong + " tài liệu");
-            }
+            danhSachGoc = documents != null ? new java.util.ArrayList<>(documents) : new java.util.ArrayList<>();
+            locVaHienThi();
         });
+    }
+
+    void thietLapBoLocTag() {
+        if (chipFilterTatCa != null) {
+            chipFilterTatCa.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc("ALL");
+                }
+            });
+        }
+        if (chipFilterHoaDon != null) {
+            chipFilterHoaDon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc(DocumentClassifierHelper.TAG_HOA_DON);
+                }
+            });
+        }
+        if (chipFilterGiayTo != null) {
+            chipFilterGiayTo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc(DocumentClassifierHelper.TAG_GIAY_TO);
+                }
+            });
+        }
+        if (chipFilterHocTap != null) {
+            chipFilterHocTap.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc(DocumentClassifierHelper.TAG_HOC_TAP);
+                }
+            });
+        }
+        if (chipFilterSoLieu != null) {
+            chipFilterSoLieu.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc(DocumentClassifierHelper.TAG_SO_LIEU);
+                }
+            });
+        }
+        if (chipFilterKhac != null) {
+            chipFilterKhac.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chonChipLoc(DocumentClassifierHelper.TAG_KHAC);
+                }
+            });
+        }
+    }
+
+    void chonChipLoc(String tag) {
+        tagDangLoc = tag;
+        capNhatGiaoDienChipLoc();
+        locVaHienThi();
+    }
+
+    void capNhatGiaoDienChipLoc() {
+        if (!isAdded()) return;
+        int mauActive = ContextCompat.getColor(requireContext(), R.color.primary_dark);
+        int mauInactive = ContextCompat.getColor(requireContext(), R.color.text_secondary);
+
+        capNhatMotChip(chipFilterTatCa, "ALL".equals(tagDangLoc), mauActive, mauInactive);
+        capNhatMotChip(chipFilterHoaDon, DocumentClassifierHelper.TAG_HOA_DON.equals(tagDangLoc), mauActive, mauInactive);
+        capNhatMotChip(chipFilterGiayTo, DocumentClassifierHelper.TAG_GIAY_TO.equals(tagDangLoc), mauActive, mauInactive);
+        capNhatMotChip(chipFilterHocTap, DocumentClassifierHelper.TAG_HOC_TAP.equals(tagDangLoc), mauActive, mauInactive);
+        capNhatMotChip(chipFilterSoLieu, DocumentClassifierHelper.TAG_SO_LIEU.equals(tagDangLoc), mauActive, mauInactive);
+        capNhatMotChip(chipFilterKhac, DocumentClassifierHelper.TAG_KHAC.equals(tagDangLoc), mauActive, mauInactive);
+    }
+
+    void capNhatMotChip(TextView chip, boolean isActive, int mauActive, int mauInactive) {
+        if (chip == null) return;
+        if (isActive) {
+            chip.setBackgroundResource(R.drawable.bg_segmented_active);
+            chip.setTextColor(mauActive);
+            chip.setTypeface(null, Typeface.BOLD);
+        } else {
+            chip.setBackgroundResource(R.drawable.bg_segmented_container);
+            chip.setTextColor(mauInactive);
+            chip.setTypeface(null, Typeface.NORMAL);
+        }
+    }
+
+    void locVaHienThi() {
+        if (danhSachGoc == null) return;
+        String keyword = edtSearch != null && edtSearch.getText() != null
+                ? edtSearch.getText().toString().trim().toLowerCase() : "";
+
+        List<ScanDocument> ketQua = new java.util.ArrayList<>();
+        for (ScanDocument doc : danhSachGoc) {
+            // 1. Kiem tra filter tag
+            boolean matchTag = "ALL".equals(tagDangLoc);
+            if (!matchTag) {
+                if (DocumentClassifierHelper.TAG_KHAC.equals(tagDangLoc)) {
+                    matchTag = doc.tags == null || doc.tags.trim().isEmpty() || doc.tags.contains(DocumentClassifierHelper.TAG_KHAC);
+                } else if (doc.tags != null) {
+                    matchTag = doc.tags.contains(tagDangLoc);
+                }
+            }
+
+            // 2. Kiem tra keyword
+            boolean matchKeyword = true;
+            if (!keyword.isEmpty()) {
+                boolean matchTitle = doc.title != null && doc.title.toLowerCase().contains(keyword);
+                boolean matchOcr = doc.ocrText != null && doc.ocrText.toLowerCase().contains(keyword);
+                matchKeyword = matchTitle || matchOcr;
+            }
+
+            if (matchTag && matchKeyword) {
+                ketQua.add(doc);
+            }
+        }
+
+        adapter.submitList(ketQua);
+        if (ketQua.isEmpty()) {
+            layoutEmpty.setVisibility(View.VISIBLE);
+            recyclerHistory.setVisibility(View.GONE);
+            txtDocCount.setText("0 tài liệu");
+        } else {
+            layoutEmpty.setVisibility(View.GONE);
+            recyclerHistory.setVisibility(View.VISIBLE);
+            txtDocCount.setText(ketQua.size() + " tài liệu");
+        }
     }
 
     void thietLapTimKiem() {
@@ -154,31 +289,7 @@ public class HistoryFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String keyword = s.toString().trim();
-
-                if (keyword.isEmpty()) {
-                    viewModel.getAllDocuments().observe(getViewLifecycleOwner(), documents -> {
-                        if (documents != null) {
-                            adapter.submitList(documents);
-                            capNhatSoLuong(documents);
-                        }
-                    });
-                } else {
-                    viewModel.search(keyword).observe(getViewLifecycleOwner(), documents -> {
-                        if (documents != null) {
-                            adapter.submitList(documents);
-                            capNhatSoLuong(documents);
-                            if (documents.isEmpty()) {
-                                layoutEmpty.setVisibility(View.VISIBLE);
-                                recyclerHistory.setVisibility(View.GONE);
-                                txtDocCount.setText("Không tìm thấy kết quả");
-                            } else {
-                                layoutEmpty.setVisibility(View.GONE);
-                                recyclerHistory.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                }
+                locVaHienThi();
             }
 
             @Override
@@ -319,6 +430,25 @@ public class HistoryFragment extends Fragment {
                 hienDialogChiTiet(document);
             }
         });
+
+
+        // Trắc nghiệm ôn tập nếu tài liệu có tag Tài liệu học tập
+        View itemBsTracNghiem = sheetView.findViewById(R.id.itemBsTracNghiem);
+        if (itemBsTracNghiem != null) {
+            if (DocumentClassifierHelper.coTheLamTracNghiem(document.tags)) {
+                itemBsTracNghiem.setVisibility(View.VISIBLE);
+                itemBsTracNghiem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        sheet.dismiss();
+                        TracNghiemBottomSheet quizSheet = new TracNghiemBottomSheet(requireContext(), document.ocrText, document.title);
+                        quizSheet.hienThi();
+                    }
+                });
+            } else {
+                itemBsTracNghiem.setVisibility(View.GONE);
+            }
+        }
 
         // Chia sẻ
         sheetView.findViewById(R.id.itemBsChiaSe).setOnClickListener(new View.OnClickListener() {

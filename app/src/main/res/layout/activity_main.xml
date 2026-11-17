@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="@color/background">
+            android:background="@color/black">
 
             <!-- Container cho cac Fragment: Home, Files, History, Settings -->
             <FrameLayout
@@ -26,12 +26,12 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- Thanh Bottom Navigation co dinh duy nhat cho toan app -->
+            <!-- Thanh Bottom Navigation bo tron phia tren -->
             <com.google.android.material.bottomnavigation.BottomNavigationView
                 android:id="@+id/bottomNav"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/surface"
+                android:background="@drawable/bg_bottom_nav_rounded"
                 app:menu="@menu/bottom_nav_menu" />
 
         </LinearLayout>

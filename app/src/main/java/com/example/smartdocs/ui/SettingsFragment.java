@@ -73,7 +73,7 @@ public class SettingsFragment extends Fragment {
 
     // Phan hoi & Thong tin
     View btnFeedback;
-    TextView txtAppVersion;
+    //TextView txtAppVersion;
 
     SharedPreferences prefs;
     QLTaiKhoan qlTaiKhoan;
@@ -123,7 +123,7 @@ public class SettingsFragment extends Fragment {
         swBiometric = (androidx.appcompat.widget.SwitchCompat) view.findViewById(R.id.swBiometric);
 
         btnFeedback = view.findViewById(R.id.btnFeedback);
-        txtAppVersion = (TextView) view.findViewById(R.id.txtAppVersion);
+        //txtAppVersion = (TextView) view.findViewById(R.id.txtAppVersion);
     }
 
     void napdDuLieuDaLuu() {
@@ -306,7 +306,7 @@ public class SettingsFragment extends Fragment {
         });
 
         // Easter egg: bam 5 lan vao phien ban de reset bo dem
-        txtAppVersion.setOnClickListener(new View.OnClickListener() {
+ /*       txtAppVersion.setOnClickListener(new View.OnClickListener() {
             int clickCount = 0;
             long lastClickTime = 0;
 
@@ -326,7 +326,7 @@ public class SettingsFragment extends Fragment {
                 }
                 lastClickTime = now;
             }
-        });
+        });*/
     }
 
     void luuCaiDat() {

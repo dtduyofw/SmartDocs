@@ -134,7 +134,7 @@
             android:layout_height="52dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Cắt &amp; Tiếp tục"
+            android:text="Tiếp tục"
             android:textSize="15sp"
             android:textColor="@color/background"
             app:cornerRadius="26dp"

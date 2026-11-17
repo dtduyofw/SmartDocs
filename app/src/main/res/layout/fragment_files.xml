@@ -76,7 +76,8 @@
             android:textSize="14sp"
             android:inputType="text"
             android:imeOptions="actionSearch"
-            android:maxLines="1" />
+            android:maxLines="1"
+            />
 
     </com.google.android.material.textfield.TextInputLayout>
 

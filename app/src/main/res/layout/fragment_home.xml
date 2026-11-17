@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/header_bg"
+        android:background="#18191E"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="16dp"
@@ -29,7 +29,7 @@
             app:cardCornerRadius="10dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="@color/divider"
+            app:strokeColor="#FAFAFA"
             app:cardBackgroundColor="#27272A"
             android:clickable="true"
             android:focusable="true">
@@ -93,11 +93,11 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
-                    app:strokeColor="@color/divider"
-                    app:cardBackgroundColor="@color/surface">
+                    app:strokeColor="#FAFAFA"
+                    app:cardBackgroundColor="#18191E">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -118,7 +118,7 @@
                             app:iconSize="18dp"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:strokeWidth="0dp"
-                            app:cornerRadius="6dp" />
+                            app:cornerRadius="12dp" />
 
                         <!-- Nút AI -->
                         <com.google.android.material.button.MaterialButton
@@ -133,7 +133,7 @@
                             app:iconSize="18dp"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:strokeWidth="0dp"
-                            app:cornerRadius="6dp" />
+                            app:cornerRadius="12dp" />
 
                     </LinearLayout>
 
@@ -239,12 +239,13 @@
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
-                    app:strokeColor="@color/divider"
-                    app:cardBackgroundColor="@color/surface"
+                    app:strokeColor="#FAFAFA"
+                    app:cardBackgroundColor="#1C1C22"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
 
+                    <!-- Mũi tên góc dưới phải -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -255,8 +256,8 @@
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="44dp"
                             android:layout_height="44dp"
-                            app:cardCornerRadius="10dp"
                             app:cardBackgroundColor="#27272A"
+                            app:cardCornerRadius="16dp"
                             app:cardElevation="0dp">
 
                             <ImageView
@@ -287,14 +288,13 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
                             android:text="@string/btn_gallery_sub"
                             android:textColor="@color/text_hint"
-                            android:textSize="12sp"
-                            android:layout_marginTop="2dp" />
+                            android:textSize="12sp" />
 
                     </LinearLayout>
 
-                    <!-- Mũi tên góc dưới phải -->
                     <ImageView
                         android:layout_width="28dp"
                         android:layout_height="28dp"
@@ -316,8 +316,8 @@
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
-                    app:strokeColor="@color/divider"
-                    app:cardBackgroundColor="@color/surface"
+                    app:strokeColor="#FAFAFA"
+                    app:cardBackgroundColor="#1C1C22"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">

@@ -64,19 +64,41 @@
 
     </LinearLayout>
 
-    <!-- ── BADGE: DOCUMENT EXTRACTED ── -->
-    <TextView
-        android:id="@+id/txtStatusBadge"
+    <!-- ── BADGE: DOCUMENT STATUS & TAG ── -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ĐÃ TRÍCH XUẤT"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:textColor="@color/status_badge_green"
-        android:gravity="center"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        android:background="@color/surface" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:background="@color/surface">
+
+        <TextView
+            android:id="@+id/txtStatusBadge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ĐÃ TRÍCH XUẤT"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/status_badge_green" />
+
+        <TextView
+            android:id="@+id/txtDocTagBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#Phân loại"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
 
     <!-- ── NỘI DUNG CHÍNH (cuộn được) ── -->
     <ScrollView
@@ -177,6 +199,14 @@
                         android:lineSpacingExtra="4dp"
                         android:text="(Chưa có nội dung)"
                         android:textIsSelectable="true" />
+
+                    <!-- WebView hien thi van ban da duoc dinh dang lai boi AI -->
+                    <WebView
+                        android:id="@+id/wvFormattedContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -424,6 +454,48 @@
                     app:chipStrokeColor="@color/divider"
                     app:chipStrokeWidth="1dp"
                     android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPhanLoaiAi"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Phân loại Tài liệu"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipBanDoTuDuy"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bản đồ tư duy"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp"
+                    android:visibility="gone" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTracNghiem"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Trắc nghiệm ôn tập"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/surface"
+                    app:chipStrokeColor="@color/divider"
+                    app:chipStrokeWidth="1dp"
+                    android:layout_marginEnd="6dp"
+                    android:visibility="gone" />
+
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipNoiDungChinh"

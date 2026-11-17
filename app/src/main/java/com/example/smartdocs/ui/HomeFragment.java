@@ -740,8 +740,31 @@ public class HomeFragment extends Fragment {
         // Badge Tag
         if (txtBadgeTag != null) {
             if (doc.tags != null && !doc.tags.trim().isEmpty()) {
-                txtBadgeTag.setText("#" + doc.tags.trim().replace(",", " #"));
+                String tag = doc.tags.trim();
+                txtBadgeTag.setText("#" + tag.replace(",", " #"));
                 txtBadgeTag.setVisibility(View.VISIBLE);
+
+                android.graphics.drawable.GradientDrawable bgBadge = new android.graphics.drawable.GradientDrawable();
+                float density = itemView.getResources().getDisplayMetrics().density;
+                bgBadge.setCornerRadius(6 * density);
+                if (tag.contains(com.example.smartdocs.ocr.DocumentClassifierHelper.TAG_HOA_DON)) {
+                    bgBadge.setColor(android.graphics.Color.parseColor("#2A2015"));
+                    txtBadgeTag.setTextColor(android.graphics.Color.parseColor("#F59E0B"));
+                } else if (tag.contains(com.example.smartdocs.ocr.DocumentClassifierHelper.TAG_GIAY_TO)) {
+                    bgBadge.setColor(android.graphics.Color.parseColor("#172033"));
+                    txtBadgeTag.setTextColor(android.graphics.Color.parseColor("#3B82F6"));
+                } else if (tag.contains(com.example.smartdocs.ocr.DocumentClassifierHelper.TAG_HOC_TAP)) {
+                    bgBadge.setColor(android.graphics.Color.parseColor("#142820"));
+                    txtBadgeTag.setTextColor(android.graphics.Color.parseColor("#10B981"));
+                } else if (tag.contains(com.example.smartdocs.ocr.DocumentClassifierHelper.TAG_SO_LIEU)) {
+                    bgBadge.setColor(android.graphics.Color.parseColor("#261C3B"));
+                    txtBadgeTag.setTextColor(android.graphics.Color.parseColor("#A855F7"));
+                } else {
+                    bgBadge.setColor(android.graphics.Color.parseColor("#27272A"));
+                    txtBadgeTag.setTextColor(android.graphics.Color.parseColor("#A1A1AA"));
+                }
+                txtBadgeTag.setBackground(bgBadge);
+                txtBadgeTag.setPadding((int) (6 * density), (int) (2 * density), (int) (6 * density), (int) (2 * density));
             } else {
                 txtBadgeTag.setVisibility(View.GONE);
             }
