@@ -748,6 +748,12 @@ public class QLTaiKhoan {
                                 hanSuDung = hHan;
                             }
 
+                            String nameFs = doc.getString("displayName");
+                            if (nameFs == null || nameFs.isEmpty()) nameFs = doc.getString("name");
+                            if (nameFs != null && !nameFs.isEmpty() && prefs != null) {
+                                prefs.edit().putString("current_display_name", nameFs).apply();
+                            }
+
                             // [RF-2 FIX]: Khong bao gio rollback tong luot ve gia tri nho hon
                             int serverTongLuot = tLuot != null ? tLuot.intValue() : tongLuot;
                             tongLuot = Math.max(tongLuot, serverTongLuot);
@@ -1051,6 +1057,72 @@ public class QLTaiKhoan {
     public int getLuotConLai() {
         if ("VIP".equalsIgnoreCase(loaiGoi)) return 999999;
         return Math.max(0, tongLuot - daNiemDung);
+    }
+
+    // Lay ten hien thi cua nguoi dung
+    public String getTenNguoiDung() {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            String dn = mAuth.getCurrentUser().getDisplayName();
+            if (dn != null && !dn.trim().isEmpty()) {
+                return dn.trim();
+            }
+        }
+        String cached = prefs != null ? prefs.getString("current_display_name", "") : "";
+        if (cached != null && !cached.trim().isEmpty()) {
+            return cached.trim();
+        }
+        if (email != null && !email.isEmpty() && email.contains("@")) {
+            return email.substring(0, email.indexOf("@"));
+        }
+        return "Tài khoản khách";
+    }
+
+    // Cap nhat ten hien thi tren Firebase Auth va Firestore
+    public void capNhatTenHienThi(final String tenMoi, final AuthCallback callback) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            if (callback != null) callback.onError("Chưa đăng nhập tài khoản.");
+            return;
+        }
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        final String currentUid = user.getUid();
+
+        // 1. Cap nhat ten tren Firebase Auth
+        com.google.firebase.auth.UserProfileChangeRequest profileUpdates =
+                new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                        .setDisplayName(tenMoi)
+                        .build();
+
+        user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> taskAuth) {
+                // 2. Cap nhat ten tren Firestore
+                if (mFirestore != null && !currentUid.isEmpty()) {
+                    Map<String, Object> updateMap = new HashMap<>();
+                    updateMap.put("displayName", tenMoi);
+                    updateMap.put("name", tenMoi);
+                    mFirestore.collection("users").document(currentUid).update(updateMap)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> taskFs) {
+                                    if (prefs != null) {
+                                        prefs.edit().putString("current_display_name", tenMoi).apply();
+                                    }
+                                    if (callback != null) {
+                                        callback.onSuccess("Cập nhật tên thành công!");
+                                    }
+                                }
+                            });
+                } else {
+                    if (prefs != null) {
+                        prefs.edit().putString("current_display_name", tenMoi).apply();
+                    }
+                    if (callback != null) {
+                        callback.onSuccess("Cập nhật tên thành công!");
+                    }
+                }
+            }
+        });
     }
 
     // Bat dau lang nghe Firestore real-time, tu dong cap nhat khi webhook nang cap tai khoan

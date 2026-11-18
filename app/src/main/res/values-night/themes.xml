@@ -6,8 +6,8 @@
         <item name="colorSecondary">@color/accent_green</item>
         <item name="colorSecondaryVariant">@color/accent_green_dark</item>
         <item name="colorOnPrimary">@color/primary_dark</item>
-        <item name="android:statusBarColor">#09090B</item>
-        <item name="android:navigationBarColor">#09090B</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/surface</item>

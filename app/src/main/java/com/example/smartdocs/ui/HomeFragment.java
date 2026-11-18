@@ -49,6 +49,7 @@ import com.example.smartdocs.R;
 import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.ocr.OcrManager;
+import com.example.smartdocs.ui.adapter.DocumentAdapter;
 import com.example.smartdocs.ui.adapter.SelectedImageAdapter;
 import com.example.smartdocs.ui.viewmodel.DocumentViewModel;
 import com.google.android.material.button.MaterialButton;
@@ -704,15 +705,20 @@ public class HomeFragment extends Fragment {
         }
 
         if (txtTitle != null) {
-            txtTitle.setText(doc.title != null && !doc.title.isEmpty() ? doc.title : "Tài liệu không tiêu đề");
+            String tieuDe = DocumentAdapter.chuanHoaTieuDe(doc.title);
+            txtTitle.setText(tieuDe);
         }
 
         if (txtPreview != null) {
             if (doc.ocrText != null && !doc.ocrText.isEmpty()) {
-                String preview = doc.ocrText.trim();
-                if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
-                txtPreview.setText(preview);
-                txtPreview.setVisibility(View.VISIBLE);
+                String preview = DocumentAdapter.loaiBoHtml(doc.ocrText);
+                if (!preview.isEmpty()) {
+                    if (preview.length() > 80) preview = preview.substring(0, 80) + "...";
+                    txtPreview.setText(preview);
+                    txtPreview.setVisibility(View.VISIBLE);
+                } else {
+                    txtPreview.setVisibility(View.GONE);
+                }
             } else {
                 txtPreview.setVisibility(View.GONE);
             }

@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider;
 import com.example.smartdocs.data.dao.AppDatabase;
 import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
+import com.example.smartdocs.ui.adapter.DocumentAdapter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,9 +107,10 @@ public class PdfExporter {
         }
 
         //TRANG OCR: Văn bản nhận diện
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(document.title);
         if (document.ocrText != null && !document.ocrText.isEmpty()) {
             soTrang = veVanBanDaPhanTrang(pdfDoc, soTrang,
-                    "VĂN BẢN NHẬN DIỆN", document.ocrText, document.title);
+                    "VĂN BẢN NHẬN DIỆN", document.ocrText, cleanTitle);
         }
 
         // ── TRANG AI: Tóm tắt AI (nếu có) ──────────────────────────
@@ -118,7 +120,7 @@ public class PdfExporter {
         }
 
         // ── Lưu file PDF ─────────────────────────────────────────────
-        File pdfFile = taoFilePdf(context, document.title);
+        File pdfFile = taoFilePdf(context, cleanTitle);
         try (FileOutputStream fos = new FileOutputStream(pdfFile)) {
             pdfDoc.writeTo(fos);
         } finally {
@@ -182,84 +184,174 @@ public class PdfExporter {
 
     /*
       Vẽ văn bản dài lên nhiều trang PDF, tự xuống trang khi hết chỗ.
+      Hỗ trợ render bảng biểu dạng lưới và tiêu đề/đoạn văn sạch không chứa thẻ HTML.
       @param pdfDoc    PdfDocument đang xây dựng
       @param soTrang   Số trang bắt đầu
-      @param tieuDe    Tiêu đề section (VD: "VĂN BẢN OCR")
+      @param tieuDe    Tiêu đề section (VD: "VĂN BẢN NHẬN DIỆN")
       @param vanBan    Nội dung văn bản cần vẽ
       @param subTitle  Tiêu đề phụ (tên tài liệu), có thể null
       @return Số trang tiếp theo sau khi vẽ xong
      */
     static int veVanBanDaPhanTrang(PdfDocument pdfDoc, int soTrang,
                                     String tieuDe, String vanBan, String subTitle) {
-        // Paint cho từng loại text
+        if (subTitle != null) {
+            subTitle = DocumentAdapter.chuanHoaTieuDe(subTitle);
+        }
+
         Paint paintTieuDe = taoTieuDePaint();
         Paint paintSubTitle = taoSubTitlePaint();
+        Paint paintHeading = taoHeadingPaint();
         Paint paintBody = taoBodyPaint();
         Paint paintFooter = taoFooterPaint();
+
+        Paint borderPaint = new Paint();
+        borderPaint.setColor(Color.parseColor("#CCCCCC"));
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(0.8f);
+
+        Paint headerBgPaint = new Paint();
+        headerBgPaint.setColor(Color.parseColor("#EBF3FB"));
+        headerBgPaint.setStyle(Paint.Style.FILL);
+
+        Paint cellTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        cellTextPaint.setColor(Color.parseColor("#212121"));
+
+        Paint cellHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        cellHeaderPaint.setColor(Color.parseColor("#0D47A1"));
+        cellHeaderPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
         Paint paintBg = new Paint();
         paintBg.setColor(Color.WHITE);
 
-        // Tách văn bản thành các dòng, xử lý word-wrap
-        String[] dongVanBan = vanBan.split("\n");
-        int indexDong = 0;
-        boolean dauTrang = true;
-
-        while (indexDong < dongVanBan.length || dauTrang) {
-            // Bắt đầu trang mới
-            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(
-                    PAGE_WIDTH, PAGE_HEIGHT, soTrang++).create();
-            PdfDocument.Page page = pdfDoc.startPage(pageInfo);
-            Canvas canvas = page.getCanvas();
-
-            // Nền trắng
-            canvas.drawRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, paintBg);
-
-            float y = MARGIN_TOP;
-
-            // Vẽ tiêu đề section ở đầu trang đầu tiên
-            if (dauTrang) {
-                canvas.drawText(tieuDe, MARGIN_LEFT, y, paintTieuDe);
-                y += LINE_HEIGHT_TITLE;
-
-                if (subTitle != null && !subTitle.isEmpty()) {
-                    canvas.drawText(subTitle, MARGIN_LEFT, y, paintSubTitle);
-                    y += LINE_HEIGHT_SECTION;
-                }
-
-                // Kẻ đường ngang phân cách
-                Paint linePaint = new Paint();
-                linePaint.setColor(Color.LTGRAY);
-                linePaint.setStrokeWidth(1f);
-                canvas.drawLine(MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_RIGHT, y, linePaint);
-                y += 16f;
-
-                dauTrang = false;
-            }
-
-            // Vẽ từng dòng text
-            float maxY = PAGE_HEIGHT - MARGIN_BOTTOM - 20; // -20 cho footer
-            while (indexDong < dongVanBan.length && y < maxY) {
-                String dong = dongVanBan[indexDong];
-
-                // Word-wrap: nếu dòng quá dài, chia thành nhiều dòng con
-                java.util.List<String> dongWrapped = wrapText(dong, paintBody, CONTENT_WIDTH);
-                for (String sub : dongWrapped) {
-                    if (y + LINE_HEIGHT_BODY > maxY) break;
-                    canvas.drawText(sub, MARGIN_LEFT, y, paintBody);
-                    y += LINE_HEIGHT_BODY;
-                }
-
-                indexDong++;
-            }
-
-            // Footer mỗi trang: số trang
-            canvas.drawText("Trang " + (soTrang - 1) + " | Smart Document Scanner",
-                    MARGIN_LEFT, PAGE_HEIGHT - 20, paintFooter);
-
-            pdfDoc.finishPage(page);
-
-            if (indexDong >= dongVanBan.length) break;
+        List<ExportHelper.DocBlock> blocks = ExportHelper.phanTichNoiDung(vanBan);
+        if (blocks.isEmpty()) {
+            return soTrang;
         }
+
+        // Bat dau trang dau tien cua section
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(
+                PAGE_WIDTH, PAGE_HEIGHT, soTrang++).create();
+        PdfDocument.Page page = pdfDoc.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+        canvas.drawRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, paintBg);
+
+        float y = MARGIN_TOP;
+
+        // Vẽ tiêu đề section ở đầu trang đầu tiên
+        canvas.drawText(tieuDe, MARGIN_LEFT, y, paintTieuDe);
+        y += LINE_HEIGHT_TITLE;
+
+        if (subTitle != null && !subTitle.isEmpty()) {
+            canvas.drawText(subTitle, MARGIN_LEFT, y, paintSubTitle);
+            y += LINE_HEIGHT_SECTION;
+        }
+
+        // Kẻ đường ngang phân cách
+        Paint linePaint = new Paint();
+        linePaint.setColor(Color.LTGRAY);
+        linePaint.setStrokeWidth(1f);
+        canvas.drawLine(MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_RIGHT, y, linePaint);
+        y += 16f;
+
+        float maxY = PAGE_HEIGHT - MARGIN_BOTTOM - 20; // -20 cho footer
+
+        for (ExportHelper.DocBlock block : blocks) {
+            if (block.type == ExportHelper.DocBlock.TYPE_TEXT) {
+                Paint p = block.isHeading ? paintHeading : paintBody;
+                float lineHeight = block.isHeading ? LINE_HEIGHT_SECTION : LINE_HEIGHT_BODY;
+
+                List<String> wrapped = wrapText(block.text, p, CONTENT_WIDTH);
+                for (String line : wrapped) {
+                    if (y + lineHeight > maxY) {
+                        canvas.drawText("Trang " + (soTrang - 1) + " | Smart Document Scanner",
+                                MARGIN_LEFT, PAGE_HEIGHT - 20, paintFooter);
+                        pdfDoc.finishPage(page);
+
+                        pageInfo = new PdfDocument.PageInfo.Builder(
+                                PAGE_WIDTH, PAGE_HEIGHT, soTrang++).create();
+                        page = pdfDoc.startPage(pageInfo);
+                        canvas = page.getCanvas();
+                        canvas.drawRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, paintBg);
+                        y = MARGIN_TOP;
+                    }
+
+                    canvas.drawText(line, MARGIN_LEFT, y, p);
+                    y += lineHeight;
+                }
+
+                if (block.isHeading) {
+                    y += 4f;
+                }
+            } else if (block.type == ExportHelper.DocBlock.TYPE_TABLE) {
+                int maxCols = 0;
+                for (List<String> row : block.tableRows) {
+                    if (row.size() > maxCols) maxCols = row.size();
+                }
+                if (maxCols == 0) continue;
+
+                float colWidth = (float) CONTENT_WIDTH / maxCols;
+                float rowHeight = 22f;
+                float fontSize = (maxCols > 8) ? 7.5f : (maxCols > 5 ? 8.5f : 9.5f);
+                cellTextPaint.setTextSize(fontSize);
+                cellHeaderPaint.setTextSize(fontSize);
+
+                for (int r = 0; r < block.tableRows.size(); r++) {
+                    List<String> row = block.tableRows.get(r);
+
+                    if (y + rowHeight > maxY) {
+                        canvas.drawText("Trang " + (soTrang - 1) + " | Smart Document Scanner",
+                                MARGIN_LEFT, PAGE_HEIGHT - 20, paintFooter);
+                        pdfDoc.finishPage(page);
+
+                        pageInfo = new PdfDocument.PageInfo.Builder(
+                                PAGE_WIDTH, PAGE_HEIGHT, soTrang++).create();
+                        page = pdfDoc.startPage(pageInfo);
+                        canvas = page.getCanvas();
+                        canvas.drawRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, paintBg);
+                        y = MARGIN_TOP;
+                    }
+
+                    for (int c = 0; c < maxCols; c++) {
+                        float cellLeft = MARGIN_LEFT + c * colWidth;
+                        float cellRight = (c == maxCols - 1) ? (PAGE_WIDTH - MARGIN_RIGHT) : (cellLeft + colWidth);
+                        float cellTop = y;
+                        float cellBottom = y + rowHeight;
+
+                        if (r == 0) {
+                            canvas.drawRect(cellLeft, cellTop, cellRight, cellBottom, headerBgPaint);
+                        }
+                        canvas.drawRect(cellLeft, cellTop, cellRight, cellBottom, borderPaint);
+
+                        String val = c < row.size() ? row.get(c) : "";
+                        if (!val.isEmpty()) {
+                            Paint p = (r == 0) ? cellHeaderPaint : cellTextPaint;
+                            float tw = p.measureText(val);
+                            float tx;
+                            if (tw < colWidth - 4) {
+                                tx = cellLeft + (colWidth - tw) / 2f;
+                            } else {
+                                tx = cellLeft + 2f;
+                                while (val.length() > 1 && p.measureText(val + "..") > colWidth - 3) {
+                                    val = val.substring(0, val.length() - 1);
+                                }
+                                val = val + "..";
+                            }
+                            float ty = cellTop + rowHeight / 2f + p.getTextSize() / 3f;
+                            canvas.drawText(val, tx, ty, p);
+                        }
+                    }
+
+                    y += rowHeight;
+                }
+
+                y += 10f;
+            }
+        }
+
+        // Footer trang cuoi cung cua section
+        canvas.drawText("Trang " + (soTrang - 1) + " | Smart Document Scanner",
+                MARGIN_LEFT, PAGE_HEIGHT - 20, paintFooter);
+        pdfDoc.finishPage(page);
 
         return soTrang;
     }
@@ -320,6 +412,14 @@ public class PdfExporter {
         return p;
     }
 
+    static Paint taoHeadingPaint() {
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setColor(Color.rgb(33, 33, 33));
+        p.setTextSize(13f);
+        p.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        return p;
+    }
+
     static Paint taoBodyPaint() {
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setColor(Color.BLACK);
@@ -350,7 +450,8 @@ public class PdfExporter {
         }
 
         // Tên file an toàn (loại bỏ ký tự đặc biệt)
-        String tenSach = (title != null ? title : "TaiLieu")
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(title);
+        String tenSach = (cleanTitle != null ? cleanTitle : "TaiLieu")
                 .replaceAll("[^a-zA-Z0-9À-ỹ\\s]", "")
                 .trim()
                 .replaceAll("\\s+", "_");

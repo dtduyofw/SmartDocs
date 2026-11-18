@@ -8,14 +8,19 @@ import android.os.Environment;
 import androidx.core.content.FileProvider;
 
 import com.example.smartdocs.data.model.ScanDocument;
+import com.example.smartdocs.ui.adapter.DocumentAdapter;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
   ExportHelper — xuất ScanDocument ra nhiều định dạng file:
@@ -30,6 +35,169 @@ public class ExportHelper {
     // Thư mục con lưu file xuất
     static final String FOLDER_NAME = "SmartDocs";
 
+    // Mo hinh khoi noi dung phan tich tu OCR (text thuan hoac bang bieu)
+    public static class DocBlock {
+        public static final int TYPE_TEXT = 1;
+        public static final int TYPE_TABLE = 2;
+
+        public int type;
+        public String text;
+        public boolean isHeading;
+        public List<List<String>> tableRows = new ArrayList<>();
+
+        public DocBlock(int type) {
+            this.type = type;
+        }
+    }
+
+    // Phan tich van ban OCR thanh cac khoi noi dung (doan van, tieu de, bang bieu)
+    public static List<DocBlock> phanTichNoiDung(String input) {
+        List<DocBlock> blocks = new ArrayList<>();
+        if (input == null || input.trim().isEmpty()) {
+            return blocks;
+        }
+
+        String text = input.trim();
+        if (text.startsWith("```html")) {
+            text = text.substring(7);
+        } else if (text.startsWith("```")) {
+            text = text.substring(3);
+        }
+        if (text.endsWith("```")) {
+            text = text.substring(0, text.length() - 3);
+        }
+        text = text.trim();
+
+        String lower = text.toLowerCase();
+        int tableStart = lower.indexOf("<table");
+
+        if (tableStart < 0) {
+            if (text.contains("|") && text.contains("---")) {
+                phanTichBangMarkdown(text, blocks);
+                return blocks;
+            }
+            phanTichTextThuan(text, blocks);
+            return blocks;
+        }
+
+        int currentPos = 0;
+        while (currentPos < text.length()) {
+            int startTbl = lower.indexOf("<table", currentPos);
+            if (startTbl < 0) {
+                String rest = text.substring(currentPos);
+                phanTichTextThuan(rest, blocks);
+                break;
+            }
+
+            if (startTbl > currentPos) {
+                String beforeTbl = text.substring(currentPos, startTbl);
+                phanTichTextThuan(beforeTbl, blocks);
+            }
+
+            int endTbl = lower.indexOf("</table>", startTbl);
+            String tableHtml;
+            if (endTbl >= 0) {
+                tableHtml = text.substring(startTbl, endTbl + 8);
+                currentPos = endTbl + 8;
+            } else {
+                tableHtml = text.substring(startTbl);
+                currentPos = text.length();
+            }
+
+            DocBlock tableBlock = new DocBlock(DocBlock.TYPE_TABLE);
+            tableBlock.tableRows = parseHtmlTable(tableHtml);
+            if (!tableBlock.tableRows.isEmpty()) {
+                blocks.add(tableBlock);
+            }
+        }
+
+        return blocks;
+    }
+
+    static List<List<String>> parseHtmlTable(String tableHtml) {
+        List<List<String>> rows = new ArrayList<>();
+        if (tableHtml == null || tableHtml.isEmpty()) return rows;
+
+        Pattern rowPattern = Pattern.compile("<tr[^>]*>(.*?)(?:</tr>|(?=<tr)|$)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher rowMatcher = rowPattern.matcher(tableHtml);
+
+        Pattern cellPattern = Pattern.compile("<(td|th)[^>]*>(.*?)(?:</(?:td|th)>|(?=<(?:td|th))|$)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+        while (rowMatcher.find()) {
+            String rowContent = rowMatcher.group(1);
+            if (rowContent == null || rowContent.trim().isEmpty()) continue;
+
+            Matcher cellMatcher = cellPattern.matcher(rowContent);
+            List<String> cells = new ArrayList<>();
+            while (cellMatcher.find()) {
+                String rawCell = cellMatcher.group(2);
+                String cellText = DocumentAdapter.loaiBoHtml(rawCell);
+                cells.add(cellText);
+            }
+
+            if (!cells.isEmpty()) {
+                rows.add(cells);
+            }
+        }
+        return rows;
+    }
+
+    static void phanTichTextThuan(String text, List<DocBlock> blocks) {
+        if (text == null || text.trim().isEmpty()) return;
+        String[] lines = text.split("\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) continue;
+
+            String lower = trimmed.toLowerCase();
+            boolean isHeading = (lower.startsWith("<h1") || lower.startsWith("<h2")
+                    || lower.startsWith("<h3") || lower.startsWith("<h4")
+                    || (lower.startsWith("<b>") && lower.endsWith("</b>")));
+
+            String cleanText = DocumentAdapter.loaiBoHtml(trimmed);
+            if (!cleanText.isEmpty()) {
+                DocBlock block = new DocBlock(DocBlock.TYPE_TEXT);
+                block.text = cleanText;
+                block.isHeading = isHeading;
+                blocks.add(block);
+            }
+        }
+    }
+
+    static void phanTichBangMarkdown(String text, List<DocBlock> blocks) {
+        String[] lines = text.split("\n");
+        DocBlock currentTable = null;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+                if (trimmed.replaceAll("[\\s|:-]", "").isEmpty()) {
+                    continue;
+                }
+                if (currentTable == null) {
+                    currentTable = new DocBlock(DocBlock.TYPE_TABLE);
+                    blocks.add(currentTable);
+                }
+                String[] cols = trimmed.substring(1, trimmed.length() - 1).split("\\|");
+                List<String> cells = new ArrayList<>();
+                for (String c : cols) {
+                    cells.add(DocumentAdapter.loaiBoHtml(c.trim()));
+                }
+                if (!cells.isEmpty()) {
+                    currentTable.tableRows.add(cells);
+                }
+            } else {
+                currentTable = null;
+                String clean = DocumentAdapter.loaiBoHtml(trimmed);
+                if (!clean.isEmpty()) {
+                    DocBlock b = new DocBlock(DocBlock.TYPE_TEXT);
+                    b.text = clean;
+                    blocks.add(b);
+                }
+            }
+        }
+    }
+
     // ─────────────────────────────────────────
     // Xuất Word (.docx)
     // ─────────────────────────────────────────
@@ -41,7 +209,8 @@ public class ExportHelper {
       @return Uri của file .docx vừa tạo
      */
     public static Uri exportToDocx(Context context, ScanDocument document) throws IOException {
-        File file = taoFile(context, document.title, ".docx");
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(document.title);
+        File file = taoFile(context, cleanTitle, ".docx");
 
         // Nội dung XML WordprocessingML đơn giản
         StringBuilder xml = new StringBuilder();
@@ -50,8 +219,7 @@ public class ExportHelper {
         xml.append("<w:body>\n");
 
         // Tiêu đề tài liệu
-        String title = document.title != null ? document.title : "Tài liệu";
-        xml.append(taoWParagraph(title, true, "28", "2B579A"));
+        xml.append(taoWParagraph(cleanTitle, true, "28", "2B579A"));
 
         // Ngày tạo
         String ngay = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -64,9 +232,13 @@ public class ExportHelper {
         // Văn bản OCR
         if (document.ocrText != null && !document.ocrText.isEmpty()) {
             xml.append(taoWParagraph("VĂN BẢN NHẬN DIỆN (OCR)", true, "18", "1976D2"));
-            String[] dongOcr = document.ocrText.split("\n");
-            for (String dong : dongOcr) {
-                xml.append(taoWParagraph(dong.isEmpty() ? " " : dong, false, "22", "212121"));
+            List<DocBlock> blocks = phanTichNoiDung(document.ocrText);
+            for (DocBlock block : blocks) {
+                if (block.type == DocBlock.TYPE_TEXT) {
+                    xml.append(taoWParagraph(block.text, block.isHeading, block.isHeading ? "24" : "22", block.isHeading ? "1976D2" : "212121"));
+                } else if (block.type == DocBlock.TYPE_TABLE) {
+                    xml.append(taoWTable(block.tableRows));
+                }
             }
         }
 
@@ -74,9 +246,13 @@ public class ExportHelper {
         if (document.aiSummary != null && !document.aiSummary.trim().isEmpty()) {
             xml.append(taoWParagraph(" ", false, "14", "000000"));
             xml.append(taoWParagraph("KẾT QUẢ PHÂN TÍCH AI", true, "18", "388E3C"));
-            String[] dongAi = document.aiSummary.split("\n");
-            for (String dong : dongAi) {
-                xml.append(taoWParagraph(dong.isEmpty() ? " " : dong, false, "22", "212121"));
+            List<DocBlock> blocksAi = phanTichNoiDung(document.aiSummary);
+            for (DocBlock block : blocksAi) {
+                if (block.type == DocBlock.TYPE_TEXT) {
+                    xml.append(taoWParagraph(block.text, block.isHeading, "22", "212121"));
+                } else if (block.type == DocBlock.TYPE_TABLE) {
+                    xml.append(taoWTable(block.tableRows));
+                }
             }
         }
 
@@ -94,6 +270,48 @@ public class ExportHelper {
         }
 
         return layUri(context, file);
+    }
+
+    // Tao bang WordprocessingML XML tu danh sach hang cot
+    static String taoWTable(List<List<String>> rows) {
+        if (rows == null || rows.isEmpty()) return "";
+        StringBuilder tbl = new StringBuilder();
+        tbl.append("<w:tbl>\n");
+        tbl.append("<w:tblPr>\n");
+        tbl.append("<w:tblBorders>\n");
+        tbl.append("<w:top w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"CCCCCC\"/>\n");
+        tbl.append("<w:left w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"CCCCCC\"/>\n");
+        tbl.append("<w:bottom w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"CCCCCC\"/>\n");
+        tbl.append("<w:right w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"CCCCCC\"/>\n");
+        tbl.append("<w:insideH w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"E0E0E0\"/>\n");
+        tbl.append("<w:insideV w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"E0E0E0\"/>\n");
+        tbl.append("</w:tblBorders>\n");
+        tbl.append("</w:tblPr>\n");
+
+        for (int r = 0; r < rows.size(); r++) {
+            List<String> row = rows.get(r);
+            tbl.append("<w:tr>\n");
+            for (String cell : row) {
+                tbl.append("<w:tc>\n");
+                tbl.append("<w:p>\n");
+                tbl.append("<w:r>\n");
+                if (r == 0) {
+                    tbl.append("<w:rPr><w:b/></w:rPr>\n");
+                }
+                String escaped = (cell != null ? cell : "")
+                        .replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                        .replace("\"", "&quot;");
+                tbl.append("<w:t xml:space=\"preserve\">").append(escaped).append("</w:t>\n");
+                tbl.append("</w:r>\n");
+                tbl.append("</w:p>\n");
+                tbl.append("</w:tc>\n");
+            }
+            tbl.append("</w:tr>\n");
+        }
+        tbl.append("</w:tbl>\n");
+        return tbl.toString();
     }
 
     /*
@@ -134,7 +352,8 @@ public class ExportHelper {
       @return Uri của file .xlsx vừa tạo
      */
     public static Uri exportToXlsx(Context context, ScanDocument document) throws IOException {
-        File file = taoFile(context, document.title, ".xlsx");
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(document.title);
+        File file = taoFile(context, cleanTitle, ".xlsx");
 
         StringBuilder csv = new StringBuilder();
 
@@ -142,7 +361,7 @@ public class ExportHelper {
         csv.append("Trường,Nội dung\n");
 
         // Tiêu đề
-        csv.append("Tiêu đề,").append(escapeCsv(document.title)).append("\n");
+        csv.append("Tiêu đề,").append(escapeCsv(cleanTitle)).append("\n");
 
         // Ngày tạo
         String ngay = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -160,12 +379,23 @@ public class ExportHelper {
         // Dòng trống
         csv.append(",\n");
 
-        // Văn bản OCR — mỗi dòng là 1 row
+        // Văn bản OCR
         if (document.ocrText != null && !document.ocrText.isEmpty()) {
             csv.append("VĂN BẢN OCR,\n");
-            String[] dongOcr = document.ocrText.split("\n");
-            for (String dong : dongOcr) {
-                csv.append(",").append(escapeCsv(dong)).append("\n");
+            List<DocBlock> blocks = phanTichNoiDung(document.ocrText);
+            for (DocBlock block : blocks) {
+                if (block.type == DocBlock.TYPE_TABLE) {
+                    for (List<String> row : block.tableRows) {
+                        StringBuilder rowSb = new StringBuilder();
+                        for (int i = 0; i < row.size(); i++) {
+                            if (i > 0) rowSb.append(",");
+                            rowSb.append(escapeCsv(row.get(i)));
+                        }
+                        csv.append(rowSb.toString()).append("\n");
+                    }
+                } else {
+                    csv.append(",").append(escapeCsv(block.text)).append("\n");
+                }
             }
         }
 
@@ -175,9 +405,20 @@ public class ExportHelper {
         // Tóm tắt AI
         if (document.aiSummary != null && !document.aiSummary.trim().isEmpty()) {
             csv.append("KẾT QUẢ AI,\n");
-            String[] dongAi = document.aiSummary.split("\n");
-            for (String dong : dongAi) {
-                csv.append(",").append(escapeCsv(dong)).append("\n");
+            List<DocBlock> blocksAi = phanTichNoiDung(document.aiSummary);
+            for (DocBlock block : blocksAi) {
+                if (block.type == DocBlock.TYPE_TABLE) {
+                    for (List<String> row : block.tableRows) {
+                        StringBuilder rowSb = new StringBuilder();
+                        for (int i = 0; i < row.size(); i++) {
+                            if (i > 0) rowSb.append(",");
+                            rowSb.append(escapeCsv(row.get(i)));
+                        }
+                        csv.append(rowSb.toString()).append("\n");
+                    }
+                } else {
+                    csv.append(",").append(escapeCsv(block.text)).append("\n");
+                }
             }
         }
 
@@ -211,7 +452,8 @@ public class ExportHelper {
       @return Uri của file .txt vừa tạo
      */
     public static Uri exportToTxt(Context context, ScanDocument document) throws IOException {
-        File file = taoFile(context, document.title, ".txt");
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(document.title);
+        File file = taoFile(context, cleanTitle, ".txt");
 
         StringBuilder sb = new StringBuilder();
 
@@ -221,7 +463,7 @@ public class ExportHelper {
         sb.append("===========================================\n\n");
 
         // Tiêu đề
-        sb.append("Tiêu đề : ").append(document.title != null ? document.title : "Không có").append("\n");
+        sb.append("Tiêu đề : ").append(cleanTitle).append("\n");
 
         // Ngày
         String ngay = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
@@ -234,7 +476,23 @@ public class ExportHelper {
             sb.append("-------------------------------------------\n");
             sb.append("VĂN BẢN NHẬN DIỆN (OCR)\n");
             sb.append("-------------------------------------------\n");
-            sb.append(document.ocrText).append("\n\n");
+            List<DocBlock> blocks = phanTichNoiDung(document.ocrText);
+            for (DocBlock block : blocks) {
+                if (block.type == DocBlock.TYPE_TABLE) {
+                    for (List<String> row : block.tableRows) {
+                        StringBuilder rowSb = new StringBuilder();
+                        for (int i = 0; i < row.size(); i++) {
+                            if (i > 0) rowSb.append("\t");
+                            rowSb.append(row.get(i));
+                        }
+                        sb.append(rowSb.toString()).append("\n");
+                    }
+                    sb.append("\n");
+                } else {
+                    sb.append(block.text).append("\n");
+                }
+            }
+            sb.append("\n");
         }
 
         // AI
@@ -242,7 +500,23 @@ public class ExportHelper {
             sb.append("-------------------------------------------\n");
             sb.append("KẾT QUẢ PHÂN TÍCH AI\n");
             sb.append("-------------------------------------------\n");
-            sb.append(document.aiSummary).append("\n\n");
+            List<DocBlock> blocksAi = phanTichNoiDung(document.aiSummary);
+            for (DocBlock block : blocksAi) {
+                if (block.type == DocBlock.TYPE_TABLE) {
+                    for (List<String> row : block.tableRows) {
+                        StringBuilder rowSb = new StringBuilder();
+                        for (int i = 0; i < row.size(); i++) {
+                            if (i > 0) rowSb.append("\t");
+                            rowSb.append(row.get(i));
+                        }
+                        sb.append(rowSb.toString()).append("\n");
+                    }
+                    sb.append("\n");
+                } else {
+                    sb.append(block.text).append("\n");
+                }
+            }
+            sb.append("\n");
         }
 
         sb.append("===========================================\n");
@@ -301,7 +575,8 @@ public class ExportHelper {
         }
 
         // Tên file an toàn
-        String tenSach = (title != null ? title : "TaiLieu")
+        String cleanTitle = DocumentAdapter.chuanHoaTieuDe(title);
+        String tenSach = (cleanTitle != null ? cleanTitle : "TaiLieu")
                 .replaceAll("[^a-zA-Z0-9À-ỹ\\s]", "")
                 .trim()
                 .replaceAll("\\s+", "_");

@@ -183,7 +183,7 @@ public class ImagePreviewActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         btnConfirm.setEnabled(true);
-                        btnConfirm.setText("Cắt & Tiếp tục");
+                        btnConfirm.setText("Tiếp tục");
                         traKetQua(uriDaCrop);
                     }
                 });

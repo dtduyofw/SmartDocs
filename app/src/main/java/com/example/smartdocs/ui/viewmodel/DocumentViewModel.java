@@ -14,6 +14,7 @@ import com.example.smartdocs.data.repository.DocumentRepository;
 import com.example.smartdocs.api.GeminiRepository;
 import com.example.smartdocs.ocr.DocumentClassifierHelper;
 import com.example.smartdocs.ui.SettingsFragment;
+import com.example.smartdocs.ui.adapter.DocumentAdapter;
 
 import java.util.List;
 
@@ -362,12 +363,12 @@ public class DocumentViewModel extends AndroidViewModel {
     // Utility
     // ─────────────────────────────────────────
 
-    /**
-     * Tạo tiêu đề ngắn từ văn bản OCR (lấy tối đa 5 từ đầu).
-     */
+    // Tao tieu de ngan tu van ban OCR (loai bo the html va lay toi da 5 tu dau)
     private String buildTitle(String ocrText) {
         if (ocrText == null || ocrText.trim().isEmpty()) return "Tài liệu không tiêu đề";
-        String[] words = ocrText.trim().split("\\s+");
+        String textThuan = DocumentAdapter.loaiBoHtml(ocrText);
+        if (textThuan.isEmpty()) return "Tài liệu không tiêu đề";
+        String[] words = textThuan.split("\\s+");
         int limit = Math.min(5, words.length);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < limit; i++) {

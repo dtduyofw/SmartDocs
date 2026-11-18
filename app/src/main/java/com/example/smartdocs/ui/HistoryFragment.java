@@ -153,6 +153,14 @@ public class HistoryFragment extends Fragment {
     void observeViewModel() {
         viewModel.getAllDocuments().observe(getViewLifecycleOwner(), documents -> {
             danhSachGoc = documents != null ? new java.util.ArrayList<>(documents) : new java.util.ArrayList<>();
+            if (documents != null) {
+                for (ScanDocument doc : documents) {
+                    if (doc.title != null && (doc.title.contains("<") || doc.title.contains(">"))) {
+                        doc.title = DocumentAdapter.chuanHoaTieuDe(doc.title);
+                        viewModel.getRepository().update(doc, null);
+                    }
+                }
+            }
             locVaHienThi();
         });
     }
@@ -257,11 +265,13 @@ public class HistoryFragment extends Fragment {
                 }
             }
 
-            // 2. Kiem tra keyword
+            // 2. Kiem tra keyword (so khop tren van ban da loai bo the html)
             boolean matchKeyword = true;
             if (!keyword.isEmpty()) {
-                boolean matchTitle = doc.title != null && doc.title.toLowerCase().contains(keyword);
-                boolean matchOcr = doc.ocrText != null && doc.ocrText.toLowerCase().contains(keyword);
+                String cleanTitle = DocumentAdapter.chuanHoaTieuDe(doc.title).toLowerCase();
+                String cleanOcr = DocumentAdapter.loaiBoHtml(doc.ocrText).toLowerCase();
+                boolean matchTitle = cleanTitle.contains(keyword);
+                boolean matchOcr = cleanOcr.contains(keyword);
                 matchKeyword = matchTitle || matchOcr;
             }
 
@@ -339,12 +349,13 @@ public class HistoryFragment extends Fragment {
         StringBuilder sb = new StringBuilder();
         sb.append("VĂN BẢN:\n");
         sb.append("─────────────────\n");
-        sb.append(document.ocrText != null ? document.ocrText : "(Không có)");
+        String ocrThuan = DocumentAdapter.loaiBoHtml(document.ocrText);
+        sb.append(!ocrThuan.isEmpty() ? ocrThuan : "(Không có)");
 
         if (document.aiSummary != null && !document.aiSummary.trim().isEmpty()) {
             sb.append("\n\nTÓM TẮT AI:\n");
             sb.append("─────────────────\n");
-            sb.append(document.aiSummary);
+            sb.append(DocumentAdapter.loaiBoHtml(document.aiSummary));
         }
 
         Dialog dialog = DialogHelper.taoDialog(requireContext());
@@ -358,7 +369,7 @@ public class HistoryFragment extends Fragment {
         dialog.setContentView(dialogView);
 
         TextView txtTitle = (TextView) dialogView.findViewById(R.id.txtDetailTitle);
-        txtTitle.setText(document.title != null ? document.title : "Chi tiết tài liệu");
+        txtTitle.setText(DocumentAdapter.chuanHoaTieuDe(document.title));
 
         TextView txtContent = (TextView) dialogView.findViewById(R.id.txtDetailContent);
         txtContent.setText(sb.toString());
@@ -391,9 +402,10 @@ public class HistoryFragment extends Fragment {
     }
 
     void xacNhanXoa(ScanDocument document) {
+        String tenXoa = DocumentAdapter.chuanHoaTieuDe(document.title);
         DialogHelper.showDelete(requireContext(),
                 "Xóa tài liệu?",
-                "Bạn có chắc muốn xóa \"" + document.title + "\" không?",
+                "Bạn có chắc muốn xóa \"" + tenXoa + "\" không?",
                 new DialogHelper.OnConfirm() {
                     @Override
                     public void onConfirm() {
@@ -420,7 +432,7 @@ public class HistoryFragment extends Fragment {
         sheet.setContentView(sheetView);
 
         TextView txtTitle = (TextView) sheetView.findViewById(R.id.txtBsDocTitle);
-        txtTitle.setText(document.title != null ? document.title : "Tùy chọn");
+        txtTitle.setText(DocumentAdapter.chuanHoaTieuDe(document.title));
 
         // Xem chi tiết
         sheetView.findViewById(R.id.itemBsXemChiTiet).setOnClickListener(new View.OnClickListener() {
@@ -506,7 +518,8 @@ public class HistoryFragment extends Fragment {
     void hienDialogDoiTen(ScanDocument document) {
         if (getContext() == null || !isAdded()) return;
         android.widget.EditText edtTen = new android.widget.EditText(requireContext());
-        edtTen.setText(document.title);
+        String tenHienTai = DocumentAdapter.chuanHoaTieuDe(document.title);
+        edtTen.setText(tenHienTai);
         edtTen.setSelection(edtTen.getText().length());
         edtTen.setPadding(48, 32, 48, 16);
 
@@ -518,7 +531,7 @@ public class HistoryFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String tenMoi = edtTen.getText().toString().trim();
                         if (!tenMoi.isEmpty()) {
-                            document.title = tenMoi;
+                            document.title = DocumentAdapter.chuanHoaTieuDe(tenMoi);
                             viewModel.getRepository().update(document, null);
                             Toast.makeText(requireContext(), "Đã đổi tên", Toast.LENGTH_SHORT).show();
                         }

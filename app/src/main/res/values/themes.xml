@@ -8,9 +8,9 @@
         <item name="colorSecondaryVariant">@color/accent_green_dark</item>
         <!-- Text trên Primary color -->
         <item name="colorOnPrimary">@color/primary_dark</item>
-        <!-- Status bar đen nhám -->
-        <item name="android:statusBarColor">#09090B</item>
-        <item name="android:navigationBarColor">#09090B</item>
+        <!-- Status bar & Navigation bar theo mau nen app -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
         <!-- Background toàn app -->
         <item name="android:windowBackground">@color/background</item>
         <item name="android:colorBackground">@color/background</item>

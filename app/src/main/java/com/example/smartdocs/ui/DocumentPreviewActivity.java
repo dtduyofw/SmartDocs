@@ -33,6 +33,7 @@ import java.util.List;
 import com.example.smartdocs.api.GeminiRepository;
 import com.example.smartdocs.data.repository.DocumentRepository;
 import com.example.smartdocs.ocr.DocumentClassifierHelper;
+import com.example.smartdocs.ui.adapter.DocumentAdapter;
 import com.example.smartdocs.ui.adapter.QaAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -68,6 +69,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     // ─────────────────────────────────────────
     // Views
     // ─────────────────────────────────────────
+    ImageView imgBackPreview;
+    TextView txtDocTitleBar;
     TextView tabOriginal, tabExtracted, tabAi;
     TextView txtStatusBadge, txtDocTagBadge;
     TextView txtExtractedContent;
@@ -165,7 +168,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
                 bundle.getString(KEY_DOC_OCR, ""),
                 bundle.getString(KEY_DOC_AI, ""),
                 bundle.getLong(KEY_DOC_CREATED_AT, System.currentTimeMillis()),
-                bundle.getString(KEY_DOC_TITLE, "Tài liệu")
+                DocumentAdapter.chuanHoaTieuDe(bundle.getString(KEY_DOC_TITLE, "Tài liệu"))
         );
         document.id = bundle.getInt(KEY_DOC_ID, 0);
         document.pageCount = bundle.getInt(KEY_DOC_PAGE_COUNT, 1);
@@ -173,6 +176,10 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     }
 
     void anhXaView() {
+        // Top app bar
+        imgBackPreview = (ImageView) findViewById(R.id.imgBackPreview);
+        txtDocTitleBar = (TextView) findViewById(R.id.txtDocTitleBar);
+
         tabOriginal = (TextView) findViewById(R.id.tabOriginal);
         tabExtracted = (TextView) findViewById(R.id.tabExtracted);
         tabAi = (TextView) findViewById(R.id.tabAi);
@@ -263,6 +270,21 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     }
 
     void ganSuKien() {
+        // ── Nút quay lại ────────────────────────────────
+        if (imgBackPreview != null) {
+            imgBackPreview.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finish();
+                }
+            });
+        }
+
+        // ── Hiển thị tiêu đề tài liệu trên app bar ──────
+        if (txtDocTitleBar != null && document != null) {
+            txtDocTitleBar.setText(document.title != null ? document.title : "Tài liệu");
+        }
+
         // ── Badge Tag: Click de chon nhanh hoac goi AI phan loai ──
         if (txtDocTagBadge != null) {
             txtDocTagBadge.setOnClickListener(new View.OnClickListener() {
@@ -521,12 +543,15 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         dangHienExtracted = true;
 
         // Cập nhật style tab — tab Văn bản active
-        tabExtracted.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        tabExtracted.setBackgroundResource(R.drawable.bg_tab_pill_active);
         tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.background));
-        tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
-        tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabExtracted.setTypeface(null, android.graphics.Typeface.BOLD);
+        tabOriginal.setBackgroundResource(android.R.color.transparent);
+        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabOriginal.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tabAi.setBackgroundResource(android.R.color.transparent);
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabAi.setTypeface(null, android.graphics.Typeface.NORMAL);
 
         // Hiện text, ẩn ảnh, ẩn khu vực AI
         if (scrollViewContent != null) scrollViewContent.setVisibility(View.VISIBLE);
@@ -564,12 +589,15 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         dangHienExtracted = false;
 
         // Cập nhật style tab — tab Ảnh gốc active
-        tabOriginal.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        tabOriginal.setBackgroundResource(R.drawable.bg_tab_pill_active);
         tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.background));
-        tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
-        tabAi.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabOriginal.setTypeface(null, android.graphics.Typeface.BOLD);
+        tabExtracted.setBackgroundResource(android.R.color.transparent);
+        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabExtracted.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tabAi.setBackgroundResource(android.R.color.transparent);
+        tabAi.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabAi.setTypeface(null, android.graphics.Typeface.NORMAL);
 
         // Hiện ảnh, ẩn text và khu vực AI
         if (scrollViewContent != null) scrollViewContent.setVisibility(View.VISIBLE);
@@ -605,12 +633,15 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         dangHienExtracted = false;
 
         // Cập nhật style tab — tab Trợ lý AI active
-        tabAi.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        tabAi.setBackgroundResource(R.drawable.bg_tab_pill_active);
         tabAi.setTextColor(ContextCompat.getColor(this, R.color.background));
-        tabOriginal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
-        tabExtracted.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_hint));
+        tabAi.setTypeface(null, android.graphics.Typeface.BOLD);
+        tabOriginal.setBackgroundResource(android.R.color.transparent);
+        tabOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabOriginal.setTypeface(null, android.graphics.Typeface.NORMAL);
+        tabExtracted.setBackgroundResource(android.R.color.transparent);
+        tabExtracted.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        tabExtracted.setTypeface(null, android.graphics.Typeface.NORMAL);
 
         // Ẩn văn bản và ảnh, hiện khu vực AI + Q&A
         if (scrollViewContent != null) scrollViewContent.setVisibility(View.GONE);
@@ -798,7 +829,10 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         if (text == null || text.trim().isEmpty()) return false;
         String lower = text.toLowerCase();
         return lower.contains("<table") || lower.contains("<tr") || lower.contains("<td")
-                || lower.contains("<th") || (text.contains("|") && text.contains("---"));
+                || lower.contains("<th") || lower.contains("<h1") || lower.contains("<h2")
+                || lower.contains("<h3") || lower.contains("<h4") || lower.contains("<p>")
+                || lower.contains("<p ") || lower.contains("<ul>") || lower.contains("<ol>")
+                || (text.contains("|") && text.contains("---"));
     }
 
     // Chuan hoa noi dung HTML, bo markdown code block va chuyen markdown table neu co

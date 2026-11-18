@@ -8,95 +8,142 @@
     android:background="@color/background">
 
 
-    <!-- ── TAB: Original / Extracted / AI ── -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:background="@color/surface"
-        android:gravity="center_vertical">
-
-        <!-- Tab Original -->
-        <TextView
-            android:id="@+id/tabOriginal"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:text="Ảnh gốc"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:textColor="@color/text_hint"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- Tab Extracted (active mặc định) -->
-        <TextView
-            android:id="@+id/tabExtracted"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:text="Văn bản"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:textColor="@color/background"
-            android:background="@color/primary"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- Tab Trợ lý AI (mới) -->
-        <TextView
-            android:id="@+id/tabAi"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_weight="1"
-            android:text="Trợ lý AI"
-            android:textSize="13sp"
-            android:gravity="center"
-            android:textColor="@color/text_hint"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:focusable="true" />
-
-    </LinearLayout>
-
-    <!-- ── BADGE: DOCUMENT STATUS & TAG ── -->
+    <!-- ── TOP APP BAR ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
+        android:orientation="vertical"
         android:background="@color/surface">
 
-        <TextView
-            android:id="@+id/txtStatusBadge"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="ĐÃ TRÍCH XUẤT"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="@color/status_badge_green" />
+        <!-- Hàng 1: Nút Quay lại + Cụm Tab bo tròn viên thuốc + Badge Phân loại -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/txtDocTagBadge"
-            android:layout_width="wrap_content"
+            <!-- Nút Quay lại -->
+            <ImageView
+                android:id="@+id/imgBackPreview"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/text_primary"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <!-- Cụm chuyển tab dạng bo tròn viên thuốc -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_tab_pill_container"
+                android:orientation="horizontal"
+                android:padding="3dp">
+
+                <!-- Tab Ảnh gốc -->
+                <TextView
+                    android:id="@+id/tabOriginal"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Ảnh gốc"
+                    android:textSize="12sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/text_secondary" />
+
+                <!-- Tab Văn bản (active mặc định) -->
+                <TextView
+                    android:id="@+id/tabExtracted"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Văn bản"
+                    android:textSize="12sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/bg_tab_pill_active"
+                    android:textColor="@color/background"
+                    android:textStyle="bold" />
+
+                <!-- Tab Trợ lý AI -->
+                <TextView
+                    android:id="@+id/tabAi"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Trợ lý AI"
+                    android:textSize="12sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Badge nhãn phân loại -->
+            <TextView
+                android:id="@+id/txtDocTagBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#Phân loại"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground" />
+
+        </LinearLayout>
+
+        <!-- Hàng 2: Tiêu đề tài liệu và Trạng thái trích xuất tinh gọn -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="#Phân loại"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="3dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:id="@+id/txtDocTitleBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/txtStatusBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ĐÃ TRÍCH XUẤT"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/status_badge_green" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
 
     </LinearLayout>
 

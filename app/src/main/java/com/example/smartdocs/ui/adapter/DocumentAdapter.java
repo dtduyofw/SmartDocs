@@ -3,6 +3,8 @@ package com.example.smartdocs.ui.adapter;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +80,40 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
         this.menuClickListener = listener;
     }
 
+    // Loai bo the HTML va giai ma ky tu HTML ve text thuan
+    public static String loaiBoHtml(String html) {
+        if (html == null || html.trim().isEmpty()) {
+            return "";
+        }
+        String text;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                text = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString();
+            } else {
+                text = Html.fromHtml(html).toString();
+            }
+        } catch (Exception e) {
+            text = html;
+        }
+        // Xoa cac the HTML con sot lai
+        text = text.replaceAll("<[^>]*>", " ");
+        // Chuan hoa khoang trang ngang
+        text = text.replaceAll("[ \\t\\x0B\\f\\r]+", " ");
+        // Rut gon nhieu dong trong thanh 1 dong
+        text = text.replaceAll("\\n\\s*\\n+", "\n");
+        return text.trim();
+    }
+
+    // Chuan hoa tieu de tai lieu: loai bo the HTML va loai bo ky tu xuong dong
+    public static String chuanHoaTieuDe(String rawTitle) {
+        if (rawTitle == null || rawTitle.trim().isEmpty()) {
+            return "Tài liệu không tiêu đề";
+        }
+        String clean = loaiBoHtml(rawTitle);
+        clean = clean.replaceAll("[\\r\\n]+", " ").replaceAll("\\s+", " ").trim();
+        return clean.isEmpty() ? "Tài liệu không tiêu đề" : clean;
+    }
+
     @NonNull
     @Override
     public DocumentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -150,19 +186,21 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
 
             // Tieu de tai lieu
             if (txtItemTitle != null) {
-                txtItemTitle.setText(
-                        document.title != null && !document.title.isEmpty()
-                                ? document.title : "Tài liệu không tiêu đề"
-                );
+                String tieuDe = chuanHoaTieuDe(document.title);
+                txtItemTitle.setText(tieuDe);
             }
 
             // Preview van ban OCR (toi da 2 dong)
             if (txtItemOcrPreview != null) {
                 if (document.ocrText != null && !document.ocrText.isEmpty()) {
-                    String preview = document.ocrText.trim();
-                    if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
-                    txtItemOcrPreview.setText(preview);
-                    txtItemOcrPreview.setVisibility(View.VISIBLE);
+                    String preview = loaiBoHtml(document.ocrText);
+                    if (!preview.isEmpty()) {
+                        if (preview.length() > 120) preview = preview.substring(0, 120) + "...";
+                        txtItemOcrPreview.setText(preview);
+                        txtItemOcrPreview.setVisibility(View.VISIBLE);
+                    } else {
+                        txtItemOcrPreview.setVisibility(View.GONE);
+                    }
                 } else {
                     txtItemOcrPreview.setVisibility(View.GONE);
                 }
