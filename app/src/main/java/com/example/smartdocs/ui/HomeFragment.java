@@ -84,6 +84,7 @@ public class HomeFragment extends Fragment {
 
     // 2 card lớn Home
     MaterialCardView cardGallery, cardCamera;
+    MaterialCardView cardSoHoaGiayTo;
 
     // Preview ảnh
     MaterialCardView cardPreviewWrapper;
@@ -159,6 +160,7 @@ public class HomeFragment extends Fragment {
 
         cardGallery = (MaterialCardView) view.findViewById(R.id.cardGallery);
         cardCamera = (MaterialCardView) view.findViewById(R.id.cardCamera);
+        cardSoHoaGiayTo = (MaterialCardView) view.findViewById(R.id.cardSoHoaGiayTo);
 
         cardPreviewWrapper = (MaterialCardView) view.findViewById(R.id.cardPreviewWrapper);
         imgPreview = (ImageView) view.findViewById(R.id.imgPreview);
@@ -360,6 +362,38 @@ public class HomeFragment extends Fragment {
                 kiemTraQuyenCamera();
             }
         });
+
+        if (cardSoHoaGiayTo != null) {
+            cardSoHoaGiayTo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (getContext() == null || getActivity() == null) return;
+                    if (BiometricHelper.daBatSinhTracHoc(getContext()) && BiometricHelper.coHoTroSinhTracHoc(getContext())) {
+                        BiometricHelper.xacThuc(requireActivity(), "Xác thực bảo mật", "Xác thực vân tay để truy cập Giấy tờ cá nhân", new BiometricHelper.BiometricCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Intent intent = new Intent(getActivity(), QLGiayToActivity.class);
+                                intent.putExtra("da_xac_thuc", true);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                Toast.makeText(getContext(), "Xác thực không thành công: " + message, Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                // Nguoi dung huy xac thuc
+                            }
+                        });
+                    } else {
+                        Intent intent = new Intent(getActivity(), QLGiayToActivity.class);
+                        startActivity(intent);
+                    }
+                }
+            });
+        }
 
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override

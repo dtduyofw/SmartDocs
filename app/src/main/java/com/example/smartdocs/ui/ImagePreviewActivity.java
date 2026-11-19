@@ -83,14 +83,26 @@ public class ImagePreviewActivity extends AppCompatActivity {
     }
 
     void ganSuKien() {
-        // Nut Tu dong cat: co khung vao 8% vien tai lieu
+        // Nut Tu dong cat: tim va can chinh vua sat giay to
         if (btnAutoCrop != null) {
             btnAutoCrop.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (cropOverlayView != null) {
+                    if (bitmapHienTai != null) {
+                        Toast.makeText(ImagePreviewActivity.this, "Đang nhận diện vùng giấy tờ...", Toast.LENGTH_SHORT).show();
+                        com.example.smartdocs.ocr.DocumentCropHelper.timVungGiayTo(ImagePreviewActivity.this, bitmapHienTai, new com.example.smartdocs.ocr.DocumentCropHelper.CropCallback() {
+                            @Override
+                            public void onDetected(android.graphics.Rect cropRect) {
+                                if (cropOverlayView != null && cropRect != null) {
+                                    cropOverlayView.datKhungCatTheoBitmap(cropRect);
+                                    Toast.makeText(ImagePreviewActivity.this, "Đã tự động cắt vừa giấy tờ", Toast.LENGTH_SHORT).show();
+                                } else if (cropOverlayView != null) {
+                                    cropOverlayView.thucHienAutoCrop();
+                                }
+                            }
+                        });
+                    } else if (cropOverlayView != null) {
                         cropOverlayView.thucHienAutoCrop();
-                        Toast.makeText(ImagePreviewActivity.this, "Đã căn chỉnh vùng cắt tự động", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -146,6 +158,17 @@ public class ImagePreviewActivity extends AppCompatActivity {
                 if (cropOverlayView != null) {
                     cropOverlayView.thietLapAnh(bitmapHienTai, imgPreviewCrop);
                 }
+
+                // Tu dong phat hien giay to va can chinh khung cat ngay khi mo anh
+                com.example.smartdocs.ocr.DocumentCropHelper.timVungGiayTo(this, bitmapHienTai, new com.example.smartdocs.ocr.DocumentCropHelper.CropCallback() {
+                    @Override
+                    public void onDetected(android.graphics.Rect cropRect) {
+                        if (cropOverlayView != null && cropRect != null) {
+                            cropOverlayView.datKhungCatTheoBitmap(cropRect);
+                            Toast.makeText(ImagePreviewActivity.this, "Đã tự động cắt vừa giấy tờ", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         } catch (Exception e) {
             imgPreviewCrop.setImageURI(uri);

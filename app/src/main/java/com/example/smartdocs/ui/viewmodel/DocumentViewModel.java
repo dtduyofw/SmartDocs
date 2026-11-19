@@ -303,23 +303,6 @@ public class DocumentViewModel extends AndroidViewModel {
         repository.deleteAll(null);
     }
 
-    /**
-     * Lấy danh sách tài liệu yêu thích.
-     */
-    public LiveData<List<ScanDocument>> getFavorites() {
-        return repository.getFavorites();
-    }
-
-    /**
-     * Toggle yêu thích / bỏ yêu thích một tài liệu.
-     * Nếu đang yêu thích (1) → bỏ (0), và ngược lại.
-     */
-    public void toggleFavorite(ScanDocument document) {
-        int newValue = (document.isFavorite == 1) ? 0 : 1;
-        document.isFavorite = newValue;
-        repository.updateFavorite(document.id, newValue, null);
-    }
-
     // ─────────────────────────────────────────
     // Gemini API Actions
     // ─────────────────────────────────────────

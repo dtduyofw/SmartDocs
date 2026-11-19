@@ -70,4 +70,11 @@
     <color name="chip_bg_dark">#2F323C</color>
     <color name="chip_stroke_dark">#3E424E</color>
     <color name="chip_text_dark">#FAFAFA</color>
+
+    <!-- Ultra-Dark Minimalist - So hoa giay to ca nhan -->
+    <color name="vault_bg">#18191E</color>
+    <color name="vault_card_bg">#23252C</color>
+    <color name="vault_stroke">#3E424E</color>
+    <color name="vault_text_primary">#FAFAFA</color>
+    <color name="vault_text_secondary">#B0B5C0</color>
 </resources>

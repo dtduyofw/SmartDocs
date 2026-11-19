@@ -22,9 +22,10 @@ import com.example.smartdocs.data.model.ScanDocument;
 - version 5: migration "vá schema" — xử lý thiết bị Android 13 bị lỗi schema validation
              khi database cũ thiếu cột hoặc index so với khai báo Entity hiện tại.
              Dùng CREATE ... IF NOT EXISTS / ADD COLUMN thông qua try-catch để an toàn.
+- version 6: xóa cột is_favorite khỏi bảng scan_documents
  */
 @Database(entities = {ScanDocument.class, QaHistory.class, SavedFile.class, DocumentPage.class},
-        version = 5, exportSchema = false)
+        version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String DB_NAME = "smart_docs.db";
@@ -181,6 +182,36 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    // Migration từ version 5 → 6: Xóa cột is_favorite khỏi bảng scan_documents
+    static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // 1. Tạo bảng tạm không chứa cột is_favorite
+            database.execSQL("CREATE TABLE IF NOT EXISTS scan_documents_temp ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "image_uri TEXT, "
+                    + "ocr_text TEXT, "
+                    + "ai_summary TEXT, "
+                    + "created_at INTEGER NOT NULL, "
+                    + "title TEXT, "
+                    + "page_count INTEGER NOT NULL, "
+                    + "tags TEXT NOT NULL, "
+                    + "language TEXT NOT NULL, "
+                    + "updated_at INTEGER NOT NULL)");
+
+            // 2. Sao chép dữ liệu từ bảng cũ sang bảng tạm
+            database.execSQL("INSERT INTO scan_documents_temp (id, image_uri, ocr_text, ai_summary, created_at, title, page_count, tags, language, updated_at) "
+                    + "SELECT id, image_uri, ocr_text, ai_summary, created_at, title, page_count, tags, language, updated_at FROM scan_documents");
+
+            // 3. Xóa bảng cũ và đổi tên bảng tạm
+            database.execSQL("DROP TABLE scan_documents");
+            database.execSQL("ALTER TABLE scan_documents_temp RENAME TO scan_documents");
+
+            // 4. Tạo lại index trên created_at
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_scan_documents_created_at ON scan_documents(created_at)");
+        }
+    };
+
     /*
     Trả về singleton instance của AppDatabase.
     Dùng Double-Checked Locking để an toàn khi gọi từ nhiều thread.
@@ -195,7 +226,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             DB_NAME
                     )
                     // Them day du migration chain, them fallback xoa tao lai tranh crash khi lech schema
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .fallbackToDestructiveMigration()
                     .build();
                 }

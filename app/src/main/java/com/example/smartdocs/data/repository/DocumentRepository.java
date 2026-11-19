@@ -44,26 +44,6 @@ public class DocumentRepository {
         return documentDao.search(keyword);
     }
 
-     //Lấy danh sách tài liệu yêu thích.
-    public LiveData<List<ScanDocument>> getFavorites() {
-        return documentDao.getFavorites();
-    }
-
-    /**
-      Toggle trạng thái yêu thích của một tài liệu.
-      @param id        ID của tài liệu cần toggle
-      @param isFavorite 1 = yêu thích, 0 = bỏ yêu thích
-     */
-    public void updateFavorite(int id, int isFavorite, OnCompleteCallback callback) {
-        executor.execute(() -> {
-            documentDao.updateFavorite(id, isFavorite);
-            if (callback != null) {
-                new android.os.Handler(android.os.Looper.getMainLooper())
-                        .post(callback::onComplete);
-            }
-        });
-    }
-
     // Cap nhat nhan phan loai tags
     public void updateTags(int id, String tags, OnCompleteCallback callback) {
         executor.execute(() -> {

@@ -47,7 +47,6 @@ public class DocumentAdapter extends ListAdapter<ScanDocument, DocumentAdapter.D
                             && java.util.Objects.equals(oldItem.tags, newItem.tags)
                             && java.util.Objects.equals(oldItem.aiSummary, newItem.aiSummary)
                             && oldItem.createdAt == newItem.createdAt
-                            && oldItem.isFavorite == newItem.isFavorite
                             && oldItem.pageCount == newItem.pageCount;
                 }
             };

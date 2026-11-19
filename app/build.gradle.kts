@@ -66,6 +66,9 @@ dependencies {
     // ML Kit Text Recognition v2
     implementation(libs.mlkit.text.recognition)
 
+    // ML Kit Barcode Scanning (doc QR tren CCCD)
+    implementation(libs.mlkit.barcode.scanning)
+
     // Retrofit + OkHttp + Gson
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.gson)

@@ -563,7 +563,7 @@ public class GeminiRepository {
             return "Không có kết nối Internet!\n"
                     + "Vui lòng kiểm tra Internet và thử lại.";
         } else if (t instanceof SocketTimeoutException) {
-            return "Kết nối quá chậm)!\n"
+            return "Kết nối quá chậm!\n"
                     + "Kiểm tra chất lượng mạng và thử lại.";
         } else if (t instanceof IOException) {
             return "Mất kết nối giữa chừng!\n"

@@ -38,10 +38,6 @@ public class ScanDocument {
     @ColumnInfo(name = "title")
     public String title;
 
-    // Tài liệu có được đánh dấu yêu thích không
-    @ColumnInfo(name = "is_favorite")
-    public int isFavorite; // 0 = false, 1 = true
-
     // Số trang của tài liệu (mặc định 1)
     @ColumnInfo(name = "page_count")
     public int pageCount;
@@ -68,7 +64,6 @@ public class ScanDocument {
         this.aiSummary = aiSummary;
         this.createdAt = createdAt;
         this.title = title;
-        this.isFavorite = 0; // mặc định không yêu thích
         this.pageCount = 1;  // mặc định 1 trang
         this.tags = "";      // mặc định không có nhãn
         this.language = "auto"; // mặc định tự động nhận diện ngôn ngữ

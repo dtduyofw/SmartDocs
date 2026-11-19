@@ -50,7 +50,7 @@ public class HistoryFragment extends Fragment {
     LinearLayout layoutEmpty;
 
     // Filter Chips
-    TextView chipFilterTatCa, chipFilterHoaDon, chipFilterGiayTo, chipFilterHocTap, chipFilterSoLieu, chipFilterKhac;
+    TextView chipFilterTatCa, chipFilterHoaDon, chipFilterHocTap, chipFilterSoLieu, chipFilterKhac;
     String tagDangLoc = "ALL";
     List<ScanDocument> danhSachGoc = new java.util.ArrayList<>();
 
@@ -112,7 +112,6 @@ public class HistoryFragment extends Fragment {
 
         chipFilterTatCa = (TextView) view.findViewById(R.id.chipFilterTatCa);
         chipFilterHoaDon = (TextView) view.findViewById(R.id.chipFilterHoaDon);
-        chipFilterGiayTo = (TextView) view.findViewById(R.id.chipFilterGiayTo);
         chipFilterHocTap = (TextView) view.findViewById(R.id.chipFilterHocTap);
         chipFilterSoLieu = (TextView) view.findViewById(R.id.chipFilterSoLieu);
         chipFilterKhac = (TextView) view.findViewById(R.id.chipFilterKhac);
@@ -182,14 +181,6 @@ public class HistoryFragment extends Fragment {
                 }
             });
         }
-        if (chipFilterGiayTo != null) {
-            chipFilterGiayTo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    chonChipLoc(DocumentClassifierHelper.TAG_GIAY_TO);
-                }
-            });
-        }
         if (chipFilterHocTap != null) {
             chipFilterHocTap.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -229,7 +220,6 @@ public class HistoryFragment extends Fragment {
 
         capNhatMotChip(chipFilterTatCa, "ALL".equals(tagDangLoc), mauActive, mauInactive);
         capNhatMotChip(chipFilterHoaDon, DocumentClassifierHelper.TAG_HOA_DON.equals(tagDangLoc), mauActive, mauInactive);
-        capNhatMotChip(chipFilterGiayTo, DocumentClassifierHelper.TAG_GIAY_TO.equals(tagDangLoc), mauActive, mauInactive);
         capNhatMotChip(chipFilterHocTap, DocumentClassifierHelper.TAG_HOC_TAP.equals(tagDangLoc), mauActive, mauInactive);
         capNhatMotChip(chipFilterSoLieu, DocumentClassifierHelper.TAG_SO_LIEU.equals(tagDangLoc), mauActive, mauInactive);
         capNhatMotChip(chipFilterKhac, DocumentClassifierHelper.TAG_KHAC.equals(tagDangLoc), mauActive, mauInactive);

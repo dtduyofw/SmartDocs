@@ -77,6 +77,28 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
+        <!-- QLGiayToActivity: man hinh so hoa va quan ly giay to ca nhan -->
+        <activity
+            android:name=".ui.QLGiayToActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ui.MainActivity" />
+        <!-- ChiTietGiayToActivity: man hinh chi tiet giay to ca nhan -->
+        <activity
+            android:name=".ui.ChiTietGiayToActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ui.QLGiayToActivity" />
+        <!-- XemAnhActivity: man hinh xem anh giay to toan man hinh -->
+        <activity
+            android:name=".ui.XemAnhActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.ChiTietGiayToActivity" />
+        <!-- QuetQrCccdActivity: man hinh quet ma QR tren the CCCD -->
+        <activity
+            android:name=".ui.QuetQrCccdActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.QLGiayToActivity" />
         <!--
             FileProvider: bắt buộc cho Android 7+ khi truyền URI ảnh Camera
             cho Intent chụp ảnh (ACTION_IMAGE_CAPTURE).

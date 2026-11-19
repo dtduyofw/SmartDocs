@@ -41,14 +41,6 @@ public interface DocumentDao {
            "OR title LIKE '%' || :keyword || '%' ORDER BY created_at DESC")
     LiveData<List<ScanDocument>> search(String keyword);
 
-    // Lấy danh sách tài liệu yêu thích
-    @Query("SELECT * FROM scan_documents WHERE is_favorite = 1 ORDER BY created_at DESC")
-    LiveData<List<ScanDocument>> getFavorites();
-
-    // Toggle yêu thích cho một tài liệu
-    @Query("UPDATE scan_documents SET is_favorite = :isFavorite WHERE id = :id")
-    void updateFavorite(int id, int isFavorite);
-
     // Cập nhật nội dung OCR theo ID, đồng thời ghi nhận thời gian chỉnh sửa
     @Query("UPDATE scan_documents SET ocr_text = :ocrText, updated_at = :updatedAt WHERE id = :id")
     void updateOcrText(int id, String ocrText, long updatedAt);

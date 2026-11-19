@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     MaterialCardView cardDrawerAvatar;
     TextView txtDrawerAvatarChar, txtDrawerTen, txtDrawerGoiBadge, txtDrawerEmail;
 
-    LinearLayout layoutDrawerHome, layoutDrawerFiles, layoutDrawerHistory;
+    LinearLayout layoutDrawerHome, layoutDrawerFiles, layoutDrawerHistory, layoutDrawerGiayTo;
     ImageView imgNavHome, imgNavFiles, imgNavHistory;
     TextView txtNavHome, txtNavFiles, txtNavHistory;
 
@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         layoutDrawerHome = (LinearLayout) findViewById(R.id.layoutDrawerHome);
         layoutDrawerFiles = (LinearLayout) findViewById(R.id.layoutDrawerFiles);
         layoutDrawerHistory = (LinearLayout) findViewById(R.id.layoutDrawerHistory);
+        layoutDrawerGiayTo = (LinearLayout) findViewById(R.id.layoutDrawerGiayTo);
 
         imgNavHome = (ImageView) findViewById(R.id.imgNavHome);
         imgNavFiles = (ImageView) findViewById(R.id.imgNavFiles);
@@ -261,6 +262,39 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     dongDrawer();
                     chonTab(R.id.nav_history);
+                }
+            });
+        }
+
+        // 5b. Chon So hoa giay to
+        if (layoutDrawerGiayTo != null) {
+            layoutDrawerGiayTo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dongDrawer();
+                    if (BiometricHelper.daBatSinhTracHoc(MainActivity.this) && BiometricHelper.coHoTroSinhTracHoc(MainActivity.this)) {
+                        BiometricHelper.xacThuc(MainActivity.this, "Xác thực bảo mật", "Xác thực vân tay để truy cập Giấy tờ cá nhân", new BiometricHelper.BiometricCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Intent intent = new Intent(MainActivity.this, QLGiayToActivity.class);
+                                intent.putExtra("da_xac_thuc", true);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                Toast.makeText(MainActivity.this, "Xác thực không thành công: " + message, Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                // Nguoi dung huy xac thuc
+                            }
+                        });
+                    } else {
+                        Intent intent = new Intent(MainActivity.this, QLGiayToActivity.class);
+                        startActivity(intent);
+                    }
                 }
             });
         }
