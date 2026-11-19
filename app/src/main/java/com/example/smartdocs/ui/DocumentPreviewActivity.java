@@ -87,7 +87,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
     LinearLayout layoutAiTab, layoutAiLoading;
     TextView txtAiLoading;
     LinearLayout layoutQaPlaceholder;
-    Chip chipTomTat, chipDichTV, chipTrichXuat, chipPhanLoaiAi, chipBanDoTuDuy, chipTracNghiem, chipNoiDungChinh, chipSoLieu;
+    com.google.android.material.chip.ChipGroup chipGroupAi;
+    Chip chipDichTV, chipTomTat, chipTrichXuat, chipTracNghiem, chipBanDoTuDuy, chipTuVung, chipSoLieu;
 
     // WebView hien thi van ban da dinh dang lai
     android.webkit.WebView wvFormattedContent;
@@ -200,13 +201,13 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         layoutAiLoading = (LinearLayout) findViewById(R.id.layoutAiLoading);
         txtAiLoading = (TextView) findViewById(R.id.txtAiLoading);
         layoutQaPlaceholder = (LinearLayout) findViewById(R.id.layoutQaPlaceholder);
-        chipTomTat = (Chip) findViewById(R.id.chipTomTat);
+        chipGroupAi = (com.google.android.material.chip.ChipGroup) findViewById(R.id.chipGroupAi);
         chipDichTV = (Chip) findViewById(R.id.chipDichTV);
+        chipTomTat = (Chip) findViewById(R.id.chipTomTat);
         chipTrichXuat = (Chip) findViewById(R.id.chipTrichXuat);
-        chipPhanLoaiAi = (Chip) findViewById(R.id.chipPhanLoaiAi);
-        chipBanDoTuDuy = (Chip) findViewById(R.id.chipBanDoTuDuy);
         chipTracNghiem = (Chip) findViewById(R.id.chipTracNghiem);
-        chipNoiDungChinh = (Chip) findViewById(R.id.chipNoiDungChinh);
+        chipBanDoTuDuy = (Chip) findViewById(R.id.chipBanDoTuDuy);
+        chipTuVung = (Chip) findViewById(R.id.chipTuVung);
         chipSoLieu = (Chip) findViewById(R.id.chipSoLieu);
 
         // Anh xa WebView dinh dang thong minh
@@ -334,46 +335,32 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             }
         });
 
-        // ── Chip nhanh: Tóm tắt ─────────────────────────
-        chipTomTat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                goiAiNhanhVaoChat("summarize");
-            }
-        });
-
-        // ── Chip nhanh: Dịch TV ──────────────────────────
-        chipDichTV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                goiAiNhanhVaoChat("translate");
-            }
-        });
-
-        // ── Chip nhanh: Trích xuất ───────────────────────
-        chipTrichXuat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                goiAiNhanhVaoChat("extract");
-            }
-        });
-
-        // ── Chip nhanh: Phân loại AI ─────────────────────
-        if (chipPhanLoaiAi != null) {
-            chipPhanLoaiAi.setOnClickListener(new View.OnClickListener() {
+        // ── Chip nhanh: Dịch sang tiếng Việt ──────────────
+        if (chipDichTV != null) {
+            chipDichTV.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    goiAiPhanLoaiChuyenSau();
+                    goiAiNhanhVaoChat("translate");
                 }
             });
         }
 
-        // ── Chip nhanh: Bản đồ tư duy ────────────────────
-        if (chipBanDoTuDuy != null) {
-            chipBanDoTuDuy.setOnClickListener(new View.OnClickListener() {
+        // ── Chip nhanh: Tóm tắt ──────────────────────────
+        if (chipTomTat != null) {
+            chipTomTat.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    moManHinhBanDoTuDuy();
+                    goiAiNhanhVaoChat("summarize");
+                }
+            });
+        }
+
+        // ── Chip nhanh: Trích xuất thông tin chính ───────
+        if (chipTrichXuat != null) {
+            chipTrichXuat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    goiAiNhanhVaoChat("extract");
                 }
             });
         }
@@ -388,24 +375,36 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             });
         }
 
+        // ── Chip nhanh: Bản đồ tư duy ────────────────────
+        if (chipBanDoTuDuy != null) {
+            chipBanDoTuDuy.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    moManHinhBanDoTuDuy();
+                }
+            });
+        }
 
-        // ── Chip gợi ý: Nội dung chính ───────────────────
-        chipNoiDungChinh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                edtCauHoi.setText("Nội dung chính là gì?");
-                guiCauHoiQa();
-            }
-        });
+        // ── Chip nhanh: Từ vựng trọng tâm ────────────────
+        if (chipTuVung != null) {
+            chipTuVung.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    goiAiNhanhVaoChat("vocabulary");
+                }
+            });
+        }
 
-        // ── Chip gợi ý: Số liệu quan trọng ──────────────
-        chipSoLieu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                edtCauHoi.setText("Trích xuất các số liệu quan trọng");
-                guiCauHoiQa();
-            }
-        });
+        // ── Chip nhanh: Phân tích số liệu ────────────────
+        if (chipSoLieu != null) {
+            chipSoLieu.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    edtCauHoi.setText("Phân tích số liệu và trích xuất bảng số liệu quan trọng");
+                    guiCauHoiQa();
+                }
+            });
+        }
 
         // ── Q&A: Gửi câu hỏi (nút Gửi) ──────────────────
         btnGuiCauHoi.setOnClickListener(new View.OnClickListener() {
@@ -651,6 +650,7 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         if (layoutAiTab != null) {
             layoutAiTab.setVisibility(View.VISIBLE);
         }
+        capNhatDanhSachChipGoiY();
         if (layoutBottomToolbar != null) layoutBottomToolbar.setVisibility(View.GONE);
         if (viewDividerBottom != null) viewDividerBottom.setVisibility(View.GONE);
         if (layoutExportAs != null) layoutExportAs.setVisibility(View.GONE);
@@ -773,21 +773,14 @@ public class DocumentPreviewActivity extends AppCompatActivity {
 
     // Vô hiệu hoá/kích hoạt tất cả chip và nút gửi khi AI đang chạy
     void setChipsEnabled(boolean enabled) {
-        chipTomTat.setEnabled(enabled);
-        chipDichTV.setEnabled(enabled);
-        chipTrichXuat.setEnabled(enabled);
-        if (chipPhanLoaiAi != null) {
-            chipPhanLoaiAi.setEnabled(enabled);
-        }
-        if (chipBanDoTuDuy != null) {
-            chipBanDoTuDuy.setEnabled(enabled);
-        }
-        if (chipTracNghiem != null) {
-            chipTracNghiem.setEnabled(enabled);
-        }
-        chipNoiDungChinh.setEnabled(enabled);
-        chipSoLieu.setEnabled(enabled);
-        btnGuiCauHoi.setEnabled(enabled);
+        if (chipDichTV != null) chipDichTV.setEnabled(enabled);
+        if (chipTomTat != null) chipTomTat.setEnabled(enabled);
+        if (chipTrichXuat != null) chipTrichXuat.setEnabled(enabled);
+        if (chipTracNghiem != null) chipTracNghiem.setEnabled(enabled);
+        if (chipBanDoTuDuy != null) chipBanDoTuDuy.setEnabled(enabled);
+        if (chipTuVung != null) chipTuVung.setEnabled(enabled);
+        if (chipSoLieu != null) chipSoLieu.setEnabled(enabled);
+        if (btnGuiCauHoi != null) btnGuiCauHoi.setEnabled(enabled);
     }
 
     // Mo BottomSheet lam trac nghiem on tap voi Gemini AI
@@ -1015,8 +1008,11 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             tenHanhDong = "Tóm tắt nội dung tài liệu";
             loadingText = "Gemini đang tóm tắt...";
         } else if ("translate".equals(loai)) {
-            tenHanhDong = "Dịch toàn bộ sang tiếng Việt";
+            tenHanhDong = "Dịch sang tiếng Việt";
             loadingText = "Gemini đang dịch...";
+        } else if ("vocabulary".equals(loai)) {
+            tenHanhDong = "Từ vựng trọng tâm";
+            loadingText = "Gemini đang lọc từ vựng...";
         } else {
             tenHanhDong = "Trích xuất thông tin chính";
             loadingText = "Gemini đang trích xuất...";
@@ -1084,6 +1080,8 @@ public class DocumentPreviewActivity extends AppCompatActivity {
             GeminiRepository.getInstance().summarizeText(apiKey, vanBan, callback);
         } else if ("translate".equals(loai)) {
             GeminiRepository.getInstance().translateToVietnamese(apiKey, vanBan, callback);
+        } else if ("vocabulary".equals(loai)) {
+            GeminiRepository.getInstance().extractVocabulary(apiKey, vanBan, callback);
         } else {
             GeminiRepository.getInstance().extractKeyInfo(apiKey, vanBan, callback);
         }
@@ -1405,51 +1403,226 @@ public class DocumentPreviewActivity extends AppCompatActivity {
         txtDocTagBadge.setPadding((int) (8 * density), (int) (4 * density), (int) (8 * density), (int) (4 * density));
         txtDocTagBadge.setVisibility(View.VISIBLE);
 
-        // Kiem tra dieu kien hien thi chip Ban do tu duy (chi xuat hien khi co tag hoc tap hoac so lieu)
-        if (chipBanDoTuDuy != null) {
-            if (DocumentClassifierHelper.coTheTaoMindmap(document.tags)) {
-                chipBanDoTuDuy.setVisibility(View.VISIBLE);
-            } else {
-                chipBanDoTuDuy.setVisibility(View.GONE);
+        // Cap nhat danh sach va thu tu cac chip goi y dong theo tag va ngon ngu
+        capNhatDanhSachChipGoiY();
+    }
+
+    // Kiem tra nhanh van ban OCR co phai ngoai ngu hay khong
+    boolean kiemTraNgoaiNgu(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return false;
+        }
+
+        String lower = text.toLowerCase();
+
+        // Danh sach cac ky tu dac trung co dau trong tieng Viet
+        String kyTuCoDau = "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ";
+        int soKyTuCoDau = 0;
+        int tongKyTuChu = 0;
+
+        for (int i = 0; i < lower.length(); i++) {
+            char c = lower.charAt(i);
+            if (Character.isLetter(c)) {
+                tongKyTuChu++;
+                if (kyTuCoDau.indexOf(c) >= 0) {
+                    soKyTuCoDau++;
+                }
             }
         }
 
-        // Kiem tra dieu kien hien thi chip Trac nghiem on tap (ap dung cho Tai lieu hoc tap)
-        if (chipTracNghiem != null) {
-            if (DocumentClassifierHelper.coTheLamTracNghiem(document.tags)) {
-                chipTracNghiem.setVisibility(View.VISIBLE);
+        // Neu co tu 5 ky tu co dau tro len va ty le tren 1% thi la tieng Viet
+        if (soKyTuCoDau >= 5 && tongKyTuChu > 0 && ((float) soKyTuCoDau / tongKyTuChu) > 0.01f) {
+            return false;
+        }
+
+        // Kiem tra su xuat hien cua cac tu tieng Anh pho bien
+        String[] tuTiengAnh = {
+                "the", "and", "is", "in", "to", "of", "for", "with",
+                "that", "this", "are", "on", "from", "by", "as", "it",
+                "at", "be", "was", "have", "has", "not", "study", "lesson"
+        };
+        int diemTiengAnh = 0;
+        String[] cacTu = lower.split("\\s+");
+        for (String tu : cacTu) {
+            String tuChuan = tu.replaceAll("[^a-zA-Z]", "");
+            for (String en : tuTiengAnh) {
+                if (en.equals(tuChuan)) {
+                    diemTiengAnh++;
+                    break;
+                }
+            }
+            if (diemTiengAnh >= 3) {
+                return true;
+            }
+        }
+
+        return soKyTuCoDau <= 2 && diemTiengAnh >= 1;
+    }
+
+    // Dinh dang giao dien Ultra-Dark Minimalist cho chip
+    void dinhDangChipUltraDark(Chip chip) {
+        if (chip == null) return;
+        chip.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#2F323C")));
+        chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#3E424E")));
+        chip.setChipStrokeWidth(getResources().getDisplayMetrics().density * 1);
+        chip.setTextColor(android.graphics.Color.parseColor("#FAFAFA"));
+        chip.setChipCornerRadius(getResources().getDisplayMetrics().density * 16);
+        chip.setChipIcon(null);
+    }
+
+    // Loc va sap xep chip dong vao ChipGroup theo tags va ngon ngu OCR
+    void capNhatDanhSachChipGoiY() {
+        if (chipGroupAi == null) return;
+
+        chipGroupAi.removeAllViews();
+
+        String tags = (document != null && document.tags != null) ? document.tags : "";
+        String ocr = (document != null && document.ocrText != null) ? document.ocrText : "";
+        boolean laNgoaiNgu = kiemTraNgoaiNgu(ocr);
+
+        ArrayList<Chip> danhSachChip = new ArrayList<>();
+
+        if (tags.contains(DocumentClassifierHelper.TAG_HOC_TAP)) {
+            if (laNgoaiNgu) {
+                // Nhãn #Tài liệu học tập (Văn bản ngoại ngữ)
+                danhSachChip.add(chipDichTV);
+                danhSachChip.add(chipTomTat);
+                danhSachChip.add(chipTracNghiem);
+                danhSachChip.add(chipTuVung);
+                danhSachChip.add(chipBanDoTuDuy);
             } else {
-                chipTracNghiem.setVisibility(View.GONE);
+                // Nhãn #Tài liệu học tập (Văn bản tiếng Việt)
+                danhSachChip.add(chipTomTat);
+                danhSachChip.add(chipTracNghiem);
+                danhSachChip.add(chipBanDoTuDuy);
+                danhSachChip.add(chipTrichXuat);
+            }
+        } else if (tags.contains(DocumentClassifierHelper.TAG_SO_LIEU)) {
+            // Nhãn #Tài liệu số liệu
+            danhSachChip.add(chipSoLieu);
+            danhSachChip.add(chipTomTat);
+            danhSachChip.add(chipTrichXuat);
+        } else if (tags.contains(DocumentClassifierHelper.TAG_GIAY_TO) || tags.contains(DocumentClassifierHelper.TAG_HOA_DON)) {
+            // Nhãn #Giấy tờ cá nhân hoặc #Hóa đơn
+            danhSachChip.add(chipTrichXuat);
+            danhSachChip.add(chipTomTat);
+            danhSachChip.add(chipDichTV);
+        } else {
+            // Các nhãn khác (Mặc định)
+            danhSachChip.add(chipTomTat);
+            danhSachChip.add(chipTrichXuat);
+            danhSachChip.add(chipDichTV);
+        }
+
+        for (Chip c : danhSachChip) {
+            if (c != null) {
+                dinhDangChipUltraDark(c);
+                c.setVisibility(View.VISIBLE);
+                chipGroupAi.addView(c);
             }
         }
     }
 
-    // Dialog lua chon phan loai nhanh hoac goi Gemini AI chuyen sau
+    // Dialog lua chon phan loai nhanh hoac goi Gemini AI chuyen sau (Custom Dialog)
     void hienDialogChonTag() {
         if (document == null) return;
-        final String[] danhSachLuaChon = {
-                "Phân loại chuyên sâu bằng Gemini AI",
-                DocumentClassifierHelper.TAG_HOA_DON,
-                DocumentClassifierHelper.TAG_GIAY_TO,
-                DocumentClassifierHelper.TAG_HOC_TAP,
-                DocumentClassifierHelper.TAG_SO_LIEU,
-                DocumentClassifierHelper.TAG_KHAC
-        };
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Phân loại tài liệu")
-                .setItems(danhSachLuaChon, new android.content.DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(android.content.DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            goiAiPhanLoaiChuyenSau();
-                        } else {
-                            capNhatTagThuCong(danhSachLuaChon[which]);
-                        }
-                    }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+        final Dialog dialog = DialogHelper.taoDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_phan_loai, null);
+        dialog.setContentView(view);
+
+        ImageView btnDongDialog = (ImageView) view.findViewById(R.id.btnDongDialog);
+        LinearLayout itemPhanLoaiAi = (LinearLayout) view.findViewById(R.id.itemPhanLoaiAi);
+        LinearLayout itemHoaDon = (LinearLayout) view.findViewById(R.id.itemHoaDon);
+        LinearLayout itemGiayTo = (LinearLayout) view.findViewById(R.id.itemGiayTo);
+        LinearLayout itemHocTap = (LinearLayout) view.findViewById(R.id.itemHocTap);
+        LinearLayout itemSoLieu = (LinearLayout) view.findViewById(R.id.itemSoLieu);
+        LinearLayout itemKhac = (LinearLayout) view.findViewById(R.id.itemKhac);
+
+        ImageView imgCheckHoaDon = (ImageView) view.findViewById(R.id.imgCheckHoaDon);
+        ImageView imgCheckGiayTo = (ImageView) view.findViewById(R.id.imgCheckGiayTo);
+        ImageView imgCheckHocTap = (ImageView) view.findViewById(R.id.imgCheckHocTap);
+        ImageView imgCheckSoLieu = (ImageView) view.findViewById(R.id.imgCheckSoLieu);
+        ImageView imgCheckKhac = (ImageView) view.findViewById(R.id.imgCheckKhac);
+
+        // Hien thi dau tich check cho nhom hien tai cua tai lieu
+        String tagHienTai = document.tags != null ? document.tags : "";
+        if (tagHienTai.contains(DocumentClassifierHelper.TAG_HOA_DON)) {
+            imgCheckHoaDon.setVisibility(View.VISIBLE);
+        } else if (tagHienTai.contains(DocumentClassifierHelper.TAG_GIAY_TO)) {
+            imgCheckGiayTo.setVisibility(View.VISIBLE);
+        } else if (tagHienTai.contains(DocumentClassifierHelper.TAG_HOC_TAP)) {
+            imgCheckHocTap.setVisibility(View.VISIBLE);
+        } else if (tagHienTai.contains(DocumentClassifierHelper.TAG_SO_LIEU)) {
+            imgCheckSoLieu.setVisibility(View.VISIBLE);
+        } else if (tagHienTai.contains(DocumentClassifierHelper.TAG_KHAC)) {
+            imgCheckKhac.setVisibility(View.VISIBLE);
+        }
+
+        if (btnDongDialog != null) {
+            btnDongDialog.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+        }
+
+        itemPhanLoaiAi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                goiAiPhanLoaiChuyenSau();
+            }
+        });
+
+        itemHoaDon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatTagThuCong(DocumentClassifierHelper.TAG_HOA_DON);
+            }
+        });
+
+        itemGiayTo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatTagThuCong(DocumentClassifierHelper.TAG_GIAY_TO);
+            }
+        });
+
+        itemHocTap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatTagThuCong(DocumentClassifierHelper.TAG_HOC_TAP);
+            }
+        });
+
+        itemSoLieu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatTagThuCong(DocumentClassifierHelper.TAG_SO_LIEU);
+            }
+        });
+
+        itemKhac.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                capNhatTagThuCong(DocumentClassifierHelper.TAG_KHAC);
+            }
+        });
+
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.90f),
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
     }
 
     void capNhatTagThuCong(final String tagMoi) {

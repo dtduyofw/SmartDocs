@@ -458,10 +458,25 @@
             android:paddingTop="6dp"
             android:paddingBottom="4dp">
 
-            <LinearLayout
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupAi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                app:singleLine="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDichTV"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dịch sang tiếng Việt"
+                    android:textSize="12sp"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
+                    app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp"
+                    android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipTomTat"
@@ -470,23 +485,11 @@
                     android:layout_height="wrap_content"
                     android:text="Tóm tắt"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
                     app:chipStrokeWidth="1dp"
-                    android:layout_marginEnd="6dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipDichTV"
-                    style="@style/Widget.MaterialComponents.Chip.Action"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Dịch TV"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
-                    app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp"
                     android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
@@ -494,25 +497,27 @@
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trích xuất"
+                    android:text="Trích xuất thông tin chính"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
                     app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp"
                     android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPhanLoaiAi"
+                    android:id="@+id/chipTracNghiem"
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Phân loại Tài liệu"
+                    android:text="Trắc nghiệm ôn tập"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
                     app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp"
                     android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
@@ -522,39 +527,25 @@
                     android:layout_height="wrap_content"
                     android:text="Bản đồ tư duy"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
                     app:chipStrokeWidth="1dp"
-                    android:layout_marginEnd="6dp"
-                    android:visibility="gone" />
+                    app:chipCornerRadius="16dp"
+                    android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipTracNghiem"
+                    android:id="@+id/chipTuVung"
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trắc nghiệm ôn tập"
+                    android:text="Từ vựng trọng tâm"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
                     app:chipStrokeWidth="1dp"
-                    android:layout_marginEnd="6dp"
-                    android:visibility="gone" />
-
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipNoiDungChinh"
-                    style="@style/Widget.MaterialComponents.Chip.Action"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nội dung chính?"
-                    android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
-                    app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp"
                     android:layout_marginEnd="6dp" />
 
                 <com.google.android.material.chip.Chip
@@ -562,14 +553,15 @@
                     style="@style/Widget.MaterialComponents.Chip.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Số liệu"
+                    android:text="Phân tích số liệu"
                     android:textSize="12sp"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/surface"
-                    app:chipStrokeColor="@color/divider"
-                    app:chipStrokeWidth="1dp" />
+                    android:textColor="@color/chip_text_dark"
+                    app:chipBackgroundColor="@color/chip_bg_dark"
+                    app:chipStrokeColor="@color/chip_stroke_dark"
+                    app:chipStrokeWidth="1dp"
+                    app:chipCornerRadius="16dp" />
 
-            </LinearLayout>
+            </com.google.android.material.chip.ChipGroup>
 
         </HorizontalScrollView>
 

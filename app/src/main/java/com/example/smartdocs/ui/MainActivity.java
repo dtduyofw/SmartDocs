@@ -1,5 +1,6 @@
 package com.example.smartdocs.ui;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -57,9 +58,8 @@ public class MainActivity extends AppCompatActivity {
     Fragment activeFragment;
     String activeTag = "HOME";
 
-    // Khoa sinh trac hoc bao ve app
-    LinearLayout layoutBiometricLock;
-    com.google.android.material.button.MaterialButton btnXacThucSinhTrac, btnThoatApp;
+    // Khoa sinh trac hoc bao ve app bang custom dialog
+    Dialog dialogVanTay;
     boolean daXacThucSinhTrac = false;
 
     @Override
@@ -138,14 +138,33 @@ public class MainActivity extends AppCompatActivity {
         layoutDrawerAi = (LinearLayout) findViewById(R.id.layoutDrawerAi);
         layoutDrawerShare = (LinearLayout) findViewById(R.id.layoutDrawerShare);
         layoutDrawerLogout = (LinearLayout) findViewById(R.id.layoutDrawerLogout);
+    }
 
-        // Khoa sinh trac hoc
-        layoutBiometricLock = (LinearLayout) findViewById(R.id.layoutBiometricLock);
-        btnXacThucSinhTrac = (com.google.android.material.button.MaterialButton) findViewById(R.id.btnXacThucSinhTrac);
-        btnThoatApp = (com.google.android.material.button.MaterialButton) findViewById(R.id.btnThoatApp);
+    // Kiem tra va hien thi custom dialog mo khoa sinh trac hoc tren trang chu
+    void kiemTraKhoaSinhTracHoc() {
+        if (BiometricHelper.daBatSinhTracHoc(this) && !daXacThucSinhTrac) {
+            hienDialogVanTay();
+        }
+    }
 
-        if (btnXacThucSinhTrac != null) {
-            btnXacThucSinhTrac.setOnClickListener(new View.OnClickListener() {
+    void hienDialogVanTay() {
+        if (dialogVanTay != null && dialogVanTay.isShowing()) {
+            return;
+        }
+
+        dialogVanTay = DialogHelper.taoDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_van_tay, null);
+        dialogVanTay.setContentView(view);
+        dialogVanTay.setCancelable(false);
+        dialogVanTay.setCanceledOnTouchOutside(false);
+
+        com.google.android.material.button.MaterialButton btnMoKhoa =
+                (com.google.android.material.button.MaterialButton) view.findViewById(R.id.btnMoKhoaVanTay);
+        com.google.android.material.button.MaterialButton btnThoat =
+                (com.google.android.material.button.MaterialButton) view.findViewById(R.id.btnThoatApp);
+
+        if (btnMoKhoa != null) {
+            btnMoKhoa.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     yeuCauXacThucSinhTrac();
@@ -153,25 +172,25 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        if (btnThoatApp != null) {
-            btnThoatApp.setOnClickListener(new View.OnClickListener() {
+        if (btnThoat != null) {
+            btnThoat.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     finishAffinity();
                 }
             });
         }
-    }
 
-    void kiemTraKhoaSinhTracHoc() {
-        if (layoutBiometricLock == null) return;
-
-        if (BiometricHelper.daBatSinhTracHoc(this) && !daXacThucSinhTrac) {
-            layoutBiometricLock.setVisibility(View.VISIBLE);
-            yeuCauXacThucSinhTrac();
-        } else {
-            layoutBiometricLock.setVisibility(View.GONE);
+        dialogVanTay.show();
+        if (dialogVanTay.getWindow() != null) {
+            dialogVanTay.getWindow().setLayout(
+                    (int) (getResources().getDisplayMetrics().widthPixels * 0.88f),
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
         }
+
+        // Tu dong goi sensor xac thuc sinh trac hoc cua he thong
+        yeuCauXacThucSinhTrac();
     }
 
     void yeuCauXacThucSinhTrac() {
@@ -179,8 +198,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 daXacThucSinhTrac = true;
-                if (layoutBiometricLock != null) {
-                    layoutBiometricLock.setVisibility(View.GONE);
+                if (dialogVanTay != null && dialogVanTay.isShowing()) {
+                    dialogVanTay.dismiss();
                 }
                 Toast.makeText(MainActivity.this, "Đã mở khóa thành công", Toast.LENGTH_SHORT).show();
             }
@@ -192,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancel() {
-                // Nguoi dung bam huy, giu nguyen man hinh khoa bao ve du lieu
+                // Nguoi dung huy xac thuc, giu nguyen dialog khoa tren trang chu de bao ve du lieu
             }
         });
     }
@@ -568,6 +587,15 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (dialogVanTay != null && dialogVanTay.isShowing()) {
+            dialogVanTay.dismiss();
+            dialogVanTay = null;
+        }
+        super.onDestroy();
     }
 }
 

@@ -103,6 +103,16 @@ public class GeminiRepository {
         extractKeyInfo(null, ocrText, callback);
     }
 
+    // Trich xuat tu vung va thuat ngu trong tam tu tai lieu
+    public void extractVocabulary(String apiKey, String ocrText, GeminiCallback callback) {
+        String prompt = buildVocabularyPrompt(ocrText);
+        callGeminiApi(apiKey, prompt, callback);
+    }
+
+    public void extractVocabulary(String ocrText, GeminiCallback callback) {
+        extractVocabulary(null, ocrText, callback);
+    }
+
     //Smart Q&A: Gửi câu hỏi về tài liệu lên Gemini.
     public void askQuestion(String apiKey, String ocrText, String cauHoi, String chatHistory, GeminiCallback callback) {
         String prompt = buildQuestionPrompt(ocrText, cauHoi, chatHistory);
@@ -203,26 +213,45 @@ public class GeminiRepository {
                 + "Chỉ trả lời phần tóm tắt, không cần giải thích thêm.";
     }
 
-    //Xây dựng prompt dịch thuật — dịch toàn bộ văn bản sang tiếng Việt.
+    // Xay dung prompt dich thuat sang tieng Viet
     String buildTranslatePrompt(String ocrText) {
-        return "Dịch toàn bộ văn bản sau sang tiếng Việt, giữ nguyên cấu trúc và định dạng:\n\n"
+        return "Bạn là chuyên gia dịch thuật tài liệu.\n"
+                + "Nhiệm vụ: Dịch toàn bộ văn bản OCR sau sang tiếng Việt một cách tự nhiên, mạch lạc, giữ nguyên thuật ngữ chuyên ngành quan trọng trong ngoặc đơn và trình bày rõ ràng theo bố cục gốc của tài liệu:\n\n"
+                + "---\n"
                 + ocrText
-                + "\n\nChỉ trả về bản dịch, không thêm chú thích.";
+                + "\n---\n\n"
+                + "Chỉ trả về bản dịch hoàn chỉnh bằng tiếng Việt, không thêm lời dẫn giải hay chú thích ngoài lề.";
     }
 
-
-    //Xây dựng prompt trích xuất thông tin quan trọng từ tài liệu.
-
+    // Xay dung prompt trich xuat thong tin cot loi tu tai lieu
     String buildExtractPrompt(String ocrText) {
-        return "Từ văn bản OCR sau, hãy trích xuất các thông tin quan trọng:\n\n"
+        return "Bạn là trợ lý trích xuất dữ liệu tài liệu thông minh.\n"
+                + "Nhiệm vụ: Từ văn bản OCR sau đây, hãy bóc tách toàn bộ các trường dữ liệu cốt lõi có trong tài liệu (họ tên, ngày tháng, mã số, địa chỉ, đơn vị cấp, số tiền, điều khoản chính...) thành từng dòng gạch đầu dòng ngắn gọn để người dùng dễ sao chép:\n\n"
+                + "---\n"
                 + ocrText
-                + "\n\nHãy liệt kê dạng bullet points các thông tin chính như:\n"
-                + "- Tên/Tiêu đề\n"
-                + "- Ngày tháng\n"
-                + "- Số điện thoại, email, địa chỉ\n"
-                + "- Số tiền, mã số\n"
-                + "- Các thông tin quan trọng khác\n\n"
-                + "Chỉ liệt kê những thông tin thực sự có trong văn bản.";
+                + "\n---\n\n"
+                + "Quy tắc:\n"
+                + "- Liệt kê rõ ràng từng mục dạng gạch đầu dòng ngắn gọn, súc tích.\n"
+                + "- Chỉ trích xuất các thông tin thực tế xuất hiện trong văn bản.\n"
+                + "- Không thêm nhận xét hay lời dẫn giải ngoài lề.";
+    }
+
+    // Xay dung prompt loc tu vung trong tam
+    String buildVocabularyPrompt(String ocrText) {
+        return "Bạn là trợ lý học tập và giảng viên ngôn ngữ thông minh.\n"
+                + "Nhiệm vụ: Hãy đọc kỹ văn bản tài liệu sau và lọc ra 8-12 từ vựng ngoại ngữ hoặc thuật ngữ chuyên ngành quan trọng nhất trong tài liệu.\n\n"
+                + "Định dạng trình bày cho mỗi mục gồm:\n"
+                + "- Từ/Thuật ngữ: [Từ gốc]\n"
+                + "- Loại từ / Phiên âm: [Loại từ hoặc phiên âm nếu có]\n"
+                + "- Nghĩa tiếng Việt: [Nghĩa chuẩn xác]\n"
+                + "- Ví dụ ngắn: [Câu ví dụ ngắn bám sát ngữ cảnh bài đọc kèm dịch nghĩa]\n\n"
+                + "Quy tắc:\n"
+                + "- Bám sát đúng nội dung tài liệu bên dưới.\n"
+                + "- Trình bày danh sách rõ ràng, dễ đọc, không thêm lời dẫn giải mở đầu hay kết thúc.\n\n"
+                + "Nội dung tài liệu:\n"
+                + "---\n"
+                + ocrText
+                + "\n---";
     }
 
     /*

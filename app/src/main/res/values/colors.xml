@@ -65,4 +65,9 @@
     <color name="setting_tag_badge_bg">#35353C</color>
     <color name="setting_tag_badge_text">#A1A1AA</color>
     <color name="setting_progress_bg">#35353C</color>
+
+    <!-- Chip goi y AI Ultra-Dark Minimalist -->
+    <color name="chip_bg_dark">#2F323C</color>
+    <color name="chip_stroke_dark">#3E424E</color>
+    <color name="chip_text_dark">#FAFAFA</color>
 </resources>
