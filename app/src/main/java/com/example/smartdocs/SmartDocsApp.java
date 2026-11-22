@@ -2,7 +2,7 @@ package com.example.smartdocs;
 
 import android.app.Application;
 
-import com.example.smartdocs.ui.SettingsFragment;
+import com.example.smartdocs.ui.main.SettingsFragment;
 
 public class SmartDocsApp extends Application {
     @Override

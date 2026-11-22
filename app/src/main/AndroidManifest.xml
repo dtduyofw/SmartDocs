@@ -41,7 +41,7 @@
             android:value="ocr" />
         <!-- MainActivity: Màn hình chính chụp ảnh và scan -->
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -51,54 +51,54 @@
         </activity>
         <!-- DocumentPreviewActivity: màn hình xem chi tiết tài liệu đã trích xuất -->
         <activity
-            android:name=".ui.DocumentPreviewActivity"
+            android:name=".ui.document.DocumentPreviewActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".ui.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity" />
         <!-- BanDoTuDuyActivity: man hinh truc quan hoa ban do tu duy 4 tang -->
         <activity
-            android:name=".ui.BanDoTuDuyActivity"
+            android:name=".ui.document.BanDoTuDuyActivity"
             android:exported="false"
-            android:parentActivityName=".ui.DocumentPreviewActivity" />
+            android:parentActivityName=".ui.document.DocumentPreviewActivity" />
         <!-- ImagePreviewActivity: man hinh xem anh va crop truoc khi OCR -->
         <activity
-            android:name=".ui.ImagePreviewActivity"
+            android:name=".ui.document.ImagePreviewActivity"
             android:exported="false"
-            android:parentActivityName=".ui.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity" />
         <!-- DangNhapActivity: man hinh dang nhap / dang ky thay the dialog -->
         <activity
-            android:name=".ui.DangNhapActivity"
+            android:name=".ui.auth.DangNhapActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".ui.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity" />
         <!-- ProfileActivity: man hinh ho so ca nhan va quan ly tai khoan -->
         <activity
-            android:name=".ui.ProfileActivity"
+            android:name=".ui.auth.ProfileActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".ui.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity" />
         <!-- QLGiayToActivity: man hinh so hoa va quan ly giay to ca nhan -->
         <activity
-            android:name=".ui.QLGiayToActivity"
+            android:name=".ui.vault.QLGiayToActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".ui.MainActivity" />
+            android:parentActivityName=".ui.main.MainActivity" />
         <!-- ChiTietGiayToActivity: man hinh chi tiet giay to ca nhan -->
         <activity
-            android:name=".ui.ChiTietGiayToActivity"
+            android:name=".ui.vault.ChiTietGiayToActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".ui.QLGiayToActivity" />
+            android:parentActivityName=".ui.vault.QLGiayToActivity" />
         <!-- XemAnhActivity: man hinh xem anh giay to toan man hinh -->
         <activity
-            android:name=".ui.XemAnhActivity"
+            android:name=".ui.document.XemAnhActivity"
             android:exported="false"
-            android:parentActivityName=".ui.ChiTietGiayToActivity" />
+            android:parentActivityName=".ui.vault.ChiTietGiayToActivity" />
         <!-- QuetQrCccdActivity: man hinh quet ma QR tren the CCCD -->
         <activity
-            android:name=".ui.QuetQrCccdActivity"
+            android:name=".ui.vault.QuetQrCccdActivity"
             android:exported="false"
-            android:parentActivityName=".ui.QLGiayToActivity" />
+            android:parentActivityName=".ui.vault.QLGiayToActivity" />
         <!--
             FileProvider: bắt buộc cho Android 7+ khi truyền URI ảnh Camera
             cho Intent chụp ảnh (ACTION_IMAGE_CAPTURE).

@@ -8,12 +8,13 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.smartdocs.data.account.QLTaiKhoan;
 import com.example.smartdocs.data.model.DocumentPage;
 import com.example.smartdocs.data.model.ScanDocument;
 import com.example.smartdocs.data.repository.DocumentRepository;
 import com.example.smartdocs.api.GeminiRepository;
 import com.example.smartdocs.ocr.DocumentClassifierHelper;
-import com.example.smartdocs.ui.SettingsFragment;
+import com.example.smartdocs.ui.main.SettingsFragment;
 import com.example.smartdocs.ui.adapter.DocumentAdapter;
 
 import java.util.List;
@@ -155,7 +156,7 @@ public class DocumentViewModel extends AndroidViewModel {
         GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {
             @Override
             public void onSuccess(String textDaSua) {
-                com.example.smartdocs.data.QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
+                QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
                 ocrResult.setValue(textDaSua.trim());
                 saveCurrentDocument();
             }
@@ -183,7 +184,7 @@ public class DocumentViewModel extends AndroidViewModel {
         GeminiRepository.getInstance().correctOcrText(SettingsFragment.getApiKey(getApplication()), textThoMlKit, new GeminiRepository.GeminiCallback() {
             @Override
             public void onSuccess(String textDaSua) {
-                com.example.smartdocs.data.QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
+                QLTaiKhoan.getInstance(getApplication()).truMotLuotAi();
                 ocrResult.setValue(textDaSua.trim());
                 saveDocumentWithPages(textDaSua.trim(), null, pages, firstImageUri);
             }

@@ -100,7 +100,7 @@
             android:adjustViewBounds="true" />
 
         <!-- Overlay cho phép kéo 4 góc, 4 cạnh và di chuyển khung cắt -->
-        <com.example.smartdocs.ui.CropOverlayView
+        <com.example.smartdocs.ui.widget.CropOverlayView
             android:id="@+id/cropOverlayView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
